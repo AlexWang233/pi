@@ -3,21 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
   <title>Collaborative Durable</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/app.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Collaborative Durable</h1>
-    <p>One shared workspace. Independent agent conversations.</p>
-    <form id="login">
-      <label for="token">Your access token</label>
-      <input id="token" type="password" required autocomplete="off">
-      <button>Connect</button>
-    </form>
-    <p id="status" role="status">Enter the token supplied by the host. It stays in this page's memory.</p>
-  </header>
-  <main id="lanes"></main>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Workspace navigation">
+      <a class="brand" href="/" aria-label="Collaborative Durable home">
+        <span class="brand-mark" aria-hidden="true">pi</span>
+        <span>Durable <span class="brand-secondary">/ collaborate</span></span>
+      </a>
+      <div class="sidebar-content">
+        <div class="section-label">WORKSPACES <span id="workspace-count">0</span></div>
+        <nav id="workspace-nav" aria-label="Workspaces"><p class="sidebar-empty">Your shared workspaces will appear here.</p></nav>
+        <div class="section-label members-label">MEMBERS</div>
+        <div id="member-list"><p class="sidebar-empty">Connect to see thread members.</p></div>
+      </div>
+      <div class="session-panel">
+        <div class="session-heading"><span class="avatar" id="session-avatar" aria-hidden="true">?</span><div><strong id="session-name">Not connected</strong><span class="session-caption">Workspace access</span></div></div>
+        <form id="login">
+          <label for="token">Access token</label>
+          <div class="token-control"><input id="token" type="password" required autocomplete="off" placeholder="Paste your token" spellcheck="false"><button type="submit" class="connect-button">Connect</button></div>
+        </form>
+        <details class="preview-help"><summary>Trying the local preview?</summary><p>Use <code>preview-alice</code>, <code>preview-bob</code>, or <code>preview-carol</code> on the preview host. Agents are simulated; files are real.</p></details>
+        <p class="privacy-note">Your token stays in this page's memory.</p>
+      </div>
+    </aside>
+    <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Close workspace navigation" hidden></button>
+    <div class="main-shell">
+      <header class="topbar">
+        <button id="sidebar-toggle" class="subtle-button sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="false">Workspace &amp; sign in</button>
+        <div class="breadcrumb"><span>Workspaces</span><span aria-hidden="true">/</span><strong id="workspace-title">Overview</strong></div>
+        <span class="environment-badge" id="environment-badge">Local workspace</span>
+      </header>
+      <div class="connection-strip"><span class="status-dot" aria-hidden="true"></span><p id="status" role="status">Connect to follow your shared agent conversations.</p></div>
+      <main class="main-content" aria-label="Shared agent workspace">
+        <div class="welcome" id="welcome">
+          <span class="welcome-mark" aria-hidden="true">&gt;_</span>
+          <span class="eyebrow">COLLABORATIVE DURABLE</span>
+          <h1>One workspace.<br>Every agent in view.</h1>
+          <p>Talk to shared coding agents, follow your team's work, and keep separate conversations in the same workspace.</p>
+          <button id="open-login" class="primary-button" type="button">Connect to a workspace <span aria-hidden="true">→</span></button>
+          <div class="welcome-features"><span>Attributed messages</span><span>Shared files</span><span>Independent agent queues</span></div>
+        </div>
+        <div id="lanes" hidden></div>
+      </main>
+    </div>
+  </div>
 </body>
 </html>

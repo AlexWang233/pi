@@ -7,6 +7,7 @@ export async function loadAssets(): Promise<Map<string, { contentType: string; b
 	for (const [path, file, contentType] of [
 		["/", "../web/index.html", "text/html; charset=utf-8"],
 		["/style.css", "../web/style.css", "text/css; charset=utf-8"],
+		["/favicon.svg", "../web/favicon.svg", "image/svg+xml"],
 		["/app.js", "../dist/web/app.js", "text/javascript; charset=utf-8"],
 		["/stream.js", "../dist/web/stream.js", "text/javascript; charset=utf-8"],
 	] as const)

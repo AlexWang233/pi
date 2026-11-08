@@ -16,7 +16,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | Thread membership/admission | Implemented and tested | Atomic attributed admission, scoped retries/conflicts, capacity, peer visibility, fixed configuration/reopen |
 | External execution/recovery | First slice implemented | Ordinary Durable tasks, predecessor ordering, deadlines, stop/cleanup, explicit interrupted outcome on active close/reopen |
 | Views/stop/limits | First slice implemented | Bounded projections/disposal; live demo caps native shells at 60 seconds; total resource budgets and richer tool views remain |
-| Thin demo | Implemented; deterministic transport verified | [Runbook](apps/collab-demo/README.md), authenticated HTTP/SSE, shared watch fanout, browser client, key-free preview; browser walkthrough/live model turns pending |
+| Thin demo | Implemented; deterministic transport and browser smoke verified | [Runbook](apps/collab-demo/README.md), authenticated HTTP/SSE, shared watch fanout, responsive browser client, key-free preview; live model turns remain pending |
 | GCP live deployment | Not implemented | Authentication/project access not established by environment installation |
 | Load/failure report | Not implemented | No performance claims yet |
 
@@ -41,6 +41,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | D15 | One shared watch per lane with bounded, coalesced SSE snapshots | Viewer count does not multiply package watches; intermediate progress may be skipped, reconnect fetches current state, no durable event cursor |
 | D16 | Demonstrate three users sharing two agents, with all six user/agent pairs | M:N describes shared agent identities/history/queues, not private agent copies or per-agent permissions; matrix shows access, not online presence |
 | D17 | Expose shared-file conflicts rather than imply queues solve them | Controlled test reproduces a lost update despite two completed commands. Whole-turn workspace ownership or coordinated file-version checks remain optional future protections |
+| D18 | Use T3's compact navigation/chat hierarchy as visual reference, with original DOM/CSS | Workspace/member sidebar, simultaneous desktop agent panels, attributed messages, separate activity and composers; no React/Tailwind/UI dependencies or copied T3 components |
 
 ## Implemented entry points and examples
 
@@ -65,7 +66,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | I5: Resource bounds | Package character bounds plus demo body/frame/socket/viewer limits; live native shells capped at 60 seconds. Not a total process-memory/spend limit | Measure large output, kernel/socket pressure, process limits, event-loop latency, and reconnect bursts |
 | I6: Write/read cost | One metadata document holds bounded receipts; views read recent command states on updates | Measure commit contention and projection overhead before optimizing |
 | I7: Exceptional task faults | Normal adapter/cleanup errors settle failed; scheduler-level faults outside that path need more coverage | Test restart-limit/orphaned tasks and reconcile command state with terminal task outcomes |
-| I8: UI and tool fidelity | Browser now shows an M:N access matrix; served assets and HTTP paths tested, browser clicks not yet verified. Text/progress only, no rich Codex tool summaries | Run a three-profile walkthrough; test live agent turns and add tool presentation only as needed |
+| I8: UI and tool fidelity | Responsive UI and three identities exercised in ad-hoc headless Chrome; desktop/mobile screenshots inspected. Text/progress only, no rich Codex tool summaries | Test live agent turns and a human presentation walkthrough; add richer tool presentation only as needed |
 | I9: Documentation | Standalone addendum describes implemented behavior; main normative spec/README not yet linked | Integrate the addendum after finalizing the API and full specification review |
 | I10: Install tooling | npm 10 removed existing `libc` lock metadata during refresh; original constraints were preserved | Keep lock diffs scoped; use a compatible newer npm for future refreshes or preserve those constraints again |
 | I11: Browser retry lifecycle | Ambiguous submit keeps its ID/text in page memory; reload/relogin/discard loses the local retry draft | Clearly demonstrate retry before reload; later persist a bounded receipt/draft ledger if required, keeping tokens out of storage |
@@ -90,8 +91,10 @@ The host-authenticated identity is a trust boundary: the library enforces member
 | November 8 | Demo `npm run check` and `npm run build` | Passed; separate app lint/type check and browser compilation |
 | November 8 | Four focused demo test files | **13 tests passed**: HTTP/auth/retry/limits, streaming/fanout/framing/stop, host configuration, and real shared-file writes through preview composition |
 | November 8 | M:N/concurrency follow-up, five focused demo files | **16 tests passed**; full root check, app check and browser build also passed. Adds six concurrent user/agent pairs, gated native same-agent ordering, and controlled cross-agent lost-update reproduction. Preview also checks both paths overwriting its shared target |
+| November 8 | Frontend browser verification | Ad-hoc Chrome **156.0.8078.80** check passed with simulated providers: three identities, same-agent queue/peer attribution, both lane outcomes, reconnect without duplicate messages, stop, clear draft, history, literal rendering of HTML-like text, and mobile navigation/no page overflow. Desktop/mobile screenshots visually inspected |
+| November 8 | Final frontend checks | Full root `npm run check`, app check/build and all **16 demo tests** passed after the UI refinement; no new dependencies or paid calls |
 
-The earlier 86 include **13 package feature tests** and 73 affected native regression tests; the demo now has **16 separate tests** (13 initial plus 3 new), not repeated runs counted as new coverage. SQLite's existing experimental warning remains on Node 22. No full test suite or paid model call was run. Performance capacity and forced-crash results are still unmeasured. Browser modules were compiled/served in tests; browser clicks and visual layout remain unverified.
+The earlier 86 include **13 package feature tests** and 73 affected native regression tests; the demo has **16 separate tests** (13 initial plus 3 new), not repeated runs counted as new coverage. The later ad-hoc browser check is separate evidence, not a new permanent test suite. SQLite's existing experimental warning remains on Node 22. No full test suite or paid model call was run. Performance capacity and forced-crash results are still unmeasured.
 
 ## Presentation notes and expansion
 
@@ -111,4 +114,5 @@ The earlier 86 include **13 package feature tests** and 73 affected native regre
 - Root check initially caught an implicit-any local declaration; it was annotated and the complete check passed. Adapter cleanup failure handling was fixed and regression-tested so a failed close does not leave a command running indefinitely.
 - Demo increment started with a clean worktree. Its lock refresh adds only workspace/link metadata (15 lines), retaining all original platform constraints; no external dependencies or lifecycle scripts were added/run by the install command.
 - Documentation follow-up renamed the concurrency walkthrough to `PROBLEM_SCENARIOS.md` and expanded it into 37 scenarios with severity, current evidence and proposed protections. The original M:N walkthrough remains; this documentation change does not implement the proposed safeguards.
-- **Next implementation slice:** stronger external protocol/forced-crash coverage, browser walkthrough, real-provider smoke tests when privately configured, then measured load and GCP after local readiness. The overall assignment is not complete.
+- UI reference inspected locally: T3 `apps/web/src/components/sidebar/SidebarChrome.tsx`, shell layout and CSS tokens. Frontend authored in this repository. Browser verification used a disposable host/profile; local report/screenshots remain in ignored `.artifacts/`, with no real-provider calls or changes to the user's running preview.
+- **Next implementation slice:** stronger external protocol/forced-crash coverage, real-provider smoke tests when privately configured, a human demo walkthrough, then measured load and GCP after local readiness. The overall assignment is not complete.

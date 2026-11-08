@@ -5,6 +5,12 @@ receipts, admission, execution, ordering, recovery and observations. The server 
 tokens, wire validation, HTTP/SSE buffers and process lifetime. No additional framework or
 external dependencies were added.
 
+The interface uses a compact workspace/member sidebar, two agent conversations on desktop,
+attributed message cards, live state badges, command activity, and a composer for each agent.
+Open **Access & coordination** to inspect the M:N matrix and shared-file limitations. Small
+screens stack the conversations and provide a **Workspace & sign in** navigation drawer.
+Visual hierarchy was informed by T3 Code; this remains an original plain DOM/CSS frontend.
+
 ## Try without credentials
 
 Use the prepared repository tools. Workspace packages must already be built; after a fresh
@@ -17,6 +23,9 @@ From the repository root in PowerShell:
 Set-Location apps/collab-demo
 npm run preview
 ```
+
+After changing browser assets, restart the preview host and reload the page. The host loads
+assets into memory at startup; refreshing an already running host alone does not load a new build.
 
 Open **http://127.0.0.1:4311** in three browser profiles. Connect with `preview-alice`,
 `preview-bob`, and `preview-carol`. The access matrix shows all six user/agent pairs. These
@@ -133,7 +142,13 @@ reconnect, stop isolation, viewer limits, UTF-8/chunk framing, and actual shared
 Backpressure/coalescing is also checked with controlled response writes. The built browser
 modules are served by the end-to-end preview test; this is not an automated browser-click test.
 
-Still pending: two-profile browser walkthrough, real provider/Codex coding turns, forced-process
+A separate ad-hoc Chrome 156.0.8078.80 check executed the actual browser modules with Alice,
+Bob and Carol: shared messages/queues, reconnect without duplicate messages, stop, draft clearing,
+history, mobile sign-in and text-only rendering. Desktop (1440×960) and mobile (390×844)
+screenshots were inspected. Local evidence is under the ignored repository `.artifacts/`
+directory (`collab-ui-browser-check.json` and `collab-ui-*.png`); it is not part of the Vitest suite.
+
+Still pending: live provider/Codex coding turns, forced-process
 crash boundaries and cleanup, measured load/soak results, and GCP deployment. The current host
 is for a trusted local team, without public HTTPS, distributed ownership, rich tool rendering,
 or an approval UI. Track those separately in [the implementation record](../../TAKE_HOME_PROGRESS.md).
