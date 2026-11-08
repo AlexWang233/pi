@@ -144,5 +144,11 @@ more protocol error cases, and resumption tests remain future slices.
 
 Shared cwd is not security isolation or conflict prevention. Codex and shell writers bypass
 Pi's in-process edit/write queue. This prototype assumes trusted collaborators, one owner per
-store, and disposable repositories. GCP deployment, HTTP/UI, stress measurements, and hostile
+store, and disposable repositories. GCP deployment, stress measurements, and hostile
 tenant protection are not implemented by this slice.
+
+The separate [HTTP/browser demo](../../../apps/collab-demo/README.md) now hosts this package
+API with bearer authentication, bounded SSE fanout, and a minimal client. Its credential-free
+preview runs real Durable/tools with simulated provider/CLI I/O; the live composition uses
+SQLite, the four native provider factories, and optional Codex lanes. This does not establish
+live model, browser walkthrough, forced-crash, load, or GCP deployment evidence.

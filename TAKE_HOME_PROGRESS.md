@@ -1,6 +1,6 @@
 # Implementation record
 
-**Last updated:** November 8, 2026. **Status:** first package slice implemented and verified; no Git commits created.
+**Last updated:** November 8, 2026. **Status:** package slice and first HTTP/browser demo implemented; live integration, stronger recovery, load, and deployment evidence remain. No commits created by the assistant in the demo increment.
 
 ## Current scope
 
@@ -15,8 +15,8 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | T3-backed Codex adapter | Implemented; partially live-verified | Actual typed client/protocol/replay reused; real CLI initialization succeeds, no real model turn yet |
 | Thread membership/admission | Implemented and tested | Atomic attributed admission, scoped retries/conflicts, capacity, peer visibility, fixed configuration/reopen |
 | External execution/recovery | First slice implemented | Ordinary Durable tasks, predecessor ordering, deadlines, stop/cleanup, explicit interrupted outcome on active close/reopen |
-| Views/stop/limits | First slice implemented | Bounded text projections and observation disposal; native shell budgets and richer tool views remain |
-| Thin demo | Not implemented | No server/UI changes yet |
+| Views/stop/limits | First slice implemented | Bounded projections/disposal; live demo caps native shells at 60 seconds; total resource budgets and richer tool views remain |
+| Thin demo | Implemented; deterministic transport verified | [Runbook](apps/collab-demo/README.md), authenticated HTTP/SSE, shared watch fanout, browser client, key-free preview; browser walkthrough/live model turns pending |
 | GCP live deployment | Not implemented | Authentication/project access not established by environment installation |
 | Load/failure report | Not implemented | No performance claims yet |
 
@@ -36,6 +36,9 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | D10 | Native failed-run queue policy remains a Harness setting | Example configures `afterFailedRun: "withdraw"`; external queued successors stop after predecessor failure |
 | D11 | Native Pi supports OpenAI/GPT, Anthropic/Claude, Google/Gemini, and DeepSeek through existing Pi AI factories; Codex remains a separate harness | Register all four without requiring all keys; choose provider/model per agent. Only OpenAI credentials are planned now; other live checks are deferred |
 | D12 | Defer GCP until the local feature is ready | Continue local implementation and verification without provisioning cloud resources |
+| D13 | Use Node HTTP and plain browser modules; reuse package APIs directly | No additional external dependencies or application execution queue; demo has a separate check/build configuration |
+| D14 | Keep simulated preview and live host as separate compositions | Preview proves real Durable/tools/transport without credentials; it is explicitly not real model/Codex evidence |
+| D15 | One shared watch per lane with bounded, coalesced SSE snapshots | Viewer count does not multiply package watches; intermediate progress may be skipped, reconnect fetches current state, no durable event cursor |
 
 ## Implemented entry points and examples
 
@@ -45,6 +48,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 - [39-codex-initialize.ts](packages/durable/test/examples/39-codex-initialize.ts): real CLI handshake/thread creation, **no model turn**.
 - [40-native-providers.ts](packages/durable/test/examples/40-native-providers.ts): registers all four native providers, lists local models, and explicitly opts into one selected live provider. Defaults to no paid calls; see [provider configuration](packages/durable/docs/collaboration.md#native-model-providers).
 - [Upstream provenance](packages/durable/src/adapters/codex/vendor/UPSTREAM.md): copied source/recording paths, revision, license, and fixture adaptations. Notices are copied into built output.
+- [Demo application](apps/collab-demo/README.md): `npm run preview` from its directory launches simulated agents on port 4311; `npm start` uses privately configured real providers/CLI on port 4310 with SQLite.
 
 ## Current risks and open checks
 
@@ -54,12 +58,13 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | I2: Protocol compatibility | Replay from Codex 0.156.1; local CLI 0.164.0-alpha.11.1 initializes | Test real turn, interrupt, continuation, malformed/unsupported events, and process exit |
 | I3: Recovery evidence | Active task close/reopen preserves dispatch marker and does not resend | Add forced child-process kill tests at precise crash boundaries and Linux process-tree checks |
 | I4: Shared files | No conflict prevention or hostile tenant isolation | Demonstrate conflicting edits; later hash-aware mutations/sandboxing if scope permits |
-| I5: Resource bounds | Character-limited progress/view previews and bounded receipts; not a total encoded-byte/process-memory limit | Measure large output, socket pressure, process limits, and event-loop latency; configure native shell timeouts |
+| I5: Resource bounds | Package character bounds plus demo body/frame/socket/viewer limits; live native shells capped at 60 seconds. Not a total process-memory/spend limit | Measure large output, kernel/socket pressure, process limits, event-loop latency, and reconnect bursts |
 | I6: Write/read cost | One metadata document holds bounded receipts; views read recent command states on updates | Measure commit contention and projection overhead before optimizing |
 | I7: Exceptional task faults | Normal adapter/cleanup errors settle failed; scheduler-level faults outside that path need more coverage | Test restart-limit/orphaned tasks and reconcile command state with terminal task outcomes |
-| I8: UI and tool fidelity | Package snapshots expose text/progress; no HTTP UI or rich Codex tool summaries yet | Implement thin demo and richer lifecycle presentation only as needed |
+| I8: UI and tool fidelity | Minimal browser now exists; served assets and HTTP paths tested, browser clicks not yet verified. Text/progress only, no rich Codex tool summaries | Run a two-profile walkthrough; test live agent turns and add tool presentation only as needed |
 | I9: Documentation | Standalone addendum describes implemented behavior; main normative spec/README not yet linked | Integrate the addendum after finalizing the API and full specification review |
 | I10: Install tooling | npm 10 removed existing `libc` lock metadata during refresh; original constraints were preserved | Keep lock diffs scoped; use a compatible newer npm for future refreshes or preserve those constraints again |
+| I11: Browser retry lifecycle | Ambiguous submit keeps its ID/text in page memory; reload/relogin/discard loses the local retry draft | Clearly demonstrate retry before reload; later persist a bounded receipt/draft ledger if required, keeping tokens out of storage |
 
 The host-authenticated identity is a trust boundary: the library enforces membership but does not authenticate arbitrary callers itself. Do not present direct library calls as a complete authentication system.
 
@@ -77,12 +82,16 @@ The host-authenticated identity is a trust boundary: the library enforces member
 | November 8 | Real example 39 / CLI probe | Passed with Codex 0.164.0-alpha.11.1; handshake/thread creation only, no model turn |
 | November 8 | Four-provider example 40 | No-run path passed; local catalogs loaded for OpenAI (44), Anthropic (17), Google (23), and DeepSeek (2). No network or paid turn |
 | November 8 | Provider-selection follow-up | Full `npm run check` passed; 13 collaboration/Codex tests passed again. Live OpenAI and multi-key checks remain deferred |
+| November 8 | HTTP/browser increment: full root `npm run check` | Passed; no package source changes needed for the transport |
+| November 8 | Demo `npm run check` and `npm run build` | Passed; separate app lint/type check and browser compilation |
+| November 8 | Four focused demo test files | **13 tests passed**: HTTP/auth/retry/limits, streaming/fanout/framing/stop, host configuration, and real shared-file writes through preview composition |
 
-The 86 include **13 new feature tests** and 73 affected native regression tests. SQLite's existing experimental warning remains on Node 22. No full test suite or paid model call was run. Capacity and forced-crash results are still unmeasured.
+The earlier 86 include **13 package feature tests** and 73 affected native regression tests; the demo adds **13 separate tests**, not another run counted as new coverage. SQLite's existing experimental warning remains on Node 22. No full test suite or paid model call was run. Performance capacity and forced-crash results are still unmeasured. Browser modules were compiled/served in tests; browser clicks and visual layout remain unverified.
 
 ## Presentation notes and expansion
 
 - Demonstrate package-owned admission first, then show the same behavior over HTTP.
+- Use preview's two simulated lanes to explain transport without conflating scripted responses with model intelligence. It writes two real files through native tools/external execution in the same disposable workspace.
 - Explain a lost-response retry and a crash between external effect and result commit; acceptance is not completed execution.
 - Separate measured evidence, manual live checks, and future proposals.
 - Later: more T3 harness adapters, verified native-thread continuation, approval UI, conflict-aware edits, enforced execution isolation, then exclusive workers across machines.
@@ -91,7 +100,8 @@ The 86 include **13 new feature tests** and 73 affected native regression tests.
 ## Session notes
 
 - Initial worktree was clean. Package plans and environment record are already present.
-- Code lives inside Durable; no demo-owned queue, separate runtime package, or application server was created.
+- Initial package work stayed inside Durable without a demo-owned queue or separate runtime package. The later `apps/collab-demo` increment adds only host composition, transport, and browser controls.
 - T3's required source closure and exact dependencies are integrated. Auto-resolved Redis peer packages are build/development dependencies of the Effect platform; no Redis service is required or used.
 - Root check initially caught an implicit-any local declaration; it was annotated and the complete check passed. Adapter cleanup failure handling was fixed and regression-tested so a failed close does not leave a command running indefinitely.
-- **Next implementation slice:** HTTP/SSE demo, real-provider smoke tests, stronger external protocol/crash coverage, then GCP and measured load. The overall assignment is not complete.
+- Demo increment started with a clean worktree. Its lock refresh adds only workspace/link metadata (15 lines), retaining all original platform constraints; no external dependencies or lifecycle scripts were added/run by the install command.
+- **Next implementation slice:** stronger external protocol/forced-crash coverage, browser walkthrough, real-provider smoke tests when privately configured, then measured load and GCP after local readiness. The overall assignment is not complete.

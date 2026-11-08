@@ -1,0 +1,18 @@
+:root { font-family: system-ui, sans-serif; color: #e4e9f2; background: #141923; color-scheme: dark; }
+body { max-width: 1400px; margin: auto; padding: 24px; }
+header { margin-bottom: 28px; }
+h1, h2 { margin-top: 0; }
+h1 { font-size: 26px; }
+h2 { font-size: 20px; }
+#lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; }
+section { background: #202837; border: 1px solid #40516c; border-radius: 8px; padding: 20px; min-width: 0; }
+label { display: block; margin-bottom: 8px; }
+input, textarea { padding: 10px; background: #101622; border: 1px solid #65748c; border-radius: 4px; }
+input { width: min(65%, 320px); }
+textarea { width: 100%; box-sizing: border-box; min-height: 90px; resize: vertical; }
+button { padding: 9px 13px; margin: 8px 8px 8px 0; border: 1px solid #7993b9; border-radius: 4px; cursor: pointer; }
+button:disabled { opacity: .6; cursor: default; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.6 ui-monospace, monospace; }
+.transcript { max-height: 400px; overflow-y: auto; border-block: 1px solid #40516c; padding-block: 12px; }
+.progress { color: #a5c6ff; max-height: 140px; overflow-y: auto; }
+.muted { color: #aebdd2; font-size: 13px; }

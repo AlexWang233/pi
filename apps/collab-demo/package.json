@@ -1,0 +1,21 @@
+{
+	"name": "collab-demo",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "tsc -p tsconfig.web.json",
+		"start": "npm run build && node --conditions=source --experimental-strip-types src/main.ts",
+		"preview": "npm run build && node --conditions=source --experimental-strip-types src/preview.ts",
+		"check": "node ../../scripts/biome-check.mjs && tsc --noEmit",
+		"format": "node ../../scripts/biome-check.mjs --write"
+	},
+	"dependencies": {
+		"@earendil-works/chord": "1.5.0",
+		"@earendil-works/pi-ai": "1.5.0",
+		"@earendil-works/pi-durable": "1.5.0"
+	},
+	"engines": {
+		"node": ">=22.19.0"
+	}
+}

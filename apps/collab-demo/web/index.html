@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collaborative Durable</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Collaborative Durable</h1>
+    <p>One shared workspace. Independent agent conversations.</p>
+    <form id="login">
+      <label for="token">Your access token</label>
+      <input id="token" type="password" required autocomplete="off">
+      <button>Connect</button>
+    </form>
+    <p id="status" role="status">Enter the token supplied by the host. It stays in this page's memory.</p>
+  </header>
+  <main id="lanes"></main>
+</body>
+</html>

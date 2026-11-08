@@ -1,0 +1,7 @@
+{
+	"members": [{ "id": "alice", "tokenEnv": "COLLAB_TOKEN_ALICE" }, { "id": "bob", "tokenEnv": "COLLAB_TOKEN_BOB" }],
+	"agents": [
+		{ "id": "pi", "kind": "native", "model": { "provider": "openai", "modelId": "REPLACE_WITH_CATALOG_MODEL_ID" } },
+		{ "id": "codex", "kind": "external", "driver": "codex" }
+	]
+}

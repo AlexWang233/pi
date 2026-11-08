@@ -1,0 +1,13 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"outDir": "dist/web",
+		"rootDir": "web",
+		"declaration": false,
+		"declarationMap": false,
+		"sourceMap": false,
+		"inlineSources": false
+	},
+	"include": ["web/**/*.ts"]
+}
