@@ -37,6 +37,7 @@
 			"!**/models.generated.ts",
 			"!**/*.models.ts",
 			"!packages/mom/data/**/*",
+			"!packages/durable/src/adapters/codex/vendor/**/*",
 			"!!**/node_modules",
 			"!!apps"
 		]

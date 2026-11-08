@@ -6,6 +6,18 @@
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
+		"./adapters/codex": {
+			"source": "./src/adapters/codex/index.ts",
+			"types": "./dist/adapters/codex/index.d.ts",
+			"import": "./dist/adapters/codex/index.js",
+			"default": "./dist/adapters/codex/index.js"
+		},
+		"./collaboration": {
+			"source": "./src/collaboration/index.ts",
+			"types": "./dist/collaboration/index.d.ts",
+			"import": "./dist/collaboration/index.js",
+			"default": "./dist/collaboration/index.js"
+		},
 		".": {
 			"source": "./src/index.ts",
 			"types": "./dist/index.d.ts",
@@ -124,7 +136,7 @@
 	],
 	"scripts": {
 		"clean": "node ../../scripts/package-files.mjs clean dist",
-		"build": "tsc -p tsconfig.build.json",
+		"build": "tsc -p tsconfig.build.json && node ../../scripts/package-files.mjs copy src/adapters/codex/vendor/LICENSE src/adapters/codex/vendor/UPSTREAM.md dist/adapters/codex/vendor",
 		"test": "vitest --run && PI_DURABLE_DOCUMENT_RETENTION_MS=0 vitest --run && npm run test:store && npm run test:workers",
 		"test:store": "vitest --run --config vitest.store.config.ts",
 		"test:workers": "vitest --run --config test-workers/vitest.config.ts",
@@ -167,8 +179,18 @@
 		"diff": "8.0.4"
 	},
 	"devDependencies": {
+		"@effect/platform-node": "4.1.2",
 		"@cloudflare/vitest-plugin": "1.4.10",
+		"effect": "4.1.2",
 		"fake-indexeddb": "6.2.6",
 		"vitest": "4.1.12"
+	},
+	"peerDependencies": {
+		"@effect/platform-node": "4.1.2",
+		"effect": "4.1.2"
+	},
+	"peerDependenciesMeta": {
+		"@effect/platform-node": { "optional": true },
+		"effect": { "optional": true }
 	}
 }
