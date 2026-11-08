@@ -31,7 +31,9 @@ or exercise Codex. It uses memory storage and removes the temporary directory on
 Ctrl+C stops the host. A forced termination may leave that directory behind.
 
 For an explicit M:N walkthrough, same-agent queue behavior, and reproduced shared-file conflicts,
-see [Users, agents, and conflicting work](CONCURRENCY.md). Both preview agents also accept
+see [Problem scenarios, current handling, and open risks](PROBLEM_SCENARIOS.md). It covers
+interaction, filesystem, recovery, security and operational failures, separating current
+evidence from proposed protections. Both preview agents also accept
 `shared: <replacement text>` to overwrite the same `shared-preview.txt`. This demonstrates
 the current absence of file-conflict protection; no merge or rollback is promised.
 

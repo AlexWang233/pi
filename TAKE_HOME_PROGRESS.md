@@ -51,7 +51,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 - [40-native-providers.ts](packages/durable/test/examples/40-native-providers.ts): registers all four native providers, lists local models, and explicitly opts into one selected live provider. Defaults to no paid calls; see [provider configuration](packages/durable/docs/collaboration.md#native-model-providers).
 - [Upstream provenance](packages/durable/src/adapters/codex/vendor/UPSTREAM.md): copied source/recording paths, revision, license, and fixture adaptations. Notices are copied into built output.
 - [Demo application](apps/collab-demo/README.md): `npm run preview` from its directory launches simulated agents on port 4311; `npm start` uses privately configured real providers/CLI on port 4310 with SQLite.
-- [Concurrency walkthrough](apps/collab-demo/CONCURRENCY.md): 3×2 relationship model, simultaneous same-agent instructions, cross-agent stale writes, failure policies, and protection options/trade-offs. Preview adds `preview-carol` and a `shared: ` command targeting the same file on either lane.
+- [Problem scenarios and risk register](apps/collab-demo/PROBLEM_SCENARIOS.md): severity, current handling/evidence and proposed MVP protections for interaction, shared files, transport, recovery, security, capacity and deployment; retains the 3×2 walkthrough and lost-update trace. Preview adds `preview-carol` and a `shared: ` command targeting the same file on either lane.
 
 ## Current risks and open checks
 
@@ -109,4 +109,5 @@ The earlier 86 include **13 package feature tests** and 73 affected native regre
 - T3's required source closure and exact dependencies are integrated. Auto-resolved Redis peer packages are build/development dependencies of the Effect platform; no Redis service is required or used.
 - Root check initially caught an implicit-any local declaration; it was annotated and the complete check passed. Adapter cleanup failure handling was fixed and regression-tested so a failed close does not leave a command running indefinitely.
 - Demo increment started with a clean worktree. Its lock refresh adds only workspace/link metadata (15 lines), retaining all original platform constraints; no external dependencies or lifecycle scripts were added/run by the install command.
+- Documentation follow-up renamed the concurrency walkthrough to `PROBLEM_SCENARIOS.md` and expanded it into 37 scenarios with severity, current evidence and proposed protections. The original M:N walkthrough remains; this documentation change does not implement the proposed safeguards.
 - **Next implementation slice:** stronger external protocol/forced-crash coverage, browser walkthrough, real-provider smoke tests when privately configured, then measured load and GCP after local readiness. The overall assignment is not complete.
