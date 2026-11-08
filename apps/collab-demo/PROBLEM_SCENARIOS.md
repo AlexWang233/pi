@@ -9,6 +9,10 @@ histories, and a shared filesystem within each thread. Native Pi, external Codex
 preview drivers have different capabilities. The preview is not live-provider evidence.
 Assessment reflects the implementation record dated November 8, 2026.
 
+See [Proposed coordination and conflict resolution](CONFLICT_RESOLUTION_PROPOSAL.md) for
+concrete database/Git-inspired designs addressing selected scenarios, their guarantees,
+implementation sequence and acceptance cases. These proposals are not implemented protections.
+
 ## How to read the register
 
 - **Tested:** a focused deterministic test demonstrates the behavior stated in that row.

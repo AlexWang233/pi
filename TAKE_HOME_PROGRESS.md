@@ -52,6 +52,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 - [Upstream provenance](packages/durable/src/adapters/codex/vendor/UPSTREAM.md): copied source/recording paths, revision, license, and fixture adaptations. Notices are copied into built output.
 - [Demo application](apps/collab-demo/README.md): `npm run preview` from its directory launches simulated agents on port 4311; `npm start` uses privately configured real providers/CLI on port 4310 with SQLite.
 - [Problem scenarios and risk register](apps/collab-demo/PROBLEM_SCENARIOS.md): severity, current handling/evidence and proposed MVP protections for interaction, shared files, transport, recovery, security, capacity and deployment; retains the 3×2 walkthrough and lost-update trace. Preview adds `preview-carol` and a `shared: ` command targeting the same file on either lane.
+- [Conflict-resolution proposal](apps/collab-demo/CONFLICT_RESOLUTION_PROPOSAL.md): database-style version checks and ownership, Git-style merge candidates, crash/undo boundaries, selected scenario solutions, and acceptance gates. Proposal only; file conflict protection remains unimplemented.
 
 ## Current risks and open checks
 
