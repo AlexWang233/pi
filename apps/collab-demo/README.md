@@ -18,8 +18,9 @@ Set-Location apps/collab-demo
 npm run preview
 ```
 
-Open **http://127.0.0.1:4311** in two browser profiles. Connect with `preview-alice` and
-`preview-bob`. These public tokens belong only to the loopback preview. Both users can submit
+Open **http://127.0.0.1:4311** in three browser profiles. Connect with `preview-alice`,
+`preview-bob`, and `preview-carol`. The access matrix shows all six user/agent pairs. These
+public tokens belong only to the loopback preview. All members can submit
 follow-ups, see peer messages/command states, reconnect, load history and stop a lane.
 
 The preview uses a simulated native model and a simulated external driver. Each native command
@@ -28,6 +29,11 @@ writes its submitted text to `external-preview.txt` in the same temporary direct
 are scripted; the preview does not interpret arbitrary coding instructions, contact a provider,
 or exercise Codex. It uses memory storage and removes the temporary directory on graceful exit.
 Ctrl+C stops the host. A forced termination may leave that directory behind.
+
+For an explicit M:N walkthrough, same-agent queue behavior, and reproduced shared-file conflicts,
+see [Users, agents, and conflicting work](CONCURRENCY.md). Both preview agents also accept
+`shared: <replacement text>` to overwrite the same `shared-preview.txt`. This demonstrates
+the current absence of file-conflict protection; no merge or rollback is promised.
 
 ## Run with real agents
 
@@ -116,7 +122,7 @@ Run from this directory, using repository dependencies:
 ```powershell
 npm run check
 npm run build
-node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts
+node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts test/concurrency.test.ts
 ```
 
 Tests exercise real HTTP and Durable with deterministic I/O: authorization, scoped retry,

@@ -5,7 +5,12 @@ import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import type { Context } from "@earendil-works/chord/context";
 import { createModels } from "@earendil-works/pi-ai/models";
-import { fauxAssistantMessage, fauxProvider, fauxToolCall } from "@earendil-works/pi-ai/providers/faux";
+import {
+	type FauxResponseFactory,
+	fauxAssistantMessage,
+	fauxProvider,
+	fauxToolCall,
+} from "@earendil-works/pi-ai/providers/faux";
 import { createRegistry, Harness, MemoryStorage } from "@earendil-works/pi-durable";
 import { type CollaborativeThreadConfig, createCollaboration } from "@earendil-works/pi-durable/collaboration";
 import { NodeExecutionEnv } from "@earendil-works/pi-durable/env/node";
@@ -24,13 +29,28 @@ export async function openPreview(
 	const models = createModels();
 	const faux = fauxProvider();
 	models.setProvider(faux.provider);
+	const writeResponse: FauxResponseFactory = async (request, options) => {
+		const input = request.messages.findLast((message) => message.role === "user")!;
+		const text =
+			typeof input.content === "string"
+				? input.content
+				: input.content.flatMap((part) => (part.type === "text" ? [part.text] : [])).join("");
+		await delay(700, undefined, { signal: options?.signal });
+		const shared = text.startsWith("shared: ");
+		return fauxAssistantMessage(
+			fauxToolCall("write", {
+				path: shared ? "shared-preview.txt" : "native-preview.txt",
+				content: shared ? text.slice(8) : "Deterministic native tool write",
+			}),
+			{ stopReason: "toolUse" },
+		);
+	};
 	faux.setResponses(
 		Array.from({ length: 256 }, () => [
+			writeResponse,
 			fauxAssistantMessage(
-				fauxToolCall("write", { path: "native-preview.txt", content: "Deterministic native tool write" }),
-				{ stopReason: "toolUse" },
+				"Simulated model: the real Pi write tool completed. A shared: prefix targets shared-preview.txt.",
 			),
-			fauxAssistantMessage("Simulated model: the real Pi write tool created native-preview.txt."),
 		]).flat(),
 	);
 	const collaboration = createCollaboration([
@@ -38,12 +58,14 @@ export async function openPreview(
 			name: "preview",
 			open: async ({ workspace: cwd }) => ({
 				run: async ({ text, progress, signal }) => {
-					await progress("Simulated external harness: waiting, then writing external-preview.txt");
+					const shared = text.startsWith("shared: ");
+					const file = shared ? "shared-preview.txt" : "external-preview.txt";
+					await progress(`Simulated external harness: waiting, then writing ${file}`);
 					await delay(500, undefined, { signal });
-					await writeFile(join(cwd, "external-preview.txt"), text, { signal });
+					await writeFile(join(cwd, file), shared ? text.slice(8) : text, { signal });
 					return {
 						status: "completed",
-						text: "Simulated external harness wrote external-preview.txt.",
+						text: `Simulated external harness wrote ${file}.`,
 						continuation: null,
 					};
 				},
@@ -68,7 +90,7 @@ export async function openPreview(
 		const config: CollaborativeThreadConfig = {
 			id: "preview",
 			workspace,
-			members: ["alice", "bob"],
+			members: ["alice", "bob", "carol"],
 			agents: [
 				{ id: "native-simulated", kind: "native", model: { provider: "faux", modelId: "faux-1" } },
 				{ id: "external-simulated", kind: "external", driver: "preview" },

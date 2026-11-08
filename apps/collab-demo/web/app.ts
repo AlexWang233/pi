@@ -27,8 +27,40 @@ async function connect(token: string, signal: AbortSignal): Promise<void> {
 	tokenInput.value = "";
 	status.textContent = `Connected as ${listing.actor}. Files are shared; agent histories are separate.`;
 	for (const thread of listing.threads) {
-		if (!object(thread) || typeof thread.id !== "string" || !Array.isArray(thread.agents))
+		if (
+			!object(thread) ||
+			typeof thread.id !== "string" ||
+			!Array.isArray(thread.agents) ||
+			!Array.isArray(thread.members) ||
+			!thread.members.every((member: unknown) => typeof member === "string")
+		)
 			throw new Error("Invalid thread");
+		const overview = document.createElement("section");
+		overview.className = "workspace";
+		const heading = document.createElement("h2");
+		heading.textContent = `${thread.id}: ${thread.members.length} users × ${thread.agents.length} shared agents`;
+		const policy = document.createElement("p");
+		policy.textContent =
+			"Every member can message every agent. Each agent has one ordered queue; different agents run concurrently. Shared-file conflicts are not merged or prevented.";
+		const relationships = document.createElement("table");
+		const header = relationships.createTHead().insertRow();
+		const corner = document.createElement("th");
+		corner.textContent = "Thread member";
+		header.append(corner);
+		for (const agent of thread.agents) {
+			if (!object(agent) || typeof agent.id !== "string") throw new Error("Invalid agent");
+			const column = document.createElement("th");
+			column.textContent = agent.id;
+			header.append(column);
+		}
+		const body = relationships.createTBody();
+		for (const member of thread.members) {
+			const row = body.insertRow();
+			row.insertCell().textContent = `${member}${member === listing.actor ? " (you)" : ""}`;
+			for (const _agent of thread.agents) row.insertCell().textContent = "Can message and observe";
+		}
+		overview.append(heading, policy, relationships);
+		lanes.append(overview);
 		for (const agent of thread.agents) {
 			if (
 				!object(agent) ||

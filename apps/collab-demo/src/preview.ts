@@ -9,6 +9,7 @@ import { openPreview } from "./preview-host.ts";
 const tokens = new Map([
 	["preview-alice", "alice"],
 	["preview-bob", "bob"],
+	["preview-carol", "carol"],
 ]);
 const directory = await mkdtemp(join(tmpdir(), "pi-collab-preview-"));
 try {
@@ -19,7 +20,7 @@ try {
 			preview.server.listen(4311, "127.0.0.1", resolve);
 		});
 		console.log("SIMULATED agents, real Durable/tools/HTTP. No provider calls or Codex process.");
-		console.log("http://127.0.0.1:4311 — tokens: preview-alice / preview-bob");
+		console.log("http://127.0.0.1:4311 — tokens: preview-alice / preview-bob / preview-carol");
 		console.log(`Disposable workspace: ${directory}`);
 		await new Promise<void>((resolve) => {
 			process.once("SIGINT", resolve);

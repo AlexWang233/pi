@@ -47,6 +47,21 @@ describe("credential-free browser preview", () => {
 					headers: { Authorization: "Bearer preview-bob" },
 				});
 				expect(await peerState.json()).toMatchObject({ commands: [{ actorId: "alice", status: "completed" }] });
+				// The same shared-file command is available on both execution paths.
+				// Successful sequential commands can still intentionally replace prior work.
+				for (const [actor, agent] of [
+					["alice", "native-simulated"],
+					["bob", "external-simulated"],
+				]) {
+					const response = await fetch(`${origin}/api/threads/preview/agents/${agent}/commands`, {
+						method: "POST",
+						headers: { Authorization: `Bearer preview-${actor}`, "Content-Type": "application/json" },
+						body: JSON.stringify({ id: "shared-edit", text: `shared: ${actor} replacement` }),
+					});
+					expect(response.status).toBe(202);
+					await preview.harness.waitForIdle(BACKGROUND_CONTEXT);
+					expect(await readFile(join(workspace, "shared-preview.txt"), "utf8")).toBe(`${actor} replacement`);
+				}
 			} finally {
 				await preview.close();
 			}

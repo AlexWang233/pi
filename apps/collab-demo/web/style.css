@@ -16,3 +16,6 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.6 ui-monospac
 .transcript { max-height: 400px; overflow-y: auto; border-block: 1px solid #40516c; padding-block: 12px; }
 .progress { color: #a5c6ff; max-height: 140px; overflow-y: auto; }
 .muted { color: #aebdd2; font-size: 13px; }
+.workspace { grid-column: 1 / -1; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 10px; border: 1px solid #40516c; text-align: left; }

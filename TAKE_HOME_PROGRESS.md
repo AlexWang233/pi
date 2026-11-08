@@ -39,6 +39,8 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | D13 | Use Node HTTP and plain browser modules; reuse package APIs directly | No additional external dependencies or application execution queue; demo has a separate check/build configuration |
 | D14 | Keep simulated preview and live host as separate compositions | Preview proves real Durable/tools/transport without credentials; it is explicitly not real model/Codex evidence |
 | D15 | One shared watch per lane with bounded, coalesced SSE snapshots | Viewer count does not multiply package watches; intermediate progress may be skipped, reconnect fetches current state, no durable event cursor |
+| D16 | Demonstrate three users sharing two agents, with all six user/agent pairs | M:N describes shared agent identities/history/queues, not private agent copies or per-agent permissions; matrix shows access, not online presence |
+| D17 | Expose shared-file conflicts rather than imply queues solve them | Controlled test reproduces a lost update despite two completed commands. Whole-turn workspace ownership or coordinated file-version checks remain optional future protections |
 
 ## Implemented entry points and examples
 
@@ -49,6 +51,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 - [40-native-providers.ts](packages/durable/test/examples/40-native-providers.ts): registers all four native providers, lists local models, and explicitly opts into one selected live provider. Defaults to no paid calls; see [provider configuration](packages/durable/docs/collaboration.md#native-model-providers).
 - [Upstream provenance](packages/durable/src/adapters/codex/vendor/UPSTREAM.md): copied source/recording paths, revision, license, and fixture adaptations. Notices are copied into built output.
 - [Demo application](apps/collab-demo/README.md): `npm run preview` from its directory launches simulated agents on port 4311; `npm start` uses privately configured real providers/CLI on port 4310 with SQLite.
+- [Concurrency walkthrough](apps/collab-demo/CONCURRENCY.md): 3×2 relationship model, simultaneous same-agent instructions, cross-agent stale writes, failure policies, and protection options/trade-offs. Preview adds `preview-carol` and a `shared: ` command targeting the same file on either lane.
 
 ## Current risks and open checks
 
@@ -57,11 +60,11 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | I1: Live model/GCP access | Four native providers selectable; only OpenAI key planned, not supplied through chat. No paid turn or cloud deployment verified | Configure OpenAI credentials/model privately; defer other live and multi-key checks. Revisit GCP project selection after local readiness |
 | I2: Protocol compatibility | Replay from Codex 0.156.1; local CLI 0.164.0-alpha.11.1 initializes | Test real turn, interrupt, continuation, malformed/unsupported events, and process exit |
 | I3: Recovery evidence | Active task close/reopen preserves dispatch marker and does not resend | Add forced child-process kill tests at precise crash boundaries and Linux process-tree checks |
-| I4: Shared files | No conflict prevention or hostile tenant isolation | Demonstrate conflicting edits; later hash-aware mutations/sandboxing if scope permits |
+| I4: Shared files | No conflict prevention or hostile tenant isolation. Controlled two-agent stale-read test now proves a lost update even when both commands report completed | Present that limitation explicitly; later whole-turn ownership or coordinated version checks covering all harness/shell writers if required |
 | I5: Resource bounds | Package character bounds plus demo body/frame/socket/viewer limits; live native shells capped at 60 seconds. Not a total process-memory/spend limit | Measure large output, kernel/socket pressure, process limits, event-loop latency, and reconnect bursts |
 | I6: Write/read cost | One metadata document holds bounded receipts; views read recent command states on updates | Measure commit contention and projection overhead before optimizing |
 | I7: Exceptional task faults | Normal adapter/cleanup errors settle failed; scheduler-level faults outside that path need more coverage | Test restart-limit/orphaned tasks and reconcile command state with terminal task outcomes |
-| I8: UI and tool fidelity | Minimal browser now exists; served assets and HTTP paths tested, browser clicks not yet verified. Text/progress only, no rich Codex tool summaries | Run a two-profile walkthrough; test live agent turns and add tool presentation only as needed |
+| I8: UI and tool fidelity | Browser now shows an M:N access matrix; served assets and HTTP paths tested, browser clicks not yet verified. Text/progress only, no rich Codex tool summaries | Run a three-profile walkthrough; test live agent turns and add tool presentation only as needed |
 | I9: Documentation | Standalone addendum describes implemented behavior; main normative spec/README not yet linked | Integrate the addendum after finalizing the API and full specification review |
 | I10: Install tooling | npm 10 removed existing `libc` lock metadata during refresh; original constraints were preserved | Keep lock diffs scoped; use a compatible newer npm for future refreshes or preserve those constraints again |
 | I11: Browser retry lifecycle | Ambiguous submit keeps its ID/text in page memory; reload/relogin/discard loses the local retry draft | Clearly demonstrate retry before reload; later persist a bounded receipt/draft ledger if required, keeping tokens out of storage |
@@ -85,12 +88,14 @@ The host-authenticated identity is a trust boundary: the library enforces member
 | November 8 | HTTP/browser increment: full root `npm run check` | Passed; no package source changes needed for the transport |
 | November 8 | Demo `npm run check` and `npm run build` | Passed; separate app lint/type check and browser compilation |
 | November 8 | Four focused demo test files | **13 tests passed**: HTTP/auth/retry/limits, streaming/fanout/framing/stop, host configuration, and real shared-file writes through preview composition |
+| November 8 | M:N/concurrency follow-up, five focused demo files | **16 tests passed**; full root check, app check and browser build also passed. Adds six concurrent user/agent pairs, gated native same-agent ordering, and controlled cross-agent lost-update reproduction. Preview also checks both paths overwriting its shared target |
 
-The earlier 86 include **13 package feature tests** and 73 affected native regression tests; the demo adds **13 separate tests**, not another run counted as new coverage. SQLite's existing experimental warning remains on Node 22. No full test suite or paid model call was run. Performance capacity and forced-crash results are still unmeasured. Browser modules were compiled/served in tests; browser clicks and visual layout remain unverified.
+The earlier 86 include **13 package feature tests** and 73 affected native regression tests; the demo now has **16 separate tests** (13 initial plus 3 new), not repeated runs counted as new coverage. SQLite's existing experimental warning remains on Node 22. No full test suite or paid model call was run. Performance capacity and forced-crash results are still unmeasured. Browser modules were compiled/served in tests; browser clicks and visual layout remain unverified.
 
 ## Presentation notes and expansion
 
 - Demonstrate package-owned admission first, then show the same behavior over HTTP.
+- Show all six user/agent pairings, same-agent queuing versus different-agent overlap, then the controlled lost-update trace. Queue correctness does not establish correct merging or agreement between conflicting instructions.
 - Use preview's two simulated lanes to explain transport without conflating scripted responses with model intelligence. It writes two real files through native tools/external execution in the same disposable workspace.
 - Explain a lost-response retry and a crash between external effect and result commit; acceptance is not completed execution.
 - Separate measured evidence, manual live checks, and future proposals.

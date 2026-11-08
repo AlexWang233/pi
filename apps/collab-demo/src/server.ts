@@ -84,6 +84,7 @@ export async function createDemoServer(options: DemoServerOptions, context: Cont
 					.filter(({ config }) => config.members.includes(actor))
 					.map(({ config }) => ({
 						id: config.id,
+						members: config.members,
 						agents: config.agents.map((agent) => ({
 							id: agent.id,
 							kind: agent.kind,
