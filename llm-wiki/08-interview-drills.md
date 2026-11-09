@@ -3,6 +3,7 @@
 Use these questions to practice concise explanations followed by a concrete example and trade-off. The first paragraph of each answer is the short response; the second supplies material for follow-up questions.
 
 These answers describe the current implementation, not an ideal future system. Keep the [claim boundaries](README.md#claims-you-can-defend) visible while rehearsing so that proposals do not become accidental delivery claims.
+For more concrete situations and detailed follow-up answers, use the [categorized question bank](interview-questions/README.md).
 
 ## What is the actual contribution beyond shared chat?
 
@@ -16,17 +17,24 @@ Reusing the existing Session, inbox and scheduler made a working collaboration f
 
 A complete replacement would create new storage/recovery semantics before demonstrating the requested user interaction. The current boundaries and behavioral tests give a later replacement something concrete to preserve. This is a trade-off in delivery risk and scope, not a claim that framework dependence is unimportant or already eliminated. The assignment's original approximately twenty-hour budget was a prioritization target, not a measured claim of elapsed effort.
 
-## Why do you need both a database transaction and a queue?
+## Why must saving a request and deciding when the agent runs it be separate steps?
 
 The transaction decides what was accepted atomically, while the queue decides when work on an agent conversation can run. They address different races and neither guarantees conflict-free filesystem effects.
 
 Alice and Bob can be admitted in adjacent commits while the model spends seconds on Alice's command; Bob's follow-up remains queued. Independent agents can execute meanwhile because the mutation line is not held over inference. If both later publish stale replacements to the same file, queue correctness within each lane does not save the shared file. This example connects the runtime architecture directly to the managed-file experiment.
 
-## Is execution exactly once?
+## If a user submits one instruction, can the model call or file write happen twice?
 
-No: the implementation deduplicates command admission, not every provider request or filesystem side effect. Native recovery can repeat a model request, while uncertain external dispatch is interrupted instead of automatically resent.
+Here, “execution” means the work triggered by a user's instruction: accepting a command, calling a model and running a tool are separate actions. Retrying the same command identity does not create a second accepted command, but a native model request can repeat after recovery. There is no general guarantee that every filesystem effect happens exactly once.
 
-The difficult case is an effect occurring before the result commit: after restart, the runtime cannot infer whether it happened from a missing result alone. A dispatch marker avoids blind repeat but can also abandon a turn that never reached the provider. Stronger execution guarantees require an idempotent external operation, durable external receipt or effect-specific reconciliation. A database outbox-style intent can preserve admission, but cannot independently make an arbitrary shell script exactly once.
+Suppose Alice asks an agent to append `hello` to a file. The file changes, then the host crashes before saving the result; rerunning the whole instruction could append `hello` again. The runtime can recognize Alice's accepted command from its receipt, but that receipt alone cannot reveal whether the file changed. Native tools follow their declared recovery policy, while an uncertain external turn is interrupted instead of automatically resent. If an interviewer says “exactly once,” clarify which action they mean before claiming a guarantee; see the [worked crash questions](interview-questions/04-failures-and-recovery.md).
+
+| Action under discussion | Current guarantee or limitation |
+| --- | --- |
+| Accepting Alice's same scoped command ID/text | Returns the existing receipt instead of admitting another command |
+| Sending a native model request | Can repeat after interruption/recovery |
+| Performing a filesystem or shell effect | No universal exactly-once guarantee; depends on the operation and recovery policy |
+| Resending an uncertain external Codex turn | Not done automatically; reported interrupted |
 
 ## How do you handle simultaneous file edits?
 
@@ -40,7 +48,7 @@ One useful example is a durable write succeeding before its acknowledgement fail
 
 For storage, the fix is a consistent fatal-Harness rule, stable retry identity and recovery from persisted state, with fault injection before and after persistence. For the adapter, scripted subprocesses reproduced wrong-turn retargeting and interrupt delivery racing cleanup, then tested the corrected behavior through the real T3 client. Describe the actual trace and test boundary rather than saying the implementation “handles all crashes.”
 
-## What does Stop guarantee?
+## When Bob presses Stop on a shared agent, what happens to active work, queued requests and files?
 
 Stop requests cancellation for one lane and withdraws its queued user inputs under the demo's policy; peer lanes can continue. It neither rolls back file changes nor proves every spawned process has terminated.
 

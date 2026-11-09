@@ -26,6 +26,13 @@ Be able to walk through one command from browser submission to durable receipt, 
 | [Web experience and demonstrations](06-web-and-demonstration.md) | What can the GUI prove, how does reconnect work, and how do you present a race? |
 | [Evidence, scaling and deployment](07-evidence-scaling-and-deployment.md) | What was tested, where are the bottlenecks, and how would GCP deployment work? |
 | [Interview answer drills](08-interview-drills.md) | How do you answer difficult questions directly and acknowledge trade-offs? |
+| [Expanded interview question bank](interview-questions/README.md) | Concrete scenarios, deeper follow-ups and links by question type |
+
+## When a question uses unfamiliar terminology
+
+Read the question as a concrete situation before trying to memorize its technical label. The [expanded question bank](interview-questions/README.md) names the user action, runtime component or file operation being discussed and explains the underlying term in context.
+
+For example, “exactly-once execution” could refer to accepting a command, calling OpenAI or writing a file; those have different answers. The revised [retry example](08-interview-drills.md#if-a-user-submits-one-instruction-can-the-model-call-or-file-write-happen-twice) starts with Alice's instruction and a crash trace. Use links back to the architecture and recovery pages when you need background, rather than learning isolated jargon.
 
 ## Claims you can defend
 
