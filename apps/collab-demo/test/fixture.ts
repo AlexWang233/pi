@@ -27,7 +27,7 @@ type Fixture = {
 };
 
 /** Start an ephemeral local server around one actual package-owned thread. */
-export async function fixture(driver?: ExternalAgentDriver): Promise<Fixture> {
+export async function fixture(driver?: ExternalAgentDriver, workspace = process.cwd()): Promise<Fixture> {
 	let calls = 0;
 	const collaboration = createCollaboration([
 		driver ?? {
@@ -54,7 +54,7 @@ export async function fixture(driver?: ExternalAgentDriver): Promise<Fixture> {
 	);
 	const config = {
 		id: "room",
-		workspace: process.cwd(),
+		workspace,
 		members: ["alice", "bob"],
 		agents: [
 			{ id: "pi", kind: "native" as const, model: { provider: "faux", modelId: "faux-1" } },

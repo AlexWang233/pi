@@ -1,4 +1,5 @@
 // Shared workspace UI with attributed conversations, stable retries, and live command queues.
+import { createWorkspaceFiles } from "./files.ts";
 import { sseData } from "./stream.ts";
 
 const login = document.querySelector<HTMLFormElement>("#login")!;
@@ -137,7 +138,7 @@ async function connect(token: string, signal: AbortSignal): Promise<void> {
 		coordination.append(matrix);
 		overview.append(heading, description, coordination);
 		const grid = element("div", "agent-grid");
-		group.append(overview, grid);
+		group.append(overview, createWorkspaceFiles(thread.id, token, signal), grid);
 		lanes.append(group);
 		for (const agent of thread.agents) {
 			if (

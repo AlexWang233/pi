@@ -3,6 +3,7 @@
 ## Conversational Style
 
 - Keep answers short and concise
+- End implementation summaries with the immediate next planned implementations and any required API-key, authentication, or deployment prerequisites.
 - No emojis in commits, issues, PR comments, or code
 - No fluff or cheerful filler text (e.g., "Thanks @user" not "Thanks so much @user!")
 - Technical prose only, be direct

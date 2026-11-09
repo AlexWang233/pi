@@ -27,6 +27,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `fix: verify persistence boundaries and configure Codex kill escalation` | 12 new admission/native/storage tests, two Windows attached-descendant cases, one-second spawner escalation | Deterministic slice complete; Windows Bash delay and real/Linux containment remain open |
 | `feat: prepare host preflight and manual deployment` | Shared startup validation, read-only preflight, host exit on Harness failure, Linux service/backup templates and runbook | No live/GCP deployment or Linux runtime validation; automatic restart disabled |
 | `feat: verify native collaboration with local models` | Loopback Ollama composition using Pi's existing API, two-user/two-agent configuration, opt-in real HTTP/SQLite/tool smoke and offline contract tests | Qwen3 4B passes four actual writes/retry/reopen; hosted providers, Codex and GCP still need their own access/evidence |
+| `feat: inspect workspace files from the demo` | Authenticated read-only directory/text API and browser controls, manual refresh, five new HTTP/filesystem tests and desktop/mobile Chrome verification | No editing, diffs, automatic refresh or write-conflict protection; actual Ollama browser walkthrough remains next |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -58,6 +59,20 @@ measurements rather than implied results of this first slice.
 - Run app check/build, changed tests, root check and required package builds. Fix measured bugs separately and repeat affected measurements.
 
 ## Remaining reviewable increments
+
+### Immediate next implementations
+
+1. **Ollama browser walkthrough:** use two identities against the regular local-model host,
+   create distinct files and inspect them through the new panel; verify refresh, follow-up,
+   reconnect and persisted state. Fix only observed defects. Requires installed local Ollama,
+   not provider keys or GCP; retain the disclosed Bash/process limitations.
+2. **Package documentation and presentation:** link the implemented collaboration API/examples
+   from Durable's README, review the full normative spec before integrating references, and
+   prepare the short presentation/walkthrough. No external credentials required.
+
+End implementation summaries with the immediate next planned work and its prerequisites, per
+the user's request recorded in [AGENTS.md](AGENTS.md). The access-dependent gates below remain
+pending; Windows Bash investigation remains deferred rather than blocking independent work.
 
 ### Deferred by user: finish process ownership after the recovery boundary slice
 

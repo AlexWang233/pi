@@ -38,6 +38,7 @@ Notify the user at those exact access-dependent gates; they do not block other l
 | T3 client integration and session/process lifecycle | `src/adapters/codex/`; explicit `/adapters/codex` export |
 | Optional single-file coordination experiment | `collaboration/managed-file.ts`; not integrated with agents/demo |
 | Authentication, configuration, HTTP/SSE and browser | `apps/collab-demo/` |
+| Read-only workspace inspection and manual-refresh UI | `apps/collab-demo/src/workspace-files.ts`, `web/files.ts`; transport only |
 | Current package contract | [Collaboration addendum](packages/durable/docs/collaboration.md); main spec/README integration pending |
 
 There is no separate `commands.ts` or application execution database. Reuse Harness transactions, conversations, native inboxes, scheduling, watches and SQLite. The server verifies tokens; Durable enforces membership. A direct library host remains responsible for authenticating its callers.
@@ -82,6 +83,18 @@ Replay/scripted children establish protocol behavior without paid calls. Local C
 
 ## 5. Remaining delivery sequence
 
+**Immediate next work:** (1) exercise the regular Ollama host with two browser identities and
+inspect actual agent-written files through the new viewer, fixing observed defects; (2) integrate
+package README/spec links and prepare the presentation walkthrough. Neither requires provider
+keys or GCP. Implementation summaries must state the immediate next planned implementations
+and their prerequisites. Hosted-provider/Codex and deployment checks below keep their own gates.
+
+The read-only file browser is implemented with explicit refresh, a 200-entry directory listing
+limit and 64-KiB UTF-8 previews. It checks membership, rejects traversal/hidden/linked paths,
+and does not change write coordination. Five HTTP/filesystem cases and a simulated-provider
+desktop/mobile browser check pass. Parent-path replacement races and non-atomic reads remain
+within the trusted-team limitation; this is not a sandbox or Git/checkpoint integration.
+
 **First load increment complete:** [runner/report](apps/collab-demo/load/README.md) uses actual
 HTTP/SSE, disposable SQLite and isolated simulated execution. Baseline completed 20 commands;
 burst completed 81 with 519 capacity rejections; 600.89-second soak completed 1200 with 120 viewer
@@ -98,7 +111,7 @@ records exact guarantees and costs. Core native recovery and receipt formats wer
 3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
 4. **Finish documentation and presentation.** Integrate package README/spec references, publish measurements/failure analysis and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
 
-The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 33 demo tests, an opt-in real local-model smoke and an ad-hoc browser check. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
+The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 38 demo tests, an opt-in real local-model smoke and ad-hoc browser checks. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
 
 ## 6. GCP design, deferred until local readiness
 

@@ -10,6 +10,7 @@ export async function loadAssets(): Promise<Map<string, { contentType: string; b
 		["/favicon.svg", "../web/favicon.svg", "image/svg+xml"],
 		["/app.js", "../dist/web/app.js", "text/javascript; charset=utf-8"],
 		["/stream.js", "../dist/web/stream.js", "text/javascript; charset=utf-8"],
+		["/files.js", "../dist/web/files.js", "text/javascript; charset=utf-8"],
 	] as const)
 		assets.set(path, { body: await readFile(new URL(file, import.meta.url), "utf8"), contentType });
 	return assets;

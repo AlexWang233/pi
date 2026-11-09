@@ -11,6 +11,27 @@ Open **Access & coordination** to inspect the M:N matrix and shared-file limitat
 screens stack the conversations and provide a **Workspace & sign in** navigation drawer.
 Visual hierarchy was informed by T3 Code; this remains an original plain DOM/CSS frontend.
 
+## Inspect agent-written files
+
+After connecting, open **Workspace files · Read only** above the agent panels. Select a folder
+to browse, **Up one folder** to return, or a file to read its current text. **Refresh files**
+reloads the directory and the selected file. This works in preview, Ollama and hosted-provider
+compositions without asking an agent to report file contents. Restart the host after building
+this change, since browser assets are loaded once at startup.
+
+Inspection is authenticated and checks Durable membership before reading the thread's configured
+workspace. It exposes only relative paths inside that workspace, not the enclosing SQLite/data
+directory. Hidden paths, `node_modules`, symlinks/junctions and hard-linked file reads are refused.
+Text is rendered literally; invalid UTF-8, NUL-containing files and files over **64 KiB** are
+refused. Each directory request considers the first **200 entries**, probes one extra to flag
+truncation, then sorts the visible subset;
+there is no recursive scan, pagination, download, upload, browser editing or automatic refresh.
+
+This is a current-file viewer, not a diff, checkpoint, atomic snapshot or conflict-prevention
+mechanism. Concurrent edits can change a file during inspection. Path checks do not create a
+hostile-agent filesystem sandbox: a writer could replace parent paths between checks. Keep the
+trusted-team deployment scope; strong isolation requires OS/filesystem enforcement.
+
 ## Try without credentials
 
 Use the prepared repository tools. Workspace packages must already be built; after a fresh
@@ -117,6 +138,7 @@ All API routes require `Authorization: Bearer <user token>`.
 | Route | Behavior |
 | --- | --- |
 | `GET /api/threads` | User identity, accessible threads, named agents and recovery descriptions |
+| `GET /api/threads/:thread/files?path=src/App.tsx` | Read-only relative-path inspection; omit `path` to list the workspace root |
 | `POST /api/threads/:thread/agents/:agent/commands` | JSON `{id,text}`; durable `202` receipt |
 | `GET /api/threads/:thread/agents/:agent/commands/:id` | Requesting user's command status |
 | `GET /api/threads/:thread/agents/:agent/state` | Current bounded package snapshot |
@@ -173,6 +195,7 @@ npm run build
 node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts test/concurrency.test.ts test/load.test.ts
 node ../../node_modules/vitest/dist/cli.js --run test/startup.test.ts test/lifetime.test.ts test/preflight.test.ts
 node ../../node_modules/vitest/dist/cli.js --run test/ollama.test.ts
+node ../../node_modules/vitest/dist/cli.js --run test/workspace-files.test.ts
 ```
 
 Tests exercise real HTTP and Durable with deterministic I/O: authorization, scoped retry,
@@ -188,6 +211,13 @@ Bob and Carol: shared messages/queues, reconnect without duplicate messages, sto
 history, mobile sign-in and text-only rendering. Desktop (1440×960) and mobile (390×844)
 screenshots were inspected. Local evidence is under the ignored repository `.artifacts/`
 directory (`collab-ui-browser-check.json` and `collab-ui-*.png`); it is not part of the Vitest suite.
+
+The file-viewer increment adds five HTTP/filesystem cases: membership before disk access,
+relative-path/link refusals, nested listing/current text, read-only methods and scan/size/encoding
+bounds. A separate Chrome 156 check verified nested navigation, literal HTML-like file text,
+refresh after a real native preview-tool write, selected-file refresh, large-file refusal and
+390-pixel layout. Its report/screenshots are ignored `.artifacts/workspace-files-*` files.
+Providers were simulated for that browser check; actual Ollama browser integration remains next.
 
 Still pending: live provider/Codex coding turns, remaining forced-process
 crash boundaries and real descendant cleanup, broader capacity measurements, and GCP deployment. The current host

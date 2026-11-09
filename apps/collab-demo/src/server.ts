@@ -8,6 +8,7 @@ import {
 	type CollaborativeThreadConfig,
 } from "@earendil-works/pi-durable/collaboration";
 import { LaneStream } from "./streams.ts";
+import { inspectWorkspace, WorkspaceFileError } from "./workspace-files.ts";
 
 export type HostedThread = { thread: CollaborativeThread; config: CollaborativeThreadConfig };
 export type DemoServerOptions = {
@@ -48,7 +49,8 @@ export async function createDemoServer(options: DemoServerOptions, context: Cont
 				response.setHeader("Connection", "close");
 				response.once("finish", () => request.destroy());
 			}
-			if (error instanceof HttpError) json(response, error.status, { error: error.message });
+			if (error instanceof HttpError || error instanceof WorkspaceFileError)
+				json(response, error.status, { error: error.message });
 			else if (error instanceof CollaborationError) {
 				const status = {
 					forbidden: 403,
@@ -92,6 +94,22 @@ export async function createDemoServer(options: DemoServerOptions, context: Cont
 						})),
 					})),
 			});
+			return;
+		}
+		const files = /^\/api\/threads\/([^/]+)\/files$/.exec(url.pathname);
+		if (files) {
+			if (request.method !== "GET") throw new HttpError(405, "Workspace inspection is read-only");
+			let id: string;
+			try {
+				id = decodeURIComponent(files[1]);
+			} catch {
+				throw new HttpError(400, "Invalid path encoding");
+			}
+			const hosted = options.threads.get(id);
+			if (!hosted) throw new HttpError(404, "Unknown thread");
+			// Authorize through Durable before touching the filesystem, including empty directories.
+			await hosted.thread.history(actor, hosted.config.agents[0].id, 1, undefined, context);
+			json(response, 200, await inspectWorkspace(hosted.config.workspace, url.searchParams.get("path") ?? ""));
 			return;
 		}
 		const match = /^\/api\/threads\/([^/]+)\/agents\/([^/]+)\/(commands(?:\/([^/]+))?|events|state|history|stop)$/.exec(
