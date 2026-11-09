@@ -2,7 +2,7 @@
 
 These questions explain concrete situations an interviewer might ask you to reason through, rather than assuming the terminology is already familiar. Every answer begins with a two- or three-sentence summary and then adds an example, justification or limitation.
 
-Use the [main wiki](../README.md) for the project map and the [short answer drills](../08-interview-drills.md) for a first rehearsal. This bank goes deeper into failure traces and changing requirements, while linking to those pages instead of repeating their complete explanations.
+Use the [main wiki](../README.md) for the project map and the [short answer drills](../08-interview-drills.md) for a first rehearsal. Keep the [technical-terms guide](../09-technical-terms.md#find-a-term) nearby: it explains unfamiliar agent-system and collaboration terms with examples and diagrams. This bank retains technical depth in the second paragraphs so you can answer follow-up questions rather than only memorize simplified answers.
 
 ## Choose a question type
 
@@ -31,20 +31,20 @@ For example, “Can it run twice?” is incomplete until you identify the action
 
 Technical shorthand is useful only when you know which concrete action or component it refers to. Use these translations to unpack a question before answering, and follow the links for the relevant behavior in this project.
 
-For example, a receipt means the instruction was accepted, while a model answer and a file change are later, separate observations. If a question combines them under the word “execution,” separate them explicitly rather than trying to give one yes/no answer for the whole pipeline.
+For example, a receipt means the instruction was accepted, while a model answer and a file change are later, separate observations. If a question combines them under the word “execution,” separate them explicitly rather than trying to give one yes/no answer for the whole pipeline. The table is a quick reminder; use the linked definitions for examples and the main pages for the implementation rules.
 
 | Term | Plain meaning in this project | Read more |
 | --- | --- | --- |
-| Admission | Saving the user's instruction and its executable intent as accepted work | [Request lifecycle](../02-commands-and-concurrency.md#a-command-from-click-to-result) |
-| Receipt | The accepted command's identity, which a retry can find; not proof of task success | [Lost reply](02-requests-and-concurrency.md) |
-| Atomic commit | Grouped database state changes take effect together; external file changes are not included | [Transaction boundary](../03-durability-and-recovery.md#what-the-atomic-transaction-actually-covers) |
-| Idempotent admission | Repeating the same scoped ID/text returns the same accepted command instead of creating another | [Retry scope](../02-commands-and-concurrency.md#retry-identity-and-idempotent-admission) |
-| Side effect | An external change, such as appending a file or starting a process, whose outcome must be reasoned about separately | [Repeated work](04-failures-and-recovery.md) |
-| Projection | A derived display of stored/current state, such as one agent's bounded snapshot | [State versus events](../06-web-and-demonstration.md#snapshots-are-convergent-views-not-an-event-journal) |
-| Backpressure | Output is produced faster than a viewer consumes it, requiring buffering limits or coalescing | [Slow viewer](08-scaling-and-operations.md) |
-| Lease | Time-limited ownership permission; expiration alone does not kill an old writer | [Workspace ownership](03-file-conflicts.md#why-not-just-lock-the-workspace-until-an-agent-finishes-its-instruction) |
-| Fencing | Preventing an old owner from continuing effects after ownership transfers; database permission alone cannot stop every raw file write | [Multiple owners](08-scaling-and-operations.md) |
-| Provider versus harness | The model service versus the agent loop managing messages, tools and sessions | [Model/adapter boundary](../05-providers-adapters-and-trust.md) |
+| Admission | Checking and saving an instruction as accepted work | [Acceptance terms](../09-technical-terms.md#admission-receipt-and-acknowledgement) |
+| Receipt | Saved acceptance record; not proof of task success | [Receipt example](../09-technical-terms.md#admission-receipt-and-acknowledgement) |
+| Atomic commit | Grouped database changes take effect together; external file changes are excluded | [Database terms](../09-technical-terms.md#atomic-commit-durability-and-the-mutation-line) |
+| Idempotent admission | Repeating the same user/agent/ID/text finds the original accepted request | [Retry terms](../09-technical-terms.md#idempotency-deduplication-and-exactly-once-claims) |
+| Side effect | Action outside coordination records, such as appending a file | [Crash example](../09-technical-terms.md#side-effects-checkpoints-and-dispatch-markers) |
+| Projection | A display built from underlying records | [Display terms](../09-technical-terms.md#projections-snapshots-sse-and-audit-logs) |
+| Backpressure | Producer sends faster than a viewer can read | [Slow-browser example](../09-technical-terms.md#backpressure-fan-out-and-coalescing) |
+| Lease | Permission that expires; expiry does not kill an old writer | [Ownership terms](../09-technical-terms.md#locks-ownership-leases-and-fencing) |
+| Fencing | Preventing an old owner from acting after ownership changes | [Old-writer example](../09-technical-terms.md#locks-ownership-leases-and-fencing) |
+| Provider versus harness | Model service versus software running the agent's model/tool loop | [Agent-system diagram](../09-technical-terms.md#provider-model-agent-harness-and-adapter) |
 
 ## Keep evidence separate from design proposals
 

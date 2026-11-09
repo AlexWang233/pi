@@ -1,20 +1,20 @@
 # Interview preparation: collaborative Pi Durable
 
-This wiki explains the project through the questions an interviewer is likely to ask. Start with the architecture and guarantees, then use the deeper pages to defend decisions and distinguish evidence from planned work.
+This wiki helps you explain what the project does, why we built it this way, and what its limits are. Start with the short explanations and examples; use the deeper paragraphs when practicing follow-up questions.
 
-The snapshot reflects the repository and conversation on November 8, 2026. OpenAI now works according to the user's manual confirmation; the earlier credit error is historical. No new live model test or cloud deployment was performed while writing this wiki. Existing implementation records can contain older status descriptions, so use the claim boundaries below when preparing your presentation.
+The implementation/evidence snapshot is from November 8, 2026; the explanations and glossary were revised on November 9. OpenAI works according to the user's manual confirmation; the earlier credit error is historical. No new live model test or cloud deployment was performed while writing this wiki. Existing implementation records can contain older status descriptions, so use the claim boundaries below when preparing your presentation.
 
 ## The short project pitch
 
-I extended Pi Durable itself so multiple people can instruct shared coding agents with separate histories in one thread workspace. Durable owns membership checks, attributed command admission, retry receipts, execution and recovery, while a thin web host handles authentication and delivery. I also integrated a T3-backed Codex adapter and investigated shared-file conflicts, failure boundaries and load behavior.
+I extended Pi Durable so several people can give instructions to shared coding agents working in the same project folder. The system records who asked for what, queues work for each agent, and keeps saved requests and results available after a restart. I also connected an optional Codex agent using code from T3 and explored how to detect conflicting file edits.
 
 The central design choice was to reuse Durable's existing transaction line, conversations, inboxes and tasks instead of creating another orchestration engine. The normal local configuration uses OpenAI and Ollama through native Pi; Codex is an optional external harness. The result is a working local collaboration prototype with explicit limits, rather than a claim of conflict-free arbitrary coding or distributed availability. See the [assignment](../PROJECT_INSTRUCTIONS.txt) and [architecture](01-architecture.md).
 
 ## What to study first
 
-Memorize a few distinctions rather than every filename or test count. The most useful ones are admission versus execution, command deduplication versus effect deduplication, shared access versus conflict resolution, and current state versus an audit log.
+Start with two stories: Alice loses the reply after clicking Send, and two agents try to replace the same file. These explain most of the important choices about saving work, avoiding duplicate requests, and detecting conflicting edits.
 
-Be able to walk through one command from browser submission to durable receipt, execution, observation and recovery. Then explain a lost-update race and why the managed-file API helps only when writers participate. These two concrete traces support most follow-up questions about databases, concurrency, APIs and failure handling.
+Practice explaining both stories without using special terminology first. Then learn the technical names: accepting and saving a request is **admission**, avoiding a second accepted copy is **deduplication**, and an edit based on an old file is a **stale edit**. The pages below explain the mechanisms and link to the relevant code.
 
 | Page | Main interview questions |
 | --- | --- |
@@ -27,16 +27,17 @@ Be able to walk through one command from browser submission to durable receipt, 
 | [Evidence, scaling and deployment](07-evidence-scaling-and-deployment.md) | What was tested, where are the bottlenecks, and how would GCP deployment work? |
 | [Interview answer drills](08-interview-drills.md) | How do you answer difficult questions directly and acknowledge trade-offs? |
 | [Expanded interview question bank](interview-questions/README.md) | Concrete scenarios, deeper follow-ups and links by question type |
+| [Technical terms with examples](09-technical-terms.md) | What do harness, admission, fencing, projection and other unfamiliar terms mean here? |
 
 ## When a question uses unfamiliar terminology
 
-Read the question as a concrete situation before trying to memorize its technical label. The [expanded question bank](interview-questions/README.md) names the user action, runtime component or file operation being discussed and explains the underlying term in context.
+Ask what specific action the question means before answering. For example, accepting Alice's instruction once is different from calling OpenAI once or writing a file once.
 
-For example, “exactly-once execution” could refer to accepting a command, calling OpenAI or writing a file; those have different answers. The revised [retry example](08-interview-drills.md#if-a-user-submits-one-instruction-can-the-model-call-or-file-write-happen-twice) starts with Alice's instruction and a crash trace. Use links back to the architecture and recovery pages when you need background, rather than learning isolated jargon.
+Use the [technical-terms guide](09-technical-terms.md#find-a-term) when an unfamiliar word interrupts your reading. It focuses on agent systems, shared work, and recovery rather than basic programming, with a short meaning followed by technical detail and an example. For instance, [exactly-once claims](09-technical-terms.md#idempotency-deduplication-and-exactly-once-claims) distinguish accepting a command, calling OpenAI, and writing a file. Diagrams show request flow, overwrites, managed conflict checks, and a crash during external work; the question bank retains deeper explanations for interview follow-ups.
 
 ## Claims you can defend
 
-Separate implemented behavior, measured evidence, manual observations and proposals. A precise limitation is more defensible than a broad guarantee unsupported by the runtime or tests.
+Say what works today, how we checked it, and what is still planned. For example, a successful OpenAI file edit does not prove that two agents can safely edit the same file.
 
 The table is the presentation boundary for this snapshot. In particular, a successful OpenAI or Ollama edit does not establish live Codex integration, and a package-level conflict example does not establish protection of the ordinary browser agents.
 
@@ -53,12 +54,12 @@ The table is the presentation boundary for this snapshot. In particular, a succe
 
 ## Presentation discipline
 
-Lead with the user-visible problem and then explain the mechanism that solves one specific part of it. State the remaining failure mode immediately after the mechanism so reviewers can assess its actual scope.
+Explain a problem, show one small example, and then explain the solution and its limit. You do not need to memorize every filename or test count to give a convincing answer.
 
-For example: “If Alice loses the HTTP response, repeating the same command identity returns its receipt. This prevents duplicate admission, but a native model request can still repeat after recovery, and shell effects are not exactly once.” Use [the presentation runbook](../TAKE_HOME_PRESENTATION.md) for the live outline and [the progress record](../TAKE_HOME_PROGRESS.md) for historical validation details. Exact dependency versions and low-level storage schema trivia are reference material, not priorities to memorize.
+For example: 'Alice's request was saved, but the network reply was lost. Retrying with the same request ID finds the saved request instead of adding another; this does not guarantee that every later model call or file operation happens only once.' Use [the presentation runbook](../TAKE_HOME_PRESENTATION.md) to rehearse and [the progress record](../TAKE_HOME_PROGRESS.md) to check historical evidence.
 
 ## Current next steps
 
-The recommended next presentation feature is a bounded step-controlled conflict walkthrough that makes the managed-file API visible. Live external Codex verification and actual GCP delivery remain separate outstanding gates.
+The next proposed feature is a conflict walkthrough with buttons that let the presenter pause before each file change. Testing real Codex coding work and deploying to GCP are separate tasks that remain unfinished.
 
 The deterministic scenario runner needs neither another provider key nor GCP and should clearly disclose that its participants are scripted. Connecting managed publication to ordinary model tools is a further execution-policy change, not just a UI addition. Codex needs its own authentication for live external turns, and deployment needs GCP project/billing/IAM plus Linux runtime/restore checks. Human rehearsal remains valuable even while those prerequisites are pending.
