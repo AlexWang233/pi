@@ -1,0 +1,32 @@
+# Linux VM template. Install only after following README.md and verifying process containment.
+[Unit]
+Description=Collaborative Pi Durable demonstration
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=/var/lib/pi-collab
+ConditionPathIsMountPoint=/var/lib/pi-collab
+
+[Service]
+Type=simple
+User=pi-collab
+Group=pi-collab
+WorkingDirectory=/opt/pi/apps/collab-demo
+Environment=PATH=/opt/node/bin:/opt/codex/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/var/lib/pi-collab-home
+EnvironmentFile=/etc/pi-collab/host.env
+StateDirectory=pi-collab-home
+StateDirectoryMode=0700
+UMask=0077
+ExecStartPre=/opt/node/bin/node --conditions=source --experimental-strip-types src/preflight.ts
+ExecStart=/usr/bin/flock --no-fork --nonblock /var/lib/pi-collab/owner.lock /opt/node/bin/node --conditions=source --experimental-strip-types src/main.ts
+KillMode=control-group
+TimeoutStopSec=90
+SendSIGKILL=yes
+Restart=no
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/pi-collab /var/lib/pi-collab-home
+
+[Install]
+WantedBy=multi-user.target

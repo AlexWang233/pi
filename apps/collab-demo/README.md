@@ -60,12 +60,18 @@ the current absence of file-conflict protection; no merge or rollback is promise
    ```powershell
    $env:COLLAB_TOKEN_ALICE = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
    $env:COLLAB_TOKEN_BOB = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
+   node --conditions=source --experimental-strip-types src/preflight.ts
    npm start
    ```
 
 Open **http://127.0.0.1:4310**. Give each user their token privately; enter the token's value in
 the browser. Tokens remain in page memory and Authorization headers, never URLs or browser
 storage. API keys stay in the host environment. There is no `.env` loader in this application.
+
+Preflight validates configuration, tokens, selected local model IDs, browser assets and selected
+native API-key environment presence. It opens no store/socket, spawns no CLI and makes no provider
+request. `configuration-valid` does not verify authentication, filesystem permissions or live
+model access. This check targets API-key setup; alternate OAuth/federation setup is not verified.
 
 The example includes native Pi and external Codex. Codex requires its own installed CLI and
 working authentication; a native OpenAI API call does not establish Codex access. To start with
@@ -121,6 +127,12 @@ return a generic 500. Retry ambiguous submit failures using the original ID and 
 A storage exception can occur after SQLite persisted the command. It fails the entire thread's
 Harness, not just one lane; restart only after old-owner cleanup. Do not interpret the error
 as proof of rejection or generate a new ID for the same ambiguous submission.
+The host observes Harness closure, closes HTTP and attempts cleanup, then exits with an error
+on failure. It does not automatically reopen the store. Shutdown can still wait on tool cleanup.
+
+The [Linux/GCP preparation kit](deploy/README.md) includes a manual-start systemd template,
+private environment template, stopped-store backup script, SSH access and restore/teardown
+instructions. It has not been deployed or runtime-verified on Linux. GCP remains deferred.
 
 The browser retains that draft/ID until acceptance or explicit discard. It does not persist
 ambiguous drafts across a page reload. Discarding a retry does not cancel already accepted
@@ -153,6 +165,7 @@ Run from this directory, using repository dependencies:
 npm run check
 npm run build
 node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts test/concurrency.test.ts test/load.test.ts
+node ../../node_modules/vitest/dist/cli.js --run test/startup.test.ts test/lifetime.test.ts test/preflight.test.ts
 ```
 
 Tests exercise real HTTP and Durable with deterministic I/O: authorization, scoped retry,
@@ -160,6 +173,8 @@ conflicts/capacity, body validation, both execution kinds, two viewers, late joi
 reconnect, stop isolation, viewer limits, UTF-8/chunk framing, and actual shared-file writes.
 Backpressure/coalescing is also checked with controlled response writes. The built browser
 modules are served by the end-to-end preview test; this is not an automated browser-click test.
+Startup/lifetime tests cover selected-provider requirements, environment validation, actual
+Harness storage failure, signal cleanup and read-only preflight subprocesses, including missing keys.
 
 A separate ad-hoc Chrome 156.0.8078.80 check executed the actual browser modules with Alice,
 Bob and Carol: shared messages/queues, reconnect without duplicate messages, stop, draft clearing,

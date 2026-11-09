@@ -13,7 +13,7 @@ The original budget remains **about 20 hours total**, including checks, deployme
 | Local MVP | Package-owned threads, authenticated demo, attributed requests, shared agents/workspace, independent histories, queues, stop, reconnect and bounds | Implemented and deterministically tested; preview exercised in a browser |
 | Live integration | Native Pi and T3-backed Codex perform real coding turns | Real CLI initialization only; real model turns unverified |
 | Failure/capacity evidence | Reproducible recovery, actual HTTP/SSE load measurements and failure analysis | Scripted subprocess/owner-crash evidence plus first load/600-second soak report complete; remaining recovery and real-process checks pending |
-| Assignment hand-in | GCP deployment, access/restart/teardown instructions, measured report and presentation | Pending; GCP intentionally waits for local readiness |
+| Assignment hand-in | GCP deployment, access/restart/teardown instructions, measured report and presentation | Deployment templates/runbook prepared; actual GCP and presentation pending |
 
 The preview demonstrates **three members sharing two agent lanes**, including all six user/agent pairs. These are shared agent identities, histories and queues. Every member currently accesses every lane. Fixed membership is sufficient; online presence and a permission editor are optional.
 
@@ -87,18 +87,20 @@ follow-ups, not reasons to delay the next correctness slice. No paid-provider lo
 cases pass on Windows; [the addendum](packages/durable/docs/collaboration.md#recovery-and-external-effects)
 records exact guarantees and costs. Core native recovery and receipt formats were reused.
 
-1. **Finish process-ownership readiness.** Localize the existing Windows Bash interruption/reopen test's roughly 30-second delay; it fails at the default five-second limit and passes with a 40-second runner limit. Verify prompt shutdown, real Codex descendants and Linux process groups before workspace takeover claims. Injected SQLite failures and owner kills do not certify disk-full/corruption or power-loss safety.
+1. **Process-ownership investigation deferred by user.** The existing Windows Bash interruption/reopen test's roughly 30-second delay remains open; it fails at the default five-second limit and passes with a 40-second runner limit. Resume investigation later. Prompt shutdown, real Codex descendants and Linux process groups still need verification before workspace takeover claims. Injected SQLite failures and owner kills do not certify disk-full/corruption or power-loss safety.
 2. **Verify live integration when privately configured.** Bounded OpenAI-native and real Codex coding turns, continuation and stop. Separate real model evidence from initialization/simulation. Do not require all four provider keys.
 3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
 4. **Finish documentation and presentation.** Integrate package README/spec references, publish measurements/failure analysis and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
 
-The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 19 demo tests and an ad-hoc browser check. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
+The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 29 demo tests and an ad-hoc browser check. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
 
 ## 6. GCP design, deferred until local readiness
 
 Use one Linux Compute Engine VM, persistent data storage, a dedicated OS account and one owning process per thread store. Bind locally and use evaluator SSH forwarding. Keep SQLite outside agent workspaces and credentials outside repository/logs.
 
-Prepare a service unit with process-group-aware shutdown, pinned Node/verified Codex versions and a runbook. Verify authentication in the service account environment. Test restart/reboot, descendant cleanup, persistence, coordinated SQLite/WAL-aware backup/restore and teardown including retained disks. Copying only a live SQLite main file is not a verified backup procedure.
+The [preparation kit](apps/collab-demo/deploy/README.md) now supplies a systemd unit, environment template, stopped-store backup script and access/restore/teardown runbook. Shared startup validation and a read-only preflight command are implemented; the host exits after Harness failure instead of waiting indefinitely for a signal. Preflight verifies selected API-key environment presence, not live authentication. No cloud resources were created.
+
+The service template disables automatic restart, holds a cooperative owner lock, requires the data mount and requests service-cgroup cleanup. These policies need Linux runtime verification; they do not certify process containment. Verify authentication in the service account environment. Test restart/reboot, descendant cleanup, persistence, coordinated SQLite/WAL-aware backup/restore and teardown including retained disks. Copying only a live SQLite main file is not a verified backup procedure.
 
 One VM/process/store remains a failure domain. A second process opening the same store is not a scaling strategy. Check current prices/access before provisioning. Prior planning ceilings of $30 infrastructure and $10 live smoke calls are caps, not estimates or automatic billing stops. GCP credit does not supply model-provider access.
 
