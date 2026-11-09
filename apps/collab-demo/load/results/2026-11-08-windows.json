@@ -1,0 +1,358 @@
+{
+  "date": "2026-11-09T00:51:45.757Z",
+  "revision": "f21ff4314b8ec9def126179352e2963b9056efed",
+  "workingTree": "Includes uncommitted load increment; see accompanying diff",
+  "node": "v22.23.4",
+  "machine": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "AMD Ryzen 7 7745HX with Radeon Graphics        ",
+    "logicalCpus": 16,
+    "ramBytes": 33475293184
+  },
+  "workload": "SQLite per thread; one faux native response / one simulated external run per command; no tools, Codex process or paid APIs",
+  "limits": {
+    "maxCommandsPerThread": 256,
+    "maxPendingPerLane": 8,
+    "outputChars": 4096,
+    "clientSubmitConcurrency": 16,
+    "automaticCompaction": false
+  },
+  "limitations": [
+    "Client and server share one process; CPU/RSS/event-loop measurements include both.",
+    "No isolated commit latency, provider quota, real child-process load or recovery-time measurement.",
+    "Submit-to-driver-start includes HTTP/admission. Terminal observation mixes first SSE observation with later status polling.",
+    "SSE is coalesced with eight recent receipts; coverage is reported, not assumed. No durable stream replay cursor.",
+    "Paused reader attachment does not prove server/kernel buffer limits were reached or whole-process memory is bounded."
+  ],
+  "results": [
+    {
+      "options": {
+        "name": "baseline",
+        "threads": 1,
+        "rounds": 10,
+        "intervalMs": 200,
+        "burst": 1,
+        "serviceMs": 40,
+        "outputChars": 4096,
+        "reconnectEvery": 5,
+        "pausedReader": false
+      },
+      "elapsedMs": 2138.361,
+      "httpStatuses": {
+        "202": 20
+      },
+      "retryProbes": 10,
+      "retryFailures": 0,
+      "accepted": 20,
+      "completed": 20,
+      "otherTerminal": 0,
+      "unsettled": [],
+      "missingStarts": [],
+      "unexpectedStarts": [],
+      "duplicateStarts": [],
+      "starts": 20,
+      "streamObserved": 20,
+      "submitToDriverStartMs": {
+        "count": 20,
+        "min": 5.490499999999884,
+        "p50": 10.4833000000001,
+        "p95": 23.93270000000001,
+        "p99": 34.558400000000006,
+        "max": 34.558400000000006
+      },
+      "acceptanceMs": {
+        "count": 20,
+        "min": 6.5021999999999025,
+        "p50": 14.611499999999978,
+        "p95": 37.43700000000001,
+        "p99": 37.837699999999984,
+        "max": 37.837699999999984
+      },
+      "submitToTerminalObservationMs": {
+        "count": 20,
+        "min": 48.776700000000005,
+        "p50": 65.61160000000018,
+        "p95": 83.95429999999999,
+        "p99": 85.03249999999997,
+        "max": 85.03249999999997
+      },
+      "driverReturnToStreamTerminalMs": {
+        "count": 20,
+        "min": 2.1493000000000393,
+        "p50": 3.091299999999933,
+        "p95": 5.7198000000000775,
+        "p99": 8.034799999999962,
+        "max": 8.034799999999962
+      },
+      "frames": 111,
+      "reconnects": 4,
+      "streamErrors": [],
+      "pausedReader": {
+        "attached": false
+      },
+      "cpuMs": {
+        "user": 187,
+        "system": 94
+      },
+      "rssBytes": {
+        "count": 4,
+        "min": 80084992,
+        "p50": 94355456,
+        "p95": 97267712,
+        "p99": 97267712,
+        "max": 97267712
+      },
+      "heapUsedBytes": {
+        "count": 4,
+        "min": 17286920,
+        "p50": 24473032,
+        "p95": 26282944,
+        "p99": 26282944,
+        "max": 26282944
+      },
+      "eventLoopMs": {
+        "p50": 30.932991,
+        "p95": 33.095679,
+        "p99": 35.848191,
+        "max": 41.058303
+      },
+      "processes": {
+        "hostAndClient": 1,
+        "externalChildren": 0
+      },
+      "resourceEndpoints": {
+        "last": {
+          "elapsedMs": 2137.689,
+          "rss": 96784384,
+          "heapUsed": 24473032
+        },
+        "first": {
+          "elapsedMs": 0.2504999999999882,
+          "rss": 80084992,
+          "heapUsed": 17286920
+        }
+      }
+    },
+    {
+      "options": {
+        "name": "saturation",
+        "threads": 5,
+        "rounds": 1,
+        "intervalMs": 0,
+        "burst": 60,
+        "serviceMs": 100,
+        "outputChars": 4096,
+        "reconnectEvery": 0,
+        "pausedReader": true
+      },
+      "elapsedMs": 1836.4573999999998,
+      "httpStatuses": {
+        "202": 81,
+        "429": 519
+      },
+      "retryProbes": 10,
+      "retryFailures": 0,
+      "accepted": 81,
+      "completed": 81,
+      "otherTerminal": 0,
+      "unsettled": [],
+      "missingStarts": [],
+      "unexpectedStarts": [],
+      "duplicateStarts": [],
+      "starts": 81,
+      "streamObserved": 81,
+      "submitToDriverStartMs": {
+        "count": 81,
+        "min": 9.228700000000117,
+        "p50": 427.4236000000001,
+        "p95": 782.6428000000001,
+        "p99": 805.5601000000001,
+        "max": 805.5601000000001
+      },
+      "acceptanceMs": {
+        "count": 81,
+        "min": 21.303600000000188,
+        "p50": 27.5007999999998,
+        "p95": 56.502700000000004,
+        "p99": 56.71090000000004,
+        "max": 56.71090000000004
+      },
+      "submitToTerminalObservationMs": {
+        "count": 81,
+        "min": 120.01740000000018,
+        "p50": 539.9805999999999,
+        "p95": 893.9552000000003,
+        "p99": 917.2399999999998,
+        "max": 917.2399999999998
+      },
+      "driverReturnToStreamTerminalMs": {
+        "count": 81,
+        "min": 1.9591999999997824,
+        "p50": 9.731200000000172,
+        "p95": 16.791600000000017,
+        "p99": 36.22910000000002,
+        "max": 36.22910000000002
+      },
+      "frames": 442,
+      "reconnects": 0,
+      "streamErrors": [],
+      "pausedReader": {
+        "attached": true,
+        "peerClosedBeforeCleanup": false
+      },
+      "cpuMs": {
+        "user": 1016,
+        "system": 281
+      },
+      "rssBytes": {
+        "count": 3,
+        "min": 99213312,
+        "p50": 140283904,
+        "p95": 141250560,
+        "p99": 141250560,
+        "max": 141250560
+      },
+      "heapUsedBytes": {
+        "count": 3,
+        "min": 28266216,
+        "p50": 37801072,
+        "p95": 38499328,
+        "p99": 38499328,
+        "max": 38499328
+      },
+      "eventLoopMs": {
+        "p50": 28.065791,
+        "p95": 36.470783,
+        "p99": 44.171263,
+        "max": 48.562175
+      },
+      "processes": {
+        "hostAndClient": 1,
+        "externalChildren": 0
+      },
+      "resourceEndpoints": {
+        "last": {
+          "elapsedMs": 1834.1398000000004,
+          "rss": 140283904,
+          "heapUsed": 37801072
+        },
+        "first": {
+          "elapsedMs": 0.15930000000025757,
+          "rss": 99213312,
+          "heapUsed": 28266216
+        }
+      }
+    },
+    {
+      "options": {
+        "name": "soak",
+        "threads": 5,
+        "rounds": 120,
+        "intervalMs": 5000,
+        "burst": 1,
+        "serviceMs": 40,
+        "outputChars": 4096,
+        "reconnectEvery": 10,
+        "pausedReader": true
+      },
+      "elapsedMs": 600885.5043,
+      "httpStatuses": {
+        "202": 1200
+      },
+      "retryProbes": 10,
+      "retryFailures": 0,
+      "accepted": 1200,
+      "completed": 1200,
+      "otherTerminal": 0,
+      "unsettled": [],
+      "missingStarts": [],
+      "unexpectedStarts": [],
+      "duplicateStarts": [],
+      "starts": 1200,
+      "streamObserved": 1200,
+      "submitToDriverStartMs": {
+        "count": 1200,
+        "min": 8.094499999999243,
+        "p50": 53.8295999999973,
+        "p95": 126.16849999991246,
+        "p99": 208.29079999999885,
+        "max": 333.09180000000197
+      },
+      "acceptanceMs": {
+        "count": 1200,
+        "min": 38.32179999999971,
+        "p50": 133.4206000000122,
+        "p95": 205.5911999999662,
+        "p99": 409.5907999999981,
+        "max": 449.684699999998
+      },
+      "submitToTerminalObservationMs": {
+        "count": 1200,
+        "min": 49.8091000000004,
+        "p50": 140.36710000003222,
+        "p95": 236.63640000000305,
+        "p99": 416.38660000000164,
+        "max": 461.649599999997
+      },
+      "driverReturnToStreamTerminalMs": {
+        "count": 1200,
+        "min": 0.9406999999991967,
+        "p50": 13.446799999976065,
+        "p95": 36.16029999998864,
+        "p99": 74.09049999999843,
+        "max": 225.41979999999603
+      },
+      "frames": 6078,
+      "reconnects": 120,
+      "streamErrors": [],
+      "pausedReader": {
+        "attached": true,
+        "peerClosedBeforeCleanup": false
+      },
+      "cpuMs": {
+        "user": 28781,
+        "system": 3578
+      },
+      "rssBytes": {
+        "count": 596,
+        "min": 81448960,
+        "p50": 155172864,
+        "p95": 183992320,
+        "p99": 186675200,
+        "max": 187912192
+      },
+      "heapUsedBytes": {
+        "count": 596,
+        "min": 18360848,
+        "p50": 29422928,
+        "p95": 44945152,
+        "p99": 54521312,
+        "max": 69119544
+      },
+      "eventLoopMs": {
+        "p50": 31.064063,
+        "p95": 32.161791,
+        "p99": 45.154303,
+        "max": 346.292223
+      },
+      "processes": {
+        "hostAndClient": 1,
+        "externalChildren": 0
+      },
+      "resourceEndpoints": {
+        "last": {
+          "elapsedMs": 600882.0619000001,
+          "rss": 185765888,
+          "heapUsed": 54521312
+        },
+        "first": {
+          "elapsedMs": 0.13210000000071886,
+          "rss": 139804672,
+          "heapUsed": 41736368
+        }
+      }
+    }
+  ],
+  "resourceSamplingNote": "Aggregate distributions and first/last samples retained here; full one-second sample series is in local .artifacts/collab-load.json"
+}

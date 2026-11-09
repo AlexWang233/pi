@@ -12,7 +12,7 @@ The original budget remains **about 20 hours total**, including checks, deployme
 | --- | --- | --- |
 | Local MVP | Package-owned threads, authenticated demo, attributed requests, shared agents/workspace, independent histories, queues, stop, reconnect and bounds | Implemented and deterministically tested; preview exercised in a browser |
 | Live integration | Native Pi and T3-backed Codex perform real coding turns | Real CLI initialization only; real model turns unverified |
-| Failure/capacity evidence | Reproducible recovery, actual HTTP/SSE load measurements and failure analysis | Scripted subprocess and owner-crash evidence exists; load and remaining recovery checks pending |
+| Failure/capacity evidence | Reproducible recovery, actual HTTP/SSE load measurements and failure analysis | Scripted subprocess/owner-crash evidence plus first load/600-second soak report complete; remaining recovery and real-process checks pending |
 | Assignment hand-in | GCP deployment, access/restart/teardown instructions, measured report and presentation | Pending; GCP intentionally waits for local readiness |
 
 The preview demonstrates **three members sharing two agent lanes**, including all six user/agent pairs. These are shared agent identities, histories and queues. Every member currently accesses every lane. Fixed membership is sufficient; online presence and a permission editor are optional.
@@ -70,13 +70,19 @@ Replay/scripted children establish protocol behavior without paid calls. Local C
 
 ## 5. Remaining delivery sequence
 
-1. **Measure the existing system.** Deterministic load through actual HTTP/SSE, disposable stores and isolated driver/replay state. Start one thread/two agents/two viewers, then five threads/ten agents/ten viewers. Include saturation, slow viewers, reconnect pressure and a short soak. Measure acceptance, queue/completion/delivery latency, rejections, CPU/RSS, event-loop delay and process counts. Measure commit cost where available; label unavailable metrics. No paid-provider load.
-2. **Close focused recovery gaps.** Cover remaining native/admission/storage boundaries and verify old descendants cannot mutate files after replacement ownership. Windows owner-kill tests and direct-child PID checks do not establish Linux process-group cleanup or power-loss safety. Fix observed defects separately and disclose unverified boundaries.
-3. **Verify live integration when privately configured.** Bounded OpenAI-native and real Codex coding turns, continuation and stop. Separate real model evidence from initialization/simulation. Do not require all four provider keys.
-4. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
-5. **Finish documentation and presentation.** Integrate package README/spec references, publish measurements/failure analysis and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
+**First load increment complete:** [runner/report](apps/collab-demo/load/README.md) uses actual
+HTTP/SSE, disposable SQLite and isolated simulated execution. Baseline completed 20 commands;
+burst completed 81 with 519 capacity rejections; 600.89-second soak completed 1200 with 120 viewer
+reattachments. All 30 retry probes avoided duplicate starts. Client/server share one process.
+Isolated commit timing, rate sweeps, real Codex load and stronger socket-pressure evidence remain
+follow-ups, not reasons to delay the next correctness slice. No paid-provider load was run.
 
-The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Existing evidence includes examples 38–41, recovery tests, 16 scripted Codex subprocess cases, 16 demo tests and an ad-hoc browser check. The latest adapter increment passed 36 focused package tests, root check and Durable build. These are historical results in [progress](TAKE_HOME_PROGRESS.md#validation-log), not reruns by this documentation revision.
+1. **Close focused recovery gaps.** Cover remaining native/admission/storage boundaries and verify old descendants cannot mutate files after replacement ownership. Windows owner-kill tests and direct-child PID checks do not establish Linux process-group cleanup or power-loss safety. Fix observed defects separately and disclose unverified boundaries.
+2. **Verify live integration when privately configured.** Bounded OpenAI-native and real Codex coding turns, continuation and stop. Separate real model evidence from initialization/simulation. Do not require all four provider keys.
+3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
+4. **Finish documentation and presentation.** Integrate package README/spec references, publish measurements/failure analysis and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
+
+The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery tests, 16 scripted Codex subprocess cases, the demo suite and an ad-hoc browser check. Three load tests extend the demo suite to 19. Exact validation dates/results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new test coverage.
 
 ## 6. GCP design, deferred until local readiness
 

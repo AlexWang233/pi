@@ -128,12 +128,22 @@ Disconnecting a browser never sends Stop. State/history provide recovery after a
 
 ## Checks and remaining evidence
 
+The [deterministic load runner and measurement report](load/README.md) exercise the real
+authenticated HTTP/SSE server and SQLite with simulated execution. Run from this directory:
+
+```powershell
+node --conditions=source --experimental-strip-types load/run.ts 600 ../../.artifacts/collab-load.json
+```
+
+This uses fresh disposable stores and no provider keys or Codex processes. It does not change
+the running preview or establish live harness capacity.
+
 Run from this directory, using repository dependencies:
 
 ```powershell
 npm run check
 npm run build
-node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts test/concurrency.test.ts
+node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts test/concurrency.test.ts test/load.test.ts
 ```
 
 Tests exercise real HTTP and Durable with deterministic I/O: authorization, scoped retry,
@@ -148,7 +158,7 @@ history, mobile sign-in and text-only rendering. Desktop (1440×960) and mobile 
 screenshots were inspected. Local evidence is under the ignored repository `.artifacts/`
 directory (`collab-ui-browser-check.json` and `collab-ui-*.png`); it is not part of the Vitest suite.
 
-Still pending: live provider/Codex coding turns, forced-process
-crash boundaries and cleanup, measured load/soak results, and GCP deployment. The current host
+Still pending: live provider/Codex coding turns, remaining forced-process
+crash boundaries and real descendant cleanup, broader capacity measurements, and GCP deployment. The current host
 is for a trusted local team, without public HTTPS, distributed ownership, rich tool rendering,
 or an approval UI. Track those separately in [the implementation record](../../TAKE_HOME_PROGRESS.md).

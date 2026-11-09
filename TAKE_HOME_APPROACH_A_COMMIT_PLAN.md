@@ -23,16 +23,22 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: prototype managed single-file publication` | Optional `managed-file.ts`, 15 tests and example 41 | Not integrated with model tools/HTTP/UI; general protection deferred |
 | `fix: reconcile interrupted commands after owner failure` | Task-derived public status/capacity; seven recovery tests including four SQLite owner-kill cases | Native/storage boundaries and real descendant cleanup |
 | `fix: correlate Codex turns and await interrupt delivery` | Session correlation/teardown fixes; 16 scripted subprocess cases using actual T3 client | Direct child cleanup tested; real CLI tool descendants unverified |
+| `feat: measure collaborative HTTP and SSE limits` | Four load modules, three new tests and [report](apps/collab-demo/load/README.md); 1301 accepted/completed commands including 1200-command soak, 30 stable retries | First slice complete; isolated commit timing, rate sweeps and real harness pressure remain follow-ups |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
-## Remaining reviewable increments
-
-### Next: deterministic load and measured limits
+## Completed load increment: acceptance record
 
 Suggested message: `feat: measure collaborative HTTP and SSE limits`.
 
 **Timebox:** about 2 hours for bounded first measurements/report; broaden only to investigate observed failures.
+
+**Implemented:** [load runner/report](apps/collab-demo/load/README.md), isolated SQLite stores,
+16-request submit concurrency, start/receipt accounting, retry probes, reconnect waves and a
+paused reader. Automatic compaction is disabled only in the load host. All 19 demo tests and
+the corrected 600.89-second soak pass. The checklist below remains the acceptance reference,
+not work to rebuild. Broader rate sweeps, isolated commit timing and real CLI load are deferred
+measurements rather than implied results of this first slice.
 
 **Build**
 
@@ -44,11 +50,13 @@ Suggested message: `feat: measure collaborative HTTP and SSE limits`.
 **Test / done**
 
 - Test nontrivial accounting/measurement logic. Verify no duplicate starts for retried IDs and expected replay consumption where replay is used.
-- Healthy viewers proceed while slow viewers are bounded/disconnected. Rejections match caps; accepted commands are accounted for as terminal or explicitly interrupted.
+- Healthy viewers proceed beside a paused reader; controlled stream tests establish application coalescing/frame caps. Actual kernel-buffer saturation/disconnection remains unmeasured. All accepted IDs are terminal, and burst rejections expose configured pending capacity.
 - Retain the known same-file lost-update demonstration. Load success does not establish conflict-free files.
 - Run app check/build, changed tests, root check and required package builds. Fix measured bugs separately and repeat affected measurements.
 
-### Then: focused recovery and process ownership
+## Remaining reviewable increments
+
+### Next: focused recovery and process ownership
 
 Suggested message: `fix: verify collaborative recovery and process ownership`; split by discovered defect.
 
