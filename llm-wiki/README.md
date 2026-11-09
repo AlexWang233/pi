@@ -29,6 +29,7 @@ Practice explaining both stories without using special terminology first. Then l
 | [Expanded interview question bank](interview-questions/README.md) | Concrete scenarios, deeper follow-ups and links by question type |
 | [Technical terms with examples](09-technical-terms.md) | What do harness, admission, fencing, projection and other unfamiliar terms mean here? |
 | [LaTeX/PowerPoint deck and speaker notes](../presentations/take-home/README.md) | What should I say and demonstrate on each slide, including after GCP deployment? |
+| [GCP setup and demo commands](../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md) | What do I provision, how do I start it, and which demonstrations run in the browser versus a VM terminal? |
 
 ## When a question uses unfamiliar terminology
 

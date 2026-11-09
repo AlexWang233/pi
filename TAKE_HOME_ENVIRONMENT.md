@@ -62,6 +62,9 @@ Docker, Terraform, Bun, a database server, and T3's full toolchain are not requi
 
 ## Interactive steps before deployment
 
+Use the [GCP deployment and demonstration guide](TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md) for the complete
+project/IAM/VM setup and commands. That guide is preparation, not evidence of a completed deployment.
+
 After activating the environment, authenticate and select your Google Cloud project:
 
 ```powershell

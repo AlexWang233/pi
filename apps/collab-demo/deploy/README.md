@@ -5,6 +5,10 @@ paid model call or service installation was performed by this increment. The use
 GCP until local readiness and deferred investigation of the Windows Bash recovery delay.
 Those decisions remain in force.
 
+For project/IAM/network setup, VM installation, private browser access and exact demonstration
+commands, use the [step-by-step GCP guide](../../../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md).
+This file remains the reference for the prepared service/backup policies and acceptance gates.
+
 ## Design and trade-offs
 
 Use one Linux Compute Engine VM and one process owning each SQLite store/workspace. The

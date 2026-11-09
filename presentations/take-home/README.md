@@ -29,7 +29,7 @@ Detailed prompts, fallbacks, and claims to state are in each slide's notes. Do n
 
 ## Future GCP access
 
-Follow the [deployment runbook](../../apps/collab-demo/deploy/README.md), including the model/runtime installation and Linux acceptance checks. The prepared design forwards a private VM listener to the presenter machine:
+Follow the [step-by-step GCP setup/demo guide](../../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md) and [technical deployment runbook](../../apps/collab-demo/deploy/README.md), including the model/runtime installation and Linux acceptance checks. The prepared design forwards a private VM listener to the presenter machine:
 
 ```bash
 gcloud compute ssh VM_NAME --project=PROJECT_ID --zone=ZONE -- -N -L 4310:127.0.0.1:4310
