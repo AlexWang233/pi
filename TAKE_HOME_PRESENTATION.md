@@ -61,7 +61,7 @@ $env:COLLAB_DATA = 'data/presentation'
 $env:COLLAB_TOKEN_ALICE = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
 $env:COLLAB_TOKEN_BOB = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
 npm run build
-node --conditions=source --experimental-strip-types src/preflight.ts
+npm run preflight
 npm start
 ```
 
@@ -72,6 +72,9 @@ agents, port 4311 and disposable files. Label that fallback explicitly.
 Workspace packages must already be built; on a fresh checkout follow the
 [environment setup](TAKE_HOME_ENVIRONMENT.md) and run the root offline build first.
 Preflight checks configuration/assets/key presence; it does not contact Ollama or prove model access.
+Alternatively, save these settings once in the ignored `apps/collab-demo/.env`; start and preflight
+load it automatically. The shown terminal variables override file values, allowing this local
+walkthrough to run even when `.env` selects hosted agents. Codex login is cached separately.
 
 The persistent live workspace appears after startup under
 `apps/collab-demo/data/presentation/workspace/`; its sibling `thread.sqlite` stores history/receipts.

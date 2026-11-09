@@ -66,6 +66,10 @@ digest from `ollama list`/`/api/tags`, not just the tag, when repeating evidence
 
 ## Run the browser with real local inference
 
+The default [mixed configuration](config.example.json) combines one OpenAI lane with one Ollama
+lane and requires an OpenAI key. The setup below deliberately selects `config.ollama.example.json`
+for two local lanes and no provider key. Codex remains an optional separate configuration.
+
 From repository root, in another PowerShell terminal:
 
 ```powershell
@@ -76,7 +80,7 @@ $env:COLLAB_DATA = 'data/ollama'
 $env:COLLAB_TOKEN_ALICE = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
 $env:COLLAB_TOKEN_BOB = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
 npm run build
-node --conditions=source --experimental-strip-types src/preflight.ts
+npm run preflight
 npm start
 ```
 
@@ -90,6 +94,13 @@ Use a fresh data directory when changing fixed agents/models. Provider keys are 
 these local lanes. Preflight validates declared local configuration without contacting Ollama;
 it does **not** verify that the model exists, is loaded, supports tools or honors context limits.
 Keep the server context consistent with the app's 8192-token declaration.
+
+For persistent setup, store those `COLLAB_*` values in the ignored `apps/collab-demo/.env`
+instead of setting them again. Set `COLLAB_CONFIG=config.ollama.example.json` and
+`COLLAB_DATA=data/ollama`; no provider key is needed. `npm start` and `npm run preflight`
+load that file automatically. Existing terminal variables override the file, so use a fresh
+terminal or clear stale overrides when switching configurations. The standalone smoke below
+remains an explicit local-model check and does not automatically load `.env`.
 
 ## Explicit local smoke check
 

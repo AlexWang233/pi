@@ -1,0 +1,7 @@
+{
+	"members": [{ "id": "alice", "tokenEnv": "COLLAB_TOKEN_ALICE" }, { "id": "bob", "tokenEnv": "COLLAB_TOKEN_BOB" }],
+	"agents": [
+		{ "id": "openai", "kind": "native", "model": { "provider": "openai", "modelId": "gpt-5.4-mini" } },
+		{ "id": "codex", "kind": "external", "driver": "codex" }
+	]
+}

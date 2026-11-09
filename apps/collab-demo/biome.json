@@ -4,6 +4,15 @@
 	"formatter": { "indentStyle": "tab", "lineWidth": 120 },
 	"linter": { "enabled": true, "rules": { "recommended": true, "style": { "noNonNullAssertion": "off" } } },
 	"files": {
-		"includes": ["src/**/*.ts", "web/**/*.ts", "test/**/*.ts", "load/**/*.ts", "scripts/**/*.ts", "*.json", "!dist"]
+		"includes": [
+			"src/**/*.ts",
+			"web/**/*.ts",
+			"test/**/*.ts",
+			"load/**/*.ts",
+			"scripts/**/*.ts",
+			"scripts/**/*.mjs",
+			"*.json",
+			"!dist"
+		]
 	}
 }

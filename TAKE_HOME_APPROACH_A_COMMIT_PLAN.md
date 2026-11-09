@@ -29,6 +29,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: verify native collaboration with local models` | Loopback Ollama composition using Pi's existing API, two-user/two-agent configuration, opt-in real HTTP/SQLite/tool smoke and offline contract tests | Qwen3 4B passes four actual writes/retry/reopen; hosted providers, Codex and GCP still need their own access/evidence |
 | `feat: inspect workspace files from the demo` | Authenticated read-only directory/text API and browser controls, manual refresh, five new HTTP/filesystem tests and desktop/mobile Chrome verification | No editing, diffs, automatic refresh or write-conflict protection |
 | `docs: record regular-host local integration and presentation` | Actual Ollama/browser check: five commands, all four user/agent pairings, file inspection, queue, reconnect and idle reopen; [presentation runbook](TAKE_HOME_PRESENTATION.md) and README API/examples | Human rehearsal remains; no runtime changes in this increment |
+| `feat: persist local demo configuration in an env file` | Native Node `.env` loading in start/preflight, tracked secret-free template, ignored local files and two additional preflight cases for file-only setup/terminal precedence | Hosted/Codex turns still need configured credentials; preview stays independent |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -62,6 +63,11 @@ measurements rather than implied results of this first slice.
 ## Remaining reviewable increments
 
 ### Immediate next implementations
+
+The current default, per user preference, is native OpenAI + local Ollama. First verify bounded
+mixed-provider coding turns with the saved OpenAI key and running local server; preflight has
+passed but does not establish live model access. Codex is retained in its own example and needs
+separate authentication for the later external-harness gate. GCP remains deferred.
 
 1. **Rehearse and record timing:** package README/API/example links, normative specification
    section 14 and the [presentation runbook](TAKE_HOME_PRESENTATION.md) are written. Full core-spec

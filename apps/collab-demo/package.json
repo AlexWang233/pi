@@ -5,8 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"build": "tsc -p tsconfig.web.json",
-		"start": "npm run build && node --conditions=source --experimental-strip-types src/main.ts",
-		"preview": "npm run build && node --conditions=source --experimental-strip-types src/preview.ts",
+		"start": "node scripts/check-runtime.mjs && npm run build && node --env-file-if-exists=.env --conditions=source --experimental-strip-types src/main.ts",
+		"preflight": "node scripts/check-runtime.mjs && node --env-file-if-exists=.env --conditions=source --experimental-strip-types src/preflight.ts",
+		"preview": "node scripts/check-runtime.mjs && npm run build && node --conditions=source --experimental-strip-types src/preview.ts",
 		"check": "node ../../scripts/biome-check.mjs && tsc --noEmit",
 		"format": "node ../../scripts/biome-check.mjs --write"
 	},

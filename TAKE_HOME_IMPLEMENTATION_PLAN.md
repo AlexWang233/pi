@@ -19,6 +19,11 @@ The preview demonstrates **three members sharing two agent lanes**, including al
 
 Target one native Pi lane and one external Codex lane for the final live walkthrough. Native OpenAI/GPT, Anthropic/Claude, Google/Gemini and DeepSeek are registered through existing Pi AI providers. Only OpenAI credentials are planned now; other live and multi-key checks remain deferred. A native model provider is distinct from an external harness such as Claude Code.
 
+**Current local default, per user preference:** native OpenAI `gpt-5.4-mini` plus native local
+Ollama Qwen3 4B. Both are configured in `config.example.json` and ignored `config.local.json`;
+`config.codex.example.json` retains the OpenAI/Codex option. This default needs no Codex login.
+Mixed native-provider turns are the next live check; they do not substitute for external-harness evidence.
+
 For independent local development, [Ollama/Qwen3 setup](apps/collab-demo/LOCAL_MODELS.md) now
 provides actual native model/tool execution without provider keys. Two users/two agents pass four
 file-content assertions, receipt retries and graceful SQLite reopen. A separate regular-host browser

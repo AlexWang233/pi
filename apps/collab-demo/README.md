@@ -11,6 +11,22 @@ Open **Access & coordination** to inspect the M:N matrix and shared-file limitat
 screens stack the conversations and provide a **Workspace & sign in** navigation drawer.
 Visual hierarchy was informed by T3 Code; this remains an original plain DOM/CSS frontend.
 
+## Node runtime
+
+Use Node **22.19 or newer** with `node:sqlite` available. This workstation's system Node
+22.12 does not expose SQLite by default. Activate the prepared Node 22.23.4 in each new terminal:
+
+```powershell
+. E:\Github\pi\.artifacts\env.ps1
+Set-Location E:\Github\pi\apps\collab-demo
+node --version
+npm start
+```
+
+Start/preflight/preview now check the runtime first and report the executable/version and
+activation command if unsupported. The Type Stripping/SQLite experimental warnings alone are
+not startup failures. No permanent system Node or PATH change is required.
+
 ## Inspect agent-written files
 
 After connecting, open **Workspace files · Read only** above the agent panels. Select a folder
@@ -69,41 +85,76 @@ the current absence of file-conflict protection; no merge or rollback is promise
 
 ## Run with real agents
 
+The default is two native Pi lanes: OpenAI `gpt-5.4-mini` and the installed local Ollama
+`qwen3:4b-instruct-2507-q4_K_M`. Both users can use either agent in the same workspace.
+The OpenAI lane needs `OPENAI_API_KEY`; the local lane needs the running Ollama server.
+Codex login is not required for this configuration. The selected OpenAI model is in the local
+catalog and supports tool calling; see [official model documentation](https://developers.openai.com/api/docs/models/gpt-5.4-mini).
+Account/model access still needs a live check.
+
 For real local inference without provider keys, follow [Local models](LOCAL_MODELS.md).
 `config.ollama.example.json` configures two shared native lanes on one small Ollama model;
 this exercises native Pi, not the external Codex adapter. The setup includes an opt-in
 HTTP/SQLite/tool-use smoke check and an explicit list of checks that still need credentials/GCP.
 
 1. Copy `config.example.json` to the ignored `config.local.json`.
-2. Replace the native model placeholder with an ID from the local catalog:
+2. Start the installed Ollama server in another PowerShell terminal (from this app directory):
 
    ```powershell
-   node --conditions=source --experimental-strip-types ../../packages/durable/test/examples/40-native-providers.ts openai --list-models
+   & .\scripts\start-ollama.ps1
    ```
 
-3. Set `OPENAI_API_KEY` privately in the launching environment. Generate private user tokens:
+   Model choices are already filled in. To select another OpenAI model later, list the local
+   catalog with `node --conditions=source --experimental-strip-types ../../packages/durable/test/examples/40-native-providers.ts openai --list-models`.
+
+3. Copy [`.env.example`](.env.example) to `.env` in this directory, unless one already exists.
+   Set `OPENAI_API_KEY` and two distinct private `COLLAB_TOKEN_ALICE` / `COLLAB_TOKEN_BOB`
+   values there. Generate each token once:
 
    ```powershell
-   $env:COLLAB_TOKEN_ALICE = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
-   $env:COLLAB_TOKEN_BOB = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
-   node --conditions=source --experimental-strip-types src/preflight.ts
+   node -p "require('node:crypto').randomBytes(24).toString('base64url')"
+   ```
+
+   Keep the key and tokens in this ignored file. `config.local.json` contains model/agent
+   declarations, not credentials. The template uses a separate `data/openai-ollama` store.
+   Alice/Bob tokens are passwords for the demo users, not OpenAI/Ollama keys: paste Alice's
+   value into one browser page to connect as Alice, and Bob's into another. Save them once
+   rather than generating new values at every restart.
+
+4. Build once for preflight, then start:
+
+   ```powershell
+   npm run build
+   npm run preflight
    npm start
    ```
 
 Open **http://127.0.0.1:4310**. Give each user their token privately; enter the token's value in
 the browser. Tokens remain in page memory and Authorization headers, never URLs or browser
-storage. API keys stay in the host environment. There is no `.env` loader in this application.
+storage. API keys stay in the host environment.
+
+`npm start` and `npm run preflight` use Node's built-in `--env-file-if-exists=.env`: the app-local
+file is optional, existing terminal variables take precedence (including empty values), and no
+new dependency is required. The npm commands run from this app directory. A root `.env` is not
+loaded. Do not commit `.env` or put it inside an agent workspace. Node reads it before importing
+providers; changing it requires restarting the host. It does not write permanent environment
+variables. The deterministic preview does not load this file. Direct `node src/...` invocations
+need the same flag or an already populated environment.
+
+After the one-time setup, each new terminal only needs repository tool activation, this app's
+directory and `npm start`; keys, tokens and data/config paths persist in `.env`. Codex CLI login
+is cached separately. Check it with `codex login status`; use `codex login` if not signed in.
 
 Preflight validates configuration, tokens, selected local model IDs, browser assets and selected
 native API-key environment presence. It opens no store/socket, spawns no CLI and makes no provider
 request. `configuration-valid` does not verify authentication, filesystem permissions or live
 model access. This check targets API-key setup; alternate OAuth/federation setup is not verified.
 
-The example includes native Pi and external Codex. Codex requires its own installed CLI and
-working authentication; a native OpenAI API call does not establish Codex access. To start with
-only the OpenAI key, replace the Codex entry with another native agent using a different ID and
-the same OpenAI model. This demonstrates two agents with one provider; live multi-harness
-verification still requires a successful Codex turn later.
+The optional [config.codex.example.json](config.codex.example.json) pairs native OpenAI with
+external Codex. Select it through `COLLAB_CONFIG` and use a fresh `COLLAB_DATA` path. Codex
+requires its own installed CLI and working authentication; a native OpenAI API call does not
+establish Codex access. This retains the external harness demo separately from the default
+two-provider setup; live multi-harness verification still requires a successful Codex turn.
 
 Native provider IDs: `openai`, `anthropic`, `google`, `deepseek`. Corresponding environment keys:
 `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`. All factories are
@@ -204,7 +255,9 @@ reconnect, stop isolation, viewer limits, UTF-8/chunk framing, and actual shared
 Backpressure/coalescing is also checked with controlled response writes. The built browser
 modules are served by the end-to-end preview test; this is not an automated browser-click test.
 Startup/lifetime tests cover selected-provider requirements, environment validation, actual
-Harness storage failure, signal cleanup and read-only preflight subprocesses, including missing keys.
+Harness storage failure, signal cleanup and read-only preflight subprocesses, including missing
+keys, optional `.env` loading, terminal override precedence and secret-free output. These run
+in disposable directories, so a developer's real `.env` is never loaded by the preflight tests.
 
 A separate ad-hoc Chrome 156.0.8078.80 check executed the actual browser modules with Alice,
 Bob and Carol: shared messages/queues, reconnect without duplicate messages, stop, draft clearing,

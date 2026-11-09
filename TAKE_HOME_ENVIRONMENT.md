@@ -15,6 +15,12 @@ gcloud --version
 
 Repeat activation in each new terminal. Dot-sourcing (the leading `. `) updates the current terminal's environment. Git Bash is placed before Windows' WSL `bash.exe` so coding tools can use the existing Git for Windows shell.
 
+The system `C:\Program Files\nodejs\node.exe` is Node 22.12.0 and does not expose `node:sqlite`
+without its experimental opt-in. The prepared 22.23.4 supports it without that flag. The demo
+requires 22.19+ and now checks version/SQLite availability before start, preflight or preview.
+If startup reports `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite`, activate the prepared tools in
+that same terminal; changing `.env` or installing a SQLite npm dependency does not fix this mismatch.
+
 ## Installed components
 
 | Component | Location / version |
@@ -65,6 +71,16 @@ gcloud init
 Complete the browser login yourself. Confirm billing and Compute Engine access for the chosen project before provisioning resources. Installing the CLI does not create a project, enable billing, or deploy anything. Application Default Credentials are not needed merely to deploy with the gcloud CLI.
 
 For a hosted-provider demonstration, choose one supported model provider and configure its API credential privately. Do not paste credentials into chat, source files, or committed configuration. Deterministic provider examples and automated tests need no real provider credentials.
+
+The demo supports persistent local settings in `apps/collab-demo/.env`. Start from its
+[`.env.example`](apps/collab-demo/.env.example), fill in `OPENAI_API_KEY`, unique private user
+tokens, and config/data paths once. The default `config.local.json` copied from the example
+uses native OpenAI `gpt-5.4-mini` plus local Ollama Qwen3 4B; model choices can be edited later.
+Both `npm start` and `npm run preflight` from that app directory load `.env` automatically;
+existing terminal variables override it. Root `.env` and the simulated preview are not loaded
+through this mechanism. No additional dependency or machine-wide environment change is needed.
+Start the installed Ollama server separately for this default. Codex is optional through
+`config.codex.example.json`; it uses cached CLI login and is not required for OpenAI + Ollama.
 
 For actual local-model responses without provider keys, use the [Ollama instructions](apps/collab-demo/LOCAL_MODELS.md).
 The app supports two native lanes on one small local chat model. MiniLM embeddings do not
