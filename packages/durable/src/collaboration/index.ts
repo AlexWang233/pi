@@ -1,5 +1,6 @@
 // Collaborative threads are an additive API on the existing Durable package.
 export { createCollaboration } from "./external.ts";
+export { ManagedFile, type ManagedFileEdit, type ManagedFileProposal, type ManagedFileRead } from "./managed-file.ts";
 export { CollaborativeThread } from "./thread.ts";
 export {
 	type AgentSnapshot,

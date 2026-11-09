@@ -147,6 +147,11 @@ Pi's in-process edit/write queue. This prototype assumes trusted collaborators, 
 store, and disposable repositories. GCP deployment, stress measurements, and hostile
 tenant protection are not implemented by this slice.
 
+An opt-in [`ManagedFile` API](managed-files.md) now implements conditional publication for
+one bounded text file, retained base/current/proposed evidence, stable retries and conservative
+blocking after uncertain writes. It uses the existing documents and file-mutation gate. It is
+not wired into model tools, Codex or the HTTP/browser demo; direct writers remain unprotected.
+
 The separate [HTTP/browser demo](../../../apps/collab-demo/README.md) now hosts this package
 API with bearer authentication, bounded SSE fanout, and a minimal client. Its credential-free
 preview runs real Durable/tools with simulated provider/CLI I/O; the live composition uses

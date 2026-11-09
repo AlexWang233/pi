@@ -1,7 +1,10 @@
 # Proposed coordination and conflict resolution
 
-**Status: design proposal only; these protections are not implemented.** The current
-runtime still permits the lost update demonstrated in [the scenario register](PROBLEM_SCENARIOS.md).
+**Status: the first opt-in single-file API is implemented; broader protections remain proposals.**
+[`ManagedFile`](../../packages/durable/docs/managed-files.md) provides bounded conditional edits,
+retained conflict evidence and conservative blocking after uncertain writes. It is not yet
+connected to model tools, Codex or HTTP/UI. The current demo still permits the lost update
+demonstrated in [the scenario register](PROBLEM_SCENARIOS.md).
 This document proposes solutions for selected high-impact scenarios using database and Git
 ideas. It does not propose replacing Durable's persistence engine or adding a database service.
 
@@ -32,7 +35,7 @@ ignores it; hostile execution needs enforced isolation.
 
 All agents continue to share one working directory. Private per-agent worktrees would change
 that visibility model. Multiple threads may continue executing independently with separate
-workspaces. No change to execution policy is made by this proposal.
+workspaces. The opt-in API does not change the existing demo's execution policy.
 
 ## What to borrow from databases and Git
 
@@ -225,6 +228,13 @@ stash, checkout or automatic commit on collaborators' behalf.
 | O1 — Lock waiting, deadlock and fairness | Fixed lock order for managed file sets, bounded waits/cancellation, and an explicit fair workspace wait queue in Durable | Never expire ownership and assume a direct writer disappeared; bound queue retention and avoid indefinite starvation |
 
 ## Proposed implementation sequence and review gates
+
+**First slice delivered:** the managed-file spike in step 2 is available as a package API
+and runnable example, using exact bounded content comparison instead of hashes. It stores
+intent before writes and blocks on uncertainty; recovery reconciliation is not implemented.
+See [the implemented contract and limits](../../packages/durable/docs/managed-files.md).
+Steps 1 and 3 still require selecting and wiring an execution policy for the actual agents;
+step 4's merge/review work and the broader acceptance cases remain future work.
 
 This is a menu for selecting a small additional slice, not a commitment to implement all of it
 inside the remaining take-home time. Scope estimates would follow a source-level design review.
