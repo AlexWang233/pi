@@ -3,7 +3,7 @@ import type { Context } from "@earendil-works/chord/context";
 import { configure } from "../harness/agent.ts";
 import type { Conversation, Harness } from "../harness/types.ts";
 import type { Cursor, EntryRecord, Page, Task, TaskId } from "../types.ts";
-import { authorize, ThreadDoc, threadConfiguration } from "./state.ts";
+import { authorize, externalCommandState, ThreadDoc, threadConfiguration } from "./state.ts";
 import {
 	type AgentWatch,
 	CollaborationError,
@@ -107,7 +107,10 @@ export class CollaborativeThread {
 				if (item.kind === "native") {
 					const submission = await tx.submission(item.submissionId);
 					if (submission?.status === "queued" || submission?.status === "placed") pending++;
-				} else if (item.state.status === "queued" || item.state.status === "running") pending++;
+				} else if (item.state.status === "queued" || item.state.status === "running") {
+					const status = externalCommandState(item, (await tx.task(item.taskId))!.state).status;
+					if (status === "queued" || status === "running") pending++;
+				}
 			}
 			if (pending >= thread.configuration.maxPendingPerAgent) {
 				throw new CollaborationError("capacity", "Agent pending-command capacity reached");
@@ -141,15 +144,24 @@ export class CollaborativeThread {
 
 	/** Read a caller's command without exposing provider or runtime record identities. */
 	async command(actorId: string, agentId: string, id: string, context: Context): Promise<CommandStatus> {
-		const state = (await this.#harness.snapshot(ThreadDoc, context))!;
-		authorize(state, actorId);
-		const item = state.commands.find(
-			(entry) => entry.id === id && entry.actorId === actorId && entry.agentId === agentId,
-		);
-		if (!item) throw new CollaborationError("not_found", "Unknown command");
 		const identity = { id, actorId, agentId };
-		if (item.kind === "external") return { ...identity, ...item.state };
-		const submission = (await this.#harness.submission(item.submissionId, context))!;
+		// Read metadata and task on one transaction line: completion between separate reads is not a fault.
+		const command = await this.#harness.commit(async (tx) => {
+			const state = await tx.doc(ThreadDoc);
+			authorize(state, actorId);
+			const item = state.commands.find(
+				(entry) => entry.id === id && entry.actorId === actorId && entry.agentId === agentId,
+			);
+			if (!item) throw new CollaborationError("not_found", "Unknown command");
+			if (item.kind === "native") return { kind: "native", submissionId: item.submissionId } as const;
+			const outcome =
+				item.state.status === "queued" || item.state.status === "running"
+					? externalCommandState(item, (await tx.task(item.taskId))!.state)
+					: item.state;
+			return { kind: "external", status: { ...identity, ...outcome } } as const;
+		}, context);
+		if (command.kind === "external") return command.status;
+		const submission = (await this.#harness.submission(command.submissionId, context))!;
 		const status = await submission.status(context);
 		if (status.status === "queued") return { ...identity, status: "queued" };
 		if (status.status === "placed") return { ...identity, status: "running" };

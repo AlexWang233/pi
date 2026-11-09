@@ -1,6 +1,6 @@
 // Package-owned metadata and command receipts stored on the existing Session line.
 import { defineDoc } from "../documents.ts";
-import type { ConversationId, SubmissionId, TaskId } from "../types.ts";
+import type { ConversationId, SubmissionId, TaskId, TaskState } from "../types.ts";
 import { CollaborationError, type CollaborativeThreadConfig } from "./types.ts";
 
 export type ThreadConfiguration = {
@@ -101,4 +101,18 @@ export function authorize(state: Readonly<ThreadState>, actorId: string): void {
 	if (!state.thread?.configuration.members.includes(actorId)) {
 		throw new CollaborationError("forbidden", "Caller is not a member of this thread");
 	}
+}
+
+/** Derive an uncertain command outcome when its task ended without settling collaboration metadata. */
+export function externalCommandState(
+	command: Extract<StoredCommand, { kind: "external" }>,
+	task: TaskState<unknown, unknown>,
+): Extract<StoredCommand, { kind: "external" }>["state"] {
+	if ((command.state.status === "queued" || command.state.status === "running") && task.status === "terminal") {
+		return {
+			status: "interrupted",
+			reason: `External task ended (${task.outcome.status}) without a command outcome; inspect workspace before retrying`,
+		};
+	}
+	return command.state;
 }

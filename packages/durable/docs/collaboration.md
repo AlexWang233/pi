@@ -107,9 +107,35 @@ send can therefore interrupt an attempt that never reached the provider. A lost 
 leave effects on disk; the runtime does not claim exactly-once shell execution.
 
 Native recovery retains the existing Durable semantics. External successes store a private
-continuation reference; later commands can resume the provider thread. Real continuation and
-forced-process-kill behavior still require additional verification. The current interruption
-test uses close/reopen of an active task, not a power-loss or forced-kill test.
+continuation reference; later commands can resume the provider thread. Real Codex continuation
+and descendant-process cleanup still require additional verification.
+
+External status and admission capacity also consult the underlying task. If collaboration
+metadata still says queued/running after that task becomes terminal, the public command is
+`interrupted` with a reason naming the task outcome. It no longer consumes pending capacity
+or displays stale running progress. Metadata and task are read on the same transaction line,
+so ordinary completion between separate reads cannot produce false interruption. This is a
+derived status, not a background metadata rewrite or a newly appended outcome-history entry.
+Already settled command outcomes remain authoritative. Nonterminal tasks blocked by a missing
+definition/migration remain blocked; this rule does not label them completed or restart them.
+
+[`collaboration-recovery.test.ts`](../test/collaboration-recovery.test.ts) adds real owner-process
+termination with SQLite at explicit barriers, using a deterministic external driver:
+
+| Kill boundary | Verified result after reopen |
+| --- | --- |
+| Dispatch memo committed, driver open reached, turn not started | Interrupted; no second driver open and no file effect |
+| File effect complete, result not committed | Interrupted; effect remains once, no second driver open |
+| Result committed before owner termination | Completed answer/identity retained; same-ID retry does not run again |
+| File effect complete, then reopen at restart limit | Scheduler records a faulted task; derived command is interrupted and fresh work can be admitted |
+
+The first two cases also retain an already queued successor and verify it stops after the
+uncertain predecessor. A separate test injects a result-settlement fault and checks status,
+watch idleness/progress and capacity recovery; other cases verify late progress cannot revive
+a settled command and live progress survives a full receipt window. These tests were run on
+Windows with Node 22 and kill only the spawned
+owner process. They do not verify a real CLI's grandchildren, Linux process groups, all native
+crash boundaries, filesystem rollback, or host/power-loss durability.
 
 Adapter sessions must honor AbortSignal, stop producing progress when their turn ends, and
 release processes/resources in close. External deadlines default to 120 seconds. Driver code
@@ -155,5 +181,6 @@ not wired into model tools, Codex or the HTTP/browser demo; direct writers remai
 The separate [HTTP/browser demo](../../../apps/collab-demo/README.md) now hosts this package
 API with bearer authentication, bounded SSE fanout, and a minimal client. Its credential-free
 preview runs real Durable/tools with simulated provider/CLI I/O; the live composition uses
-SQLite, the four native provider factories, and optional Codex lanes. This does not establish
-live model, browser walkthrough, forced-crash, load, or GCP deployment evidence.
+SQLite, the four native provider factories, and optional Codex lanes. The preview itself does
+not establish live model, load or GCP evidence; the selected owner-crash evidence above comes
+from separate package tests.

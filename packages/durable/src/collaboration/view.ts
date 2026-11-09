@@ -33,7 +33,20 @@ export async function watchAgent(
 				.slice(-8)
 				.map(readCommand),
 		);
-		return projectAgent(state, view, agentId, commands);
+		const active = state.commands.findLast(
+			(item) => item.agentId === agentId && item.kind === "external" && item.state.status === "running",
+		);
+		// The running command may precede the eight visible receipts when many follow-ups are queued.
+		const activeStatus =
+			active === undefined
+				? undefined
+				: (commands.find((command) => command.id === active.id && command.actorId === active.actorId) ??
+					(await readCommand(active)));
+		const progress =
+			active?.kind === "external" && active.state.status === "running" && activeStatus?.status === "running"
+				? active.state.progress
+				: "";
+		return projectAgent(state, view, agentId, commands, progress);
 	};
 	const stopSources = () => {
 		void Promise.all([metadata.stop(), conversationWatch.stop()]);
@@ -90,17 +103,13 @@ function projectAgent(
 	view: ConversationView,
 	agentId: string,
 	commands: CommandStatus[],
+	externalProgress: string,
 ): AgentSnapshot {
 	const agent = state.thread!.configuration.agents.find((item) => item.id === agentId)!;
 	// pi.live is a runtime-owned document whose kind fixes its schema.
 	const live = view.docs["pi.live"] as LiveState | undefined;
 	const nativeProgress =
 		live?.generation?.message?.content.flatMap((part) => (part.type === "text" ? [part.text] : [])).join("") ?? "";
-	const active = state.commands.find(
-		(item) => item.agentId === agentId && item.kind === "external" && item.state.status === "running",
-	);
-	const externalProgress =
-		active?.kind === "external" && active.state.status === "running" ? active.state.progress : "";
 	const messages: AgentSnapshot["messages"] = [];
 	for (const entry of view.entries.slice(-20)) {
 		if (entry.kind === "collab.input") {
