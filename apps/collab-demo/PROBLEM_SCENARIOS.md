@@ -94,8 +94,8 @@ a high-severity risk, such as an interrupted command whose filesystem effects ar
 | O2 — Resource or cost exhaustion: large output, many subprocesses, or repeated model rounds drain the host/budget | High | **Partial:** bounds/deadlines plus a deterministic SQLite/HTTP runner recording RSS/heap, CPU and event-loop delay. Client/server share a process; this is not a process-memory, disk or monetary cap, or real multi-provider/process-load evidence | See the load report for completed durations/results. Measure real subprocesses/socket pressure separately and enforce explicit budgets before broader exposure. Clipping does not cap spend |
 | O3 — Serialized-write and fanout hotspots: many active lanes contend on one owner | Medium–High | **Partial measurement:** load records acceptance/start/completion/delivery distributions; first burst exposes configured pending capacity. Per-thread commit lines and shared projections remain candidate hotspots; isolated commit cost and maximum throughput are unmeasured | Add a paced rate sweep and isolated commit/projection timing before optimizing. Later distribute exclusive thread owners rather than concurrent owners of one store |
 | O4 — Single points of failure and backups: owner, VM, disk, or zone becomes unavailable | High | **Deferred deployment evidence:** real host has SQLite; preview is memory-only. Service/backup/restore instructions are prepared, but GCP deployment, reboot/failover and restore remain unverified | Document outage scope; back up SQLite consistently with its journal/WAL and verify restores. Storage recovery does not recover lost filesystem effects or kill surviving writers automatically |
-| O5 — Model/CLI/dependency drift: the tested replay differs from the installed CLI or an account lacks a chosen model | Medium–High | **Partial:** exact adapter dependencies, vendored T3 revision/license and CLI initialization evidence exist. Four native providers register; only OpenAI credentials are planned. Live turns are not verified by catalog loading or replay | Pin and record tested versions/models; run opt-in live checks when credentials exist. Keep provenance and compatibility evidence distinct; registration is not a live integration result |
-| O6 — Scope/evidence mismatch: a simulated demo is presented as deployed, stress-tested, production-safe collaboration | High for assignment credibility | **Open deliverables:** deterministic tests, browser checks, selected owner-crash cases and the load report establish narrow contracts. Simulated load is not real harness capacity; live calls, real CLI cleanup, human live-demo walkthrough and GCP remain unfinished | Record exact measured duration/workload separately from proposals. Keep cloud for the agreed later phase; document provisioning/access/restart/restore/teardown when actually performed |
+| O5 — Model/CLI/dependency drift: the tested replay differs from the installed CLI or an account lacks a chosen model | Medium–High | **Partial:** exact adapter dependencies, vendored T3 revision/license and CLI initialization evidence exist. Four hosted native providers register; only OpenAI credentials are planned. Actual local Qwen3 tool/browser checks pass with a recorded digest; hosted/Codex turns remain unverified | Pin and record tested versions/models; run opt-in hosted/Codex checks when credentials exist. Keep provenance and compatibility evidence distinct; registration is not a live integration result |
+| O6 — Scope/evidence mismatch: a simulated demo is presented as deployed, stress-tested, production-safe collaboration | High for assignment credibility | **Open deliverables:** deterministic tests, actual local-model/browser checks, selected owner-crash cases and the load report establish narrow contracts. Simulated load is not real harness capacity; hosted/Codex turns, real CLI cleanup, human rehearsal and GCP remain unfinished | Record exact measured duration/workload separately from proposals. Keep cloud for the agreed later phase; document provisioning/access/restart/restore/teardown when actually performed |
 
 ## Priorities within the take-home budget
 
@@ -106,7 +106,7 @@ This register is not a commitment to implement every proposed protection in 20 h
 2. Resolve or explicitly disclose the highest work-loss risks: shared-file writes, stale context,
    partial effects, uncertain dispatch, orphaned status, and old processes surviving restart.
 3. Extend the completed deterministic load/soak evidence with remaining crash boundaries,
-   real process supervision, opt-in live turns, a human live-demo walkthrough and later GCP.
+   real process supervision, opt-in hosted/Codex turns, human rehearsal and later GCP.
    Preview, replay and simulated load do not establish those remaining deliverables.
 4. Defer dynamic membership, approval arbitration, autonomous delegation, distributed failover,
    and hostile multi-tenancy unless they replace other scope explicitly.
@@ -133,6 +133,8 @@ The worked examples below show the current behavior and these trade-offs concret
 | [Codex subprocess tests](../../packages/durable/test/codex-process.test.ts) | 18 scripted driver/client/stdio cases, including two Windows attached-descendant cleanup cases; not real Codex models, detached writer containment or Linux evidence |
 | [Persistence boundary tests](../../packages/durable/test/collaboration-boundaries.test.ts) | 12 cases: six admission/native owner kills and six SQLite commit faults, stable identities, model resend versus unsafe-tool no-replay, and uncertain external result recovery |
 | [Load runner/report](load/README.md) and [load tests](test/load.test.ts) | SQLite and real authenticated HTTP/SSE, bounded submit concurrency, start accounting, retry probes, paused reader and reconnect waves; report states completed durations and measurement limits |
+| [Local setup/evidence](LOCAL_MODELS.md) and [regular-host browser report](scripts/results/2026-11-08-ollama-browser.json) | Actual local Qwen3 tool outcomes, two browser identities/all four pairings, same-agent queue, file inspection/refresh, offline catch-up, idle reopen and stable retry; no hosted/Codex, active-shell or GCP verification |
+| [Presentation runbook](../../TAKE_HOME_PRESENTATION.md) | Eight-minute outline, repeatable local interaction trace and explicit outstanding gates; human rehearsal remains pending |
 | [Implementation record](../../TAKE_HOME_PROGRESS.md) | Actual check results, remaining risks and unperformed validation |
 
 ## Worked examples and walkthrough
@@ -215,7 +217,7 @@ records, not filesystem operations. Stopping an agent does not undo files it alr
 
 These policies cover execution and delivery failures, not semantic agreement between users.
 Selected forced owner-process crashes are now tested. Full process-tree cleanup, remaining
-crash boundaries and real-provider behavior still need the validation in the progress record.
+crash boundaries and hosted-provider/Codex behavior still need the validation in the progress record.
 
 ### Reproduce in the browser
 

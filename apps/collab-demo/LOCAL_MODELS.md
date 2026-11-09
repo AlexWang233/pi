@@ -123,6 +123,34 @@ A subsequent verification with the model already loaded also passed in 3.254 sec
 temporary server was stopped after testing; the successful model/runtime remain installed.
 The failed 3B trial model was removed from this session's cache to recover its disk space.
 
+## Regular-host browser verification
+
+**November 8 result:** Chrome 156.0.8078.80 exercised the actual `src/main.ts` host and
+`config.ollama.example.json` with two authenticated page identities, temporary SQLite and
+actual Ollama inference. Five commands completed across all four user/agent pairings:
+
+- Alice created `alice.txt`; Bob's follow-up queued on the same agent and edited its contents.
+- Bob created `bob.txt` on the second agent; Alice used that agent to read it.
+- Both users inspected the actual files through the browser panel. While Alice was offline,
+  Bob replaced `bob.txt`; reconnect restored the input once and manual refresh showed current bytes.
+- Idle shutdown/reopen retained files and receipts. Retrying the original ID/text produced no
+  new model request during the checked interval.
+
+The [portable report](scripts/results/2026-11-08-ollama-browser.json) records five commands,
+eleven model requests and 30.772 seconds including startup/reopen. Desktop/mobile screenshots
+were inspected; local evidence is ignored `.artifacts/ollama-browser-*` at repository root.
+Only owned temporary processes, profile and data were removed afterward. The installed runtime
+and cached model remain available.
+
+This is one integration run, not a throughput or coding-quality benchmark. A model reply described
+an edit mismatch despite correct final file bytes; outcomes were independently asserted. A QA-only
+IPC preload delivered the ordinary host's SIGTERM event on Windows while idle. This does not
+verify active-shell shutdown, escaped descendants, hosted-provider authentication, Codex or GCP.
+The backend still serializes inference. No runtime changes were needed after this walkthrough.
+
+Use the [presentation runbook](../../TAKE_HOME_PRESENTATION.md) to repeat the interaction manually.
+The ad-hoc browser automation is separate from the committed tool smoke and normal Vitest suite.
+
 ## What still needs external access
 
 | Work | Required access | Local models cover it? |
@@ -133,7 +161,8 @@ The failed 3B trial model was removed from this session's cache to recover its d
 | T3-backed real Codex turns, continuation and real CLI tool lifecycle | Installed Codex and working authentication for the current hosted-provider configuration | Native smoke does not exercise Codex; a Codex/local-backend composition is not implemented or verified |
 | Final GCP service, mounted disk, restart/reboot, Linux descendant cleanup, backup/restore and evaluator access | Selected GCP project/billing/IAM and Linux deployment | No; service templates alone do not establish these |
 
-No external key or GCP deployment is required for remaining independent local coding. When the
-next requested check is one of the last three rows, state the exact prerequisite for that check
-and continue independent work while it is pending.
+The local browser gate now passes. Remaining independent specification review and presentation
+rehearsal require no key or GCP project. The next hosted native/Codex check requires private
+OpenAI credentials and separate Codex authentication; this is the current credential gate.
+GCP project/billing/IAM is required only for the later deployment checks.
 Configure credentials privately in the launching environment, never in chat or committed files.

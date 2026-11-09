@@ -11,6 +11,7 @@ Built on [`@earendil-works/pi-ai`](../ai/README.md) for model access and `@earen
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Concepts](#concepts)
+- [Collaborative Threads](#collaborative-threads)
 - [Persist and Resume](#persist-and-resume)
 - [Extensions](#extensions)
 - [Tools](#tools)
@@ -111,6 +112,62 @@ submit(input) → pi.user
     pi.tool × n → pi.tool-result × n   (owned by the generation, which waits for them)
   pi.generation → pi.assistant (answer) → submission done
 ```
+
+## Collaborative Threads
+
+This fork adds `@earendil-works/pi-durable/collaboration`: fixed thread membership, shared
+agent lanes, attributed commands, scoped retry receipts, bounded observations and lane stop.
+Each lane has its own conversation/history. Requests to one lane queue; different lanes may
+work concurrently in the same directory. Authentication and HTTP/browser delivery belong to
+the host, while admission and execution remain inside Durable.
+
+Install the collaboration extension before opening or recovering the Harness. The host supplies
+the registered `models`, `registry`, `storage` and `context`; coding turns also need tools and
+an execution environment as shown in [Environment](#environment). This excerpt uses a model
+configuration placeholder; [example 38](test/examples/38-collaborative-thread.ts) is runnable
+without provider credentials.
+
+```typescript
+import { createCollaboration } from "@earendil-works/pi-durable/collaboration";
+
+const collaboration = createCollaboration();
+registry.install(collaboration.extension);
+const harness = await Harness.open(storage, { models, registry }, context);
+const thread = await collaboration.open(harness, {
+	id: "project",
+	workspace: "/work/project",
+	members: ["alice", "bob"],
+	agents: [{ id: "pi", kind: "native", model: { provider: "openai", modelId: "configured-model" } }],
+}, context);
+await thread.submit("alice", { id: "question-1", agentId: "pi", text: "Explain the project briefly." }, context);
+const watch = await thread.watch("bob", "pi", context);
+console.log(watch.value);
+watch.start(async (snapshot) => render(snapshot));
+await watch.stop(); // observation disposal does not stop accepted work
+await harness.close(context);
+```
+
+The host must authenticate the actor ID; membership checks do not authenticate arbitrary
+strings. Retrying the same `(thread, actor, agent, command ID)` and text returns its original
+receipt; changed text conflicts. Acceptance means persisted work, not a successful answer or
+verified file outcome. One owner holds each store, and its fixed configuration must match on reopen.
+
+External coding harnesses implement `ExternalAgentDriver`. The optional Node-only
+`@earendil-works/pi-durable/adapters/codex` entry exports `createCodexDriver()`, using vendored
+T3 client/protocol code. Supply that driver to `createCollaboration([driver])` and declare an
+external lane with `driver: "codex"`; install its exact optional Effect/platform peers when using
+the adapter. Generic contracts expose no Effect types, but Durable still uses Chord internally.
+
+External dispatch has a different recovery rule from native model generation: an uncertain
+external turn becomes interrupted and is not automatically resent. Native model recovery can
+repeat a request; neither path promises exactly-once shell effects. Shared directories are not
+conflict prevention or security isolation. The opt-in [managed-file API](docs/managed-files.md)
+is separate from unrestricted model tools, shell commands and Codex writes.
+
+See the [collaboration contract](docs/collaboration.md) for limits, ordering and recovery; the
+[demo](../../apps/collab-demo/README.md) adds authenticated HTTP/SSE, a read-only file viewer,
+and [local Ollama setup](../../apps/collab-demo/LOCAL_MODELS.md). Local native inference is
+verified; hosted-provider turns, real Codex turns and GCP deployment remain separate checks.
 
 ## Persist and Resume
 
@@ -971,6 +1028,10 @@ node --conditions=source --experimental-strip-types test/examples/13-chat.ts
 | [34-submit-in-commit](test/examples/34-submit-in-commit.ts) | Admitting a visitor's steer inside the host's own commit with `submit(tx, draft)` and `whenIdle: "reject"` |
 | [35-durable-on-the-store](test/examples/35-durable-on-the-store.ts) | A Harness on `StoreStorage` in a Chord host's store, next to a Chord object's own table: one commit queue, one id allocator, one export |
 | [36-durable-views](test/examples/36-durable-views.ts) | A Chord object following a Durable view with `self.follow`: its frames and a member reading the followed value |
+| [38-collaborative-thread](test/examples/38-collaborative-thread.ts) | Two members, native/external lanes, shared files, retry and peer observation with deterministic execution |
+| [39-codex-initialize](test/examples/39-codex-initialize.ts) | Real Codex CLI handshake/thread creation; no model turn |
+| [40-native-providers](test/examples/40-native-providers.ts) | Four provider catalogs; a selected live smoke turn requires explicit `--run` and credentials |
+| [41-managed-file-conflict](test/examples/41-managed-file-conflict.ts) | Opt-in single-file stale rejection and explicit resolution; no model/CLI invocation |
 | [00](test/examples/00-conversation.ts)–[12](test/examples/12-recovery.ts) | The layers underneath: sessions, documents, forks, watches, the Harness, agent configuration, reload, extension state, tasks, recovery |
 
 Examples that call OpenAI need `OPENAI_API_KEY`; most use the faux provider otherwise.
@@ -978,6 +1039,8 @@ Examples that call OpenAI need `OPENAI_API_KEY`; most use the faux provider othe
 ## Design Documents
 
 - [`docs/spec.md`](https://github.com/earendil-works/pi/blob/main/packages/durable/docs/spec.md): the normative specification
+- [`docs/collaboration.md`](docs/collaboration.md): this fork's collaboration API, recovery contract and evidence; full reconciliation with the core normative specification remains a separate review
+- [`docs/managed-files.md`](docs/managed-files.md): optional conditional file publication and its limits
 
 Benchmarks: `npm run bench:storage`, `npm run bench:storage:memory`, `npm run bench:tool-output`, and `npm run bench:nested-tools`.
 

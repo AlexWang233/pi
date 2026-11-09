@@ -3,8 +3,9 @@
 This fork adds `/collaboration` and Node-only `/adapters/codex` entry points to the existing
 Durable package. It reuses the Session commit line, documents, conversations, native inbox,
 tasks, and storage. There is no application-owned queue or second persistence engine.
-This addendum documents the first implemented slice; integrating it into the main normative
-specification and README remains follow-up documentation work.
+This addendum is linked from the package [README](../README.md#collaborative-threads) and
+documents the implemented collaboration contract. Full reconciliation with the core normative
+specification remains a separate review; this change does not rewrite that specification.
 
 ## Current API
 
@@ -72,6 +73,13 @@ available. Registration and deterministic tests do not certify live API compatib
 The external Codex driver is a separate harness integration with its own CLI authentication.
 A native OpenAI turn does not verify Codex authentication. Gemini API-key access uses Google's
 direct API and does not require provisioning the eventual GCP deployment.
+
+The demo also composes a keyless local Ollama provider through Pi AI's existing compatible chat
+API; it is host configuration, not another external harness. A real two-user/two-agent browser
+check against the normal SQLite host completed five commands, verified file bytes and native
+follow-up ordering, reconnected an offline viewer and reopened the idle host with stable receipts.
+See [local setup/evidence](../../../apps/collab-demo/LOCAL_MODELS.md). This does not verify hosted
+provider authentication, a Codex turn, active-shell cleanup or production model quality.
 
 ## Thread ownership
 
@@ -185,7 +193,7 @@ The Codex adapter uses vendored T3 typed client/protocol/replay code with upstre
 Effect/platform libraries are exact optional peers and development dependencies; generic
 collaboration imports do not load them. Initialization was verified against local Codex
 `0.164.0-alpha.11.1`; the adapted replay originates from upstream `0.156.1`. This does not
-certify all current CLI features or protocols. No real model turn has been run yet.
+certify all current CLI features or protocols. No real Codex model turn has been run yet.
 
 The first adapter projects agent text and final results, rejects known interactive approval/
 user-input requests, and uses workspace-write with approval policy never. Rejected requests
@@ -243,6 +251,10 @@ not wired into model tools, Codex or the HTTP/browser demo; direct writers remai
 The separate [HTTP/browser demo](../../../apps/collab-demo/README.md) now hosts this package
 API with bearer authentication, bounded SSE fanout, and a minimal client. Its credential-free
 preview runs real Durable/tools with simulated provider/CLI I/O; the live composition uses
-SQLite, the four native provider factories, and optional Codex lanes. The preview itself does
-not establish live model, load or GCP evidence; the selected owner-crash evidence above comes
-from separate package tests.
+SQLite, the four hosted-provider factories, optional local Ollama composition, and optional
+Codex lanes. The preview itself does not establish live model, load or GCP evidence; the
+selected owner-crash evidence above comes from separate package tests.
+
+The demo's file viewer is an authenticated, manually refreshed read-only transport feature;
+it does not participate in publication or create a managed-file policy. Small UTF-8 files and
+bounded folder listings can be inspected directly without asking an agent to describe them.

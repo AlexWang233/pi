@@ -1,0 +1,39 @@
+{
+	"localDate": "2026-11-08",
+	"timeZone": "America/Los_Angeles",
+	"completedAtUtc": "2026-11-09T05:50:03.891Z",
+	"node": "v22.23.4",
+	"browser": "Chrome/156.0.8078.80",
+	"ollama": "0.40.15",
+	"model": "qwen3:4b-instruct-2507-q4_K_M",
+	"modelDigest": "0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0",
+	"realModel": true,
+	"normalHost": "apps/collab-demo/src/main.ts",
+	"users": 2,
+	"agents": 2,
+	"completedCommands": 5,
+	"observedModelRequests": 11,
+	"elapsedMs": 30772,
+	"retryObservationMs": 600,
+	"checks": [
+		"Two authenticated page identities on the normal host",
+		"Same-agent follow-up queues behind active work",
+		"Actual files match expected write/edit outcomes",
+		"Both users inspect shared files through the browser",
+		"All four user-agent pairings; cross-lane read follow-up",
+		"Offline viewer catches up without duplicate input",
+		"Selected file refresh shows current text",
+		"Idle host SIGTERM handling and reopen preserve receipts/files",
+		"Original-ID retry adds no model request in the checked interval"
+	],
+	"files": { "alice.txt": "ALICE-TWO", "bob.txt": "BOB-TWO" },
+	"limits": [
+		"One local model serializes inference",
+		"No Codex, hosted provider, GCP or active-shell takeover check",
+		"Idle shutdown signal delivered through an ad-hoc IPC preload",
+		"Two page sessions with separate in-memory bearer tokens",
+		"Model reply described an edit mismatch; final file bytes were independently verified",
+		"No hostile-writer isolation or atomic file snapshot",
+		"Single integration run, not a throughput or model-quality benchmark"
+	]
+}

@@ -217,9 +217,18 @@ relative-path/link refusals, nested listing/current text, read-only methods and 
 bounds. A separate Chrome 156 check verified nested navigation, literal HTML-like file text,
 refresh after a real native preview-tool write, selected-file refresh, large-file refusal and
 390-pixel layout. Its report/screenshots are ignored `.artifacts/workspace-files-*` files.
-Providers were simulated for that browser check; actual Ollama browser integration remains next.
+Providers were simulated for that file-viewer check.
 
-Still pending: live provider/Codex coding turns, remaining forced-process
+A subsequent [actual Ollama browser check](scripts/results/2026-11-08-ollama-browser.json)
+used the regular host, two authenticated page identities and temporary SQLite: five commands
+completed across all four user/agent pairings, with real file inspection/refresh, same-agent
+follow-up queue, offline/reconnect, idle shutdown/reopen and stable receipt retry. Eleven model
+requests were observed in 30.772 seconds including startup/reopen; this is not a benchmark.
+The idle SIGTERM event was delivered through a QA-only IPC preload on Windows, not an active-shell
+shutdown test. Desktop/mobile screenshots were inspected; see [local setup/evidence](LOCAL_MODELS.md).
+The [presentation runbook](../../TAKE_HOME_PRESENTATION.md) gives a repeatable manual trace.
+
+Still pending: hosted-provider/Codex coding turns, remaining forced-process
 crash boundaries and real descendant cleanup, broader capacity measurements, and GCP deployment. The current host
 is for a trusted local team, without public HTTPS, distributed ownership, rich tool rendering,
 or an approval UI. Track those separately in [the implementation record](../../TAKE_HOME_PROGRESS.md).
