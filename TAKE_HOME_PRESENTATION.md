@@ -1,9 +1,23 @@
 # Presentation and evaluator walkthrough
 
-**Status, November 8, 2026:** local collaborative Pi Durable works with actual Ollama inference.
-Hosted-provider/Codex turns and GCP deployment are not yet verified. Present those as outstanding
-assignment gates, not completed delivery. Use [progress](TAKE_HOME_PROGRESS.md) for exact evidence
+**Status, November 9, 2026:** local collaborative Pi Durable works with actual Ollama inference,
+and the user has confirmed OpenAI works. A reproducible hosted-provider/recovery report, real
+Codex turn/continuation and GCP deployment remain outstanding. Use [progress](TAKE_HOME_PROGRESS.md) for exact evidence
 and [the deployment runbook](apps/collab-demo/deploy/README.md) for prepared, uninstalled templates.
+
+## Slide deck and speaker notes
+
+The [Moloch/Beamer presentation](presentations/take-home/README.md) contains 12 main slides and four
+backup slides, with 8 minutes 30 seconds of planned cues. Allow roughly 8–10 minutes with model
+latency; human rehearsal remains pending. Outputs include [PowerPoint](presentations/take-home/output/collaborative-pi-durable.pptx),
+[slide PDF](presentations/take-home/output/collaborative-pi-durable.pdf), and a
+[speaker-note handout](presentations/take-home/output/speaker-notes.pdf).
+
+Each slide's [notes](presentations/take-home/speaker-notes.md) give speaking points, suggested
+demonstrations, a fallback, a boundary to state and wiki/source links. GCP demonstrations are
+explicitly planned for after deployment. The included screenshot is a recorded local Ollama run.
+The PPTX preserves the compiled LaTeX appearance as images with editable notes; change visual
+content in [slides.tex](presentations/take-home/slides.tex) and rebuild using the deck README.
 
 ## Eight-minute outline
 

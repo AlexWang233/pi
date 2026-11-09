@@ -1,0 +1,282 @@
+% Interview presentation of the collaborative Pi Durable fork.
+% Build: python build.py --moloch-source E:/Github/moloch --tectonic <tectonic.exe>
+% Speaker notes come from notes.json; build.py emits notes.generated.tex privately.
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme[progressbar=frametitle,sectionpage=none]{moloch}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{lmodern}
+\usepackage{pgfpages}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{page number in head/foot}[framenumber]
+\setbeamersize{text margin left=9mm,text margin right=9mm}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{note page}{size=\small}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.3}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\hypersetup{pdftitle={Collaborative Pi Durable},pdfauthor={Take-home project}}
+\newcommand{\keypoint}[1]{\par\medskip{\usebeamercolor[fg]{alerted text}\bfseries #1}\par}
+\newcommand{\captionline}[1]{\par\medskip{\small #1}\par}
+\input{notes.generated.tex}
+\ifdefined\WithNotes
+  \setbeameroption{show notes}
+\else
+  \setbeameroption{hide notes}
+\fi
+\title{Collaborative Pi Durable}
+\subtitle{Multiple users, shared agents, one workspace}
+\author{Engineering take-home}
+\date{November 2026}
+
+\begin{document}
+
+% 01 -- Cover
+\begin{frame}[plain]
+  \titlepage
+  \DeckNote{1}
+\end{frame}
+
+% 02 -- Product problem and many-to-many relationship
+\begin{frame}{Shared agents, separate conversations}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.50\textwidth}
+      \textbf{One project thread}
+      \begin{itemize}
+        \item Every member can use every agent
+        \item Each agent has one history and queue
+        \item Agents share the project files
+      \end{itemize}
+    \end{column}
+    \begin{column}{.44\textwidth}
+      \centering
+      \begin{tabular}{lcc}
+        \toprule
+        User & Agent A & Agent B \\
+        \midrule
+        Alice & Yes & Yes \\
+        Bob & Yes & Yes \\
+        Carol & Yes & Yes \\
+        \bottomrule
+      \end{tabular}
+      \captionline{Preview: three users $\times$ two agents}
+    \end{column}
+  \end{columns}
+  \keypoint{Sharing access does not resolve conflicting instructions}
+  \DeckNote{2}
+\end{frame}
+
+% 03 -- Architecture and ownership
+\begin{frame}{Collaboration belongs inside Durable}
+  \begin{tabular}{@{}p{.27\textwidth}p{.66\textwidth}@{}}
+    \toprule
+    Layer & Responsibility \\
+    \midrule
+    Web host & Identify the user; deliver commands and live views \\
+    Collaboration API & Check membership; save attributed requests and receipts \\
+    Existing Durable & Run conversations and tasks; store state; recover work \\
+    Execution paths & Pi AI models/tools or the T3-backed Codex adapter \\
+    \bottomrule
+  \end{tabular}
+  \captionline{One owning runtime, SQLite store, and shared workspace per thread}
+  \keypoint{Reuse the runtime; avoid a second web-owned execution queue}
+  \DeckNote{3}
+\end{frame}
+
+% 04 -- Request flow and retries
+\begin{frame}{Accept once; run when the agent is ready}
+  \begin{enumerate}
+    \item Save the receipt and work together
+    \item Return acceptance to the browser
+    \item Run requests in order on that agent
+    \item Publish progress and the eventual outcome
+  \end{enumerate}
+  \medskip
+  \textbf{Lost reply?}\quad Retry the same user/agent/request ID and text.
+  \keypoint{Accepted $\neq$ completed $\neq$ correct file changes}
+  \DeckNote{4}
+\end{frame}
+
+% 05 -- Live GUI demonstration
+\begin{frame}{Demo: two people share the same agents}
+  \centering
+  \includegraphics[height=.74\textheight]{assets/local-ollama-browser.png}
+  \captionline{Recorded local Ollama run; repeat on GCP after deployment}
+  \DeckNote{5}
+\end{frame}
+
+% 06 -- Concrete lost-update race
+\begin{frame}{How one agent can erase another's edit}
+  \begin{tabular}{@{}cp{.56\textwidth}l@{}}
+    \toprule
+    Step & Operation & File content \\
+    \midrule
+    1 & A and B both read the file & \texttt{base} \\
+    2 & A writes its replacement & \texttt{base + alice} \\
+    3 & B writes from its old copy & \texttt{base + bob} \\
+    \bottomrule
+  \end{tabular}\par
+  \medskip
+  Both commands can finish. Alice's change is gone.
+  \keypoint{Taking turns at the final write does not fix an outdated read}
+  \DeckNote{6}
+\end{frame}
+
+% 07 -- Implemented managed API and alternatives
+\begin{frame}{Reject stale proposals before overwriting}
+  \textbf{Implemented opt-in managed-file API}
+  \begin{itemize}
+    \item Keep the original, current, and proposed content
+    \item Apply only when the current file still matches the original
+    \item Retain conflicts; resolve with a fresh read and new proposal
+  \end{itemize}
+  \medskip
+  \textbf{Alternatives}\quad Whole-instruction locking or separate Git worktrees
+  \captionline{Locking reduces overlap; worktrees require later integration}
+  \keypoint{Ordinary model tools and Codex do not use this protection yet}
+  \DeckNote{7}
+\end{frame}
+
+% 08 -- Recovery boundary
+\begin{frame}{A saved request does not make every effect repeatable}
+  \textbf{Failure trace}\quad File changes $\rightarrow$ host dies $\rightarrow$ result not saved
+  \medskip
+  \begin{tabular}{@{}p{.33\textwidth}p{.60\textwidth}@{}}
+    \toprule
+    Action & Recovery behavior \\
+    \midrule
+    Same request ID/text & Find its existing receipt \\
+    Native model request & May repeat under Durable's recovery rules \\
+    Uncertain external turn & Mark interrupted; do not resend automatically \\
+    Existing file changes & May remain; cancellation does not undo them \\
+    \bottomrule
+  \end{tabular}
+  \keypoint{SQLite state and workspace writes are separate operations}
+  \DeckNote{8}
+\end{frame}
+
+% 09 -- Providers, harnesses and actual reuse
+\begin{frame}{Model providers and external harnesses}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.46\textwidth}
+      \textbf{Native Pi}
+      \begin{itemize}
+        \item OpenAI + local Ollama by default
+        \item Claude, Gemini, DeepSeek selectable
+        \item Pi owns the model/tool loop
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{External Codex}
+      \begin{itemize}
+        \item Reuses T3 client/protocol code
+        \item Adapter tracks the active turn and cleanup
+        \item Real coding turn still unverified
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \keypoint{Two model providers do not establish two working harnesses}
+  \DeckNote{9}
+\end{frame}
+
+% 10 -- Evidence and scope of measurement
+\begin{frame}{Evidence at three different boundaries}
+  \begin{tabular}{@{}p{.25\textwidth}p{.68\textwidth}@{}}
+    \toprule
+    Test type & What it establishes \\
+    \midrule
+    Controlled scenarios & Retry rules, ordering, lost updates, selected crash boundaries \\
+    Real local model & Actual tool calls, file bytes, shared browser state, idle reopen \\
+    Simulated load & Real HTTP/SSE and SQLite; 1,200 commands over about 10 minutes \\
+    \bottomrule
+  \end{tabular}
+  \captionline{Burst: 81 accepted/completed; 519 rejected at configured capacity}
+  \keypoint{The first observed limit was the queue cap, not maximum throughput}
+  \DeckNote{10}
+\end{frame}
+
+% 11 -- Future GCP demonstration environment
+\begin{frame}{GCP deployment plan: one exclusive owner}
+  \begin{itemize}
+    \item One Linux VM; persistent store and workspace
+    \item Private access through SSH forwarding
+    \item Stop all writers before backup or owner replacement
+    \item Verify service access, restart, cleanup, and restore
+  \end{itemize}
+  \captionline{Failure domains: owning process, data storage, and VM/zone}
+  \keypoint{Prepared deployment kit; no cloud deployment has been verified}
+  \DeckNote{11}
+\end{frame}
+
+% 12 -- Closing scope and priorities
+\begin{frame}{Next implementation and remaining delivery work}
+  \textbf{Next demo feature}
+  \begin{itemize}
+    \item Step-controlled conflict walkthrough using the managed API
+    \item Clearly labelled scripted participants and explicit resolution
+  \end{itemize}
+  \medskip
+  \textbf{Remaining delivery checks}
+  \begin{itemize}
+    \item Real Codex turn/continuation; GCP deployment and restore
+    \item Rehearse the hosted walkthrough and record its evidence
+  \end{itemize}
+  \keypoint{Stronger file protection requires execution-policy changes}
+  \DeckNote{12}
+\end{frame}
+
+\appendix
+
+% 13 -- Backup: conflict choices
+\begin{frame}{Backup: file coordination choices}
+  \begin{tabular}{@{}L{.24\textwidth}L{.33\textwidth}L{.33\textwidth}@{}}
+    \toprule
+    Choice & Benefit & Cost / limit \\
+    \midrule
+    Conditional proposals & Concurrent preparation; detect stale destination & All writers participate; single-file slice today \\
+    Whole-instruction lock & Simpler shared-folder ownership & Less overlap; must stop every child writer \\
+    Separate worktrees & Separate working copies and reviewable integration & No immediate visibility of unmerged peer edits \\
+    \bottomrule
+  \end{tabular}
+  \DeckNote{13}
+\end{frame}
+
+% 14 -- Backup: security
+\begin{frame}{Backup: trust and limits}
+  \begin{itemize}
+    \item Host authenticates; package checks membership
+    \item All members can inspect and stop all agent lanes
+    \item A workspace path is not an operating-system sandbox
+    \item Queue limits do not establish fairness or a spending limit
+  \end{itemize}
+  \keypoint{Trusted collaborators, fixed configuration, one owner}
+  \DeckNote{14}
+\end{frame}
+
+% 15 -- Backup: transport
+\begin{frame}{Backup: reconnect and slow viewers}
+  \begin{itemize}
+    \item HTTP sends commands; SSE delivers current-state views
+    \item Reconnect fetches recent state; older history is paged
+    \item Slow viewers keep a latest pending snapshot
+    \item No promise to replay every token or a global audit log
+  \end{itemize}
+  \keypoint{Browser reload can lose an ambiguous request's local retry ID}
+  \DeckNote{15}
+\end{frame}
+
+% 16 -- Backup: ownership and AI assistance
+\begin{frame}{Backup: design ownership and AI assistance}
+  \textbf{Decisions I can explain}
+  \begin{itemize}
+    \item Extend Durable rather than add a second runtime
+    \item Require actual T3 reuse; keep adapter details separate
+    \item Distinguish duplicate requests from duplicate effects
+    \item Test actual files and expose remaining conflict risks
+  \end{itemize}
+  \captionline{AI assisted implementation and documentation; upstream code is credited}
+  \DeckNote{16}
+\end{frame}
+
+\end{document}

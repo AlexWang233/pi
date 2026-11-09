@@ -28,6 +28,7 @@ Practice explaining both stories without using special terminology first. Then l
 | [Interview answer drills](08-interview-drills.md) | How do you answer difficult questions directly and acknowledge trade-offs? |
 | [Expanded interview question bank](interview-questions/README.md) | Concrete scenarios, deeper follow-ups and links by question type |
 | [Technical terms with examples](09-technical-terms.md) | What do harness, admission, fencing, projection and other unfamiliar terms mean here? |
+| [LaTeX/PowerPoint deck and speaker notes](../presentations/take-home/README.md) | What should I say and demonstrate on each slide, including after GCP deployment? |
 
 ## When a question uses unfamiliar terminology
 
