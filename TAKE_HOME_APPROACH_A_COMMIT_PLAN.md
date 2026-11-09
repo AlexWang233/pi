@@ -24,6 +24,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `fix: reconcile interrupted commands after owner failure` | Task-derived public status/capacity; seven recovery tests including four SQLite owner-kill cases | Native/storage boundaries and real descendant cleanup |
 | `fix: correlate Codex turns and await interrupt delivery` | Session correlation/teardown fixes; 16 scripted subprocess cases using actual T3 client | Direct child cleanup tested; real CLI tool descendants unverified |
 | `feat: measure collaborative HTTP and SSE limits` | Four load modules, three new tests and [report](apps/collab-demo/load/README.md); 1301 accepted/completed commands including 1200-command soak, 30 stable retries | First slice complete; isolated commit timing, rate sweeps and real harness pressure remain follow-ups |
+| `fix: verify persistence boundaries and configure Codex kill escalation` | 12 new admission/native/storage tests, two Windows attached-descendant cases, one-second spawner escalation | Deterministic slice complete; Windows Bash delay and real/Linux containment remain open |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -56,15 +57,26 @@ measurements rather than implied results of this first slice.
 
 ## Remaining reviewable increments
 
-### Next: focused recovery and process ownership
+### Current: finish process ownership after the recovery boundary slice
 
 Suggested message: `fix: verify collaborative recovery and process ownership`; split by discovered defect.
 
 **Timebox:** about 1–2 hours for prioritized boundaries; document remaining gaps rather than claim exhaustive coverage.
 
+**Completed:** native/external admission kills before persistence and after persistence before
+acknowledgement; native model/tool kills; admission/result storage exceptions before/after
+persistence. Six forced-kill and six storage-fault cases verify stable retry and no uncertain
+external resend. Two Windows scripted attached-child cases pass; Codex requests one-second
+kill escalation using its existing spawner. These are 14 additional tests, not new orchestration.
+
+**Next defect investigation:** unmodified native Bash interruption/reopen takes about 30 seconds
+on Windows. Default five-second and diagnostic 15-second runs fail; a 40-second runner limit
+passes. Keep the test/runtime unchanged until the delay is localized. Do not treat the longer
+test limit as a fix or claim prompt shutdown / safe workspace takeover.
+
 **Build / test**
 
-- Extend disposable fixtures for admission commit/reply ambiguity, native execution and storage failure. Assert stable receipts, no false acceptance and no automatic uncertain external resend. Reuse existing recovery mechanisms.
+- Keep the completed boundary tests as regression contracts. A storage exception can follow durable acceptance and fails peer lanes too; retry only the original command identity after recovery. Native generation may resend a model request even with one receipt; unsafe tools retain their no-replay policy.
 - Verify real Codex child/tool descendants and Linux process-group shutdown before claiming safe owner replacement. A direct child PID disappearing on Windows is insufficient.
 - Confirm stop/deadline/host shutdown finishes cleanup before a replacement admits workspace writes. Touch only owned disposable processes/workspaces; no broad process killing.
 - Preserve native recovery and distinguish process crash from power loss. Do not add automatic workspace rollback or replay uncertain shell effects.

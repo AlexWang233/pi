@@ -1,6 +1,8 @@
 // Scripted JSONL app-server for actual Codex driver subprocess tests; no model or credentials are used.
+import { spawn } from "node:child_process";
 import { appendFile } from "node:fs/promises";
 import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
 import transcript from "./collaboration-codex.json" with { type: "json" };
 
 const [mode, log] = process.argv.slice(2);
@@ -70,6 +72,25 @@ for await (const line of input) {
 			});
 			break;
 		case "turn/start": {
+			if (mode === "descendant" || mode === "descendant-exit") {
+				process.on("SIGTERM", () => {});
+				const child = spawn(
+					process.execPath,
+					["--experimental-strip-types", fileURLToPath(new URL("./codex-descendant.ts", import.meta.url))],
+					{ stdio: ["ignore", "ignore", "ignore", "ipc"], windowsHide: true },
+				);
+				await new Promise<void>((resolve, reject) => {
+					child.once("error", reject);
+					child.once("exit", () => reject(new Error("Descendant exited before ready")));
+					child.once("message", (message: unknown) => {
+						// IPC trust boundary: wait for the owned descendant's startup before reporting success.
+						if (message === "ready") resolve();
+						else reject(new Error("Invalid descendant ready message"));
+					});
+				});
+				await appendFile(log, `descendant:${child.pid}\n`);
+				if (mode === "descendant-exit") process.exit(23);
+			}
 			if (mode === "mismatched-start") {
 				emit({ method: "turn/started", params: { threadId, turn: { ...turn, id: "unexpected-turn" } } });
 				emit({ id: frame.id, result: { turn } });

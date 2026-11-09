@@ -110,6 +110,30 @@ Native recovery retains the existing Durable semantics. External successes store
 continuation reference; later commands can resume the provider thread. Real Codex continuation
 and descendant-process cleanup still require additional verification.
 
+### Admission acknowledgement and native recovery boundaries
+
+[`collaboration-boundaries.test.ts`](../test/collaboration-boundaries.test.ts) adds 12 cases
+using real SQLite, six forced owner kills and injected storage failures on Windows/Node 22:
+
+| Boundary | Observed result |
+| --- | --- |
+| Native/external admission before SQLite persistence | No receipt or executable work survives; retry admits one command |
+| Native/external admission persisted, durability acknowledgement withheld, then owner killed | Receipt and intent survive; original-ID retry executes once |
+| Admission storage call throws before or after persistence | Submit rejects and Harness fails; after reopen, original-ID retry works whether receipt was absent or present |
+| Native model request interrupted by owner death | One command receipt, two model requests across restart; command eventually answers |
+| Unsafe native tool appends a file, then owner dies | File effect remains once; tool is not rerun, interrupted tool result is visible and model generation can continue |
+| External result storage call throws before or after persistence | File effect remains once; reopened command is interrupted before persistence, completed after persistence; neither path resends it |
+
+A callback error before storage and a storage error are different. The latter can mean
+the database committed but its caller did not receive success. **An exception is not proof
+of rejection.** Preserve the original command identity/text, stop the failed owner and inspect
+or reopen the store. No automatic failed-Harness reopen loop is added. Storage failure affects
+the whole Harness/thread, including peer submissions and watches, not just one agent lane.
+
+Command deduplication does not promise one model request: native generation recovery may resend.
+The unsafe-tool test uses a declared unsafe append tool, not an arbitrary shell. It does not
+prove every model-selected mutation is replay-safe or that a surviving old writer has stopped.
+
 External status and admission capacity also consult the underlying task. If collaboration
 metadata still says queued/running after that task becomes terminal, the public command is
 `interrupted` with a reason naming the task outcome. It no longer consumes pending capacity
@@ -175,7 +199,7 @@ signal, and waits for acknowledgement or its one-second limit before returning t
 for process cleanup. Missing acknowledgement does not prevent cleanup or prove the turn stopped
 cooperatively. The caller/runtime still owns `close()`, including on failure.
 
-[`codex-process.test.ts`](../test/codex-process.test.ts) adds 16 cases through the actual
+[`codex-process.test.ts`](../test/codex-process.test.ts) has 18 cases through the actual
 `createCodexDriver`, reused T3 client, JSONL stdio and OS child-process scope. A scripted Node
 app-server supplies recorded initialization/thread replies and synthetic events. Coverage:
 root/early/unrelated/mismatched turn correlation, item-only completion, root failure,
@@ -183,7 +207,22 @@ root/early/unrelated/mismatched turn correlation, item-only completion, root fai
 stderr, malformed JSONL, initialization failure, and interrupt with/without acknowledgement.
 The child PID is confirmed absent after normal closure and initialization exit on Windows.
 
-These are process/adapter tests, not real Codex model/authentication or descendant-tree tests.
+Two Windows-only cases also spawn an attached Node descendant and verify both PIDs are absent
+after normal close or unexpected leader exit in this fixture. This is attached-tree evidence,
+not arbitrary detached/orphan containment or real Codex tool-process evidence.
+
+The adapter requests forced-kill escalation after one second via the installed spawner API.
+On POSIX this avoids an unlimited cooperative SIGTERM grace period; the spawner can also wait
+after escalation. It is not a hard end-to-end shutdown deadline or a termination certificate.
+Windows uses the spawner's tree-kill behavior. Escaped writers, abrupt owner death and Linux
+cleanup still require host supervision/verification before safe workspace takeover is claimed.
+
+An unmodified native Bash interruption/reopen regression takes about 30 seconds on this Windows
+setup and times out at its default five-second test limit. It passes with a 40-second runner
+limit. The cause of that delay is not localized here; prompt Bash cancellation remains open.
+No test timeout or native runtime behavior was changed to conceal it.
+
+These are process/adapter tests, not real Codex model/authentication tests.
 The resume case verifies protocol selection against a scripted response, not safe live
 continuation after uncertain effects. Malformed JSONL terminates the transport; known typed
 notifications that fail schema validation are instead warned about and dropped by the vendored
@@ -192,8 +231,9 @@ tool summaries, Linux cleanup and live compatibility remain follow-up work.
 
 Shared cwd is not security isolation or conflict prevention. Codex and shell writers bypass
 Pi's in-process edit/write queue. This prototype assumes trusted collaborators, one owner per
-store, and disposable repositories. GCP deployment, stress measurements, and hostile
-tenant protection are not implemented by this slice.
+store, and disposable repositories. GCP deployment and hostile tenant protection remain open;
+the separate [deterministic load report](../../../apps/collab-demo/load/README.md) measures
+SQLite/HTTP/SSE with simulated execution rather than real Codex capacity.
 
 An opt-in [`ManagedFile` API](managed-files.md) now implements conditional publication for
 one bounded text file, retained base/current/proposed evidence, stable retries and conservative

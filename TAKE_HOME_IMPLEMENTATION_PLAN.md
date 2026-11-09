@@ -44,11 +44,17 @@ Generic contracts do not expose Effect/T3 types. The optional Node adapter isola
 
 **Concurrency:** requests queue within a lane; different lanes can run concurrently in one directory. Alice requesting React and Bob requesting Vue execute in order with attribution. Ordering does not decide which requirement should win. Messages are not automatically copied into every agent's context.
 
-**Native execution:** preserve existing submission, inbox, generation and recovery. The demo withdraws queued inputs after failure and caps native shells at 60 seconds. This is not a total memory or spend limit.
+**Native execution:** preserve existing submission, inbox, generation and recovery. Forced owner-kill tests show one receipt can span two model requests, while a declared unsafe tool is not replayed after its effect. The demo configures a 60-second shell timeout; prompt Windows Bash shutdown remains unresolved, so this is not a verified process-lifetime, memory or spend bound.
 
 **External execution:** each command's Durable task waits for its predecessor. Persist a dispatch marker before external I/O. After restart, a marker without a committed result becomes interrupted and is not automatically resent. This can sacrifice an attempt that never reached the provider to avoid repeating uncertain filesystem effects. Failed predecessors stop queued successors; a new explicit command can proceed.
 
 Only a correlated root completion settles Codex work. Tool/item completion cannot finish it; unrelated starts cannot retarget it. Unsupported approvals/user-input requests fail visibly. Stop attempts a bounded interrupt exchange before closing; acknowledgement does not prove all tool descendants terminated.
+
+The Codex spawner requests forced-kill escalation after one second. Two Windows scripted
+attached-descendant cases pass, but this does not certify detached writers, abrupt host death
+or Linux containment. A storage exception can follow a successful SQLite commit: fail the
+whole Harness, retain the original retry identity and reopen after old-owner shutdown. Do not
+interpret an exception as proof of rejection or automatically reopen a failed owner.
 
 When a task becomes terminal before collaboration settlement, public status/capacity derive interruption from that outcome. Raw metadata may retain `running`; reads do not repair it or invent missing history. Missing driver registration fails visibly. Other blocked scheduler states remain a separate risk.
 
@@ -77,12 +83,16 @@ reattachments. All 30 retry probes avoided duplicate starts. Client/server share
 Isolated commit timing, rate sweeps, real Codex load and stronger socket-pressure evidence remain
 follow-ups, not reasons to delay the next correctness slice. No paid-provider load was run.
 
-1. **Close focused recovery gaps.** Cover remaining native/admission/storage boundaries and verify old descendants cannot mutate files after replacement ownership. Windows owner-kill tests and direct-child PID checks do not establish Linux process-group cleanup or power-loss safety. Fix observed defects separately and disclose unverified boundaries.
+**Recovery increment added:** 12 admission/native/storage boundary cases and two attached-tree
+cases pass on Windows; [the addendum](packages/durable/docs/collaboration.md#recovery-and-external-effects)
+records exact guarantees and costs. Core native recovery and receipt formats were reused.
+
+1. **Finish process-ownership readiness.** Localize the existing Windows Bash interruption/reopen test's roughly 30-second delay; it fails at the default five-second limit and passes with a 40-second runner limit. Verify prompt shutdown, real Codex descendants and Linux process groups before workspace takeover claims. Injected SQLite failures and owner kills do not certify disk-full/corruption or power-loss safety.
 2. **Verify live integration when privately configured.** Bounded OpenAI-native and real Codex coding turns, continuation and stop. Separate real model evidence from initialization/simulation. Do not require all four provider keys.
 3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
 4. **Finish documentation and presentation.** Integrate package README/spec references, publish measurements/failure analysis and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
 
-The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery tests, 16 scripted Codex subprocess cases, the demo suite and an ad-hoc browser check. Three load tests extend the demo suite to 19. Exact validation dates/results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new test coverage.
+The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 19 demo tests and an ad-hoc browser check. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
 
 ## 6. GCP design, deferred until local readiness
 

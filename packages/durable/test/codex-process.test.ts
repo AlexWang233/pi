@@ -43,7 +43,56 @@ async function trackedSession(open: () => Promise<ExternalSession>) {
 	return session;
 }
 
+function processExists(pid: number): boolean {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch (error) {
+		// OS error boundary: only absence counts as termination; permission failures must fail the test.
+		if (error instanceof Error && "code" in error && error.code === "ESRCH") return false;
+		throw error;
+	}
+}
+
 describe("Codex driver process lifecycle", () => {
+	it.runIf(process.platform === "win32")(
+		"terminates an attached descendant when the app-server leader is still alive",
+		async () => {
+			const { open, controller, log } = await fixture("descendant");
+			const session = await trackedSession(open);
+			await session.run({ text: "spawn", signal: controller.signal, progress: async () => {} });
+			const lines = (await readFile(log, "utf8")).trim().split("\n");
+			const descendant = Number(lines.find((line) => line.startsWith("descendant:"))!.slice(11));
+			cleanups.push(async () => {
+				if (processExists(descendant)) process.kill(descendant, "SIGKILL");
+			});
+			expect(processExists(descendant)).toBe(true);
+			await session.close();
+			expect(processExists(Number(lines[0]))).toBe(false);
+			expect(processExists(descendant)).toBe(false);
+		},
+	);
+
+	it.runIf(process.platform === "win32")(
+		"checks attached descendant cleanup after an app-server leader exits unexpectedly",
+		async () => {
+			const { open, controller, log } = await fixture("descendant-exit");
+			const session = await trackedSession(open);
+			await expect(
+				session.run({ text: "spawn", signal: controller.signal, progress: async () => {} }),
+			).rejects.toThrow(/23/);
+			const lines = (await readFile(log, "utf8")).trim().split("\n");
+			const descendant = Number(lines.find((line) => line.startsWith("descendant:"))!.slice(11));
+			cleanups.push(async () => {
+				if (processExists(descendant)) process.kill(descendant, "SIGKILL");
+			});
+			await session.close();
+			expect(processExists(Number(lines[0]))).toBe(false);
+			// Evidence for this attached child only; detached/orphaned writers still require host containment.
+			expect(processExists(descendant)).toBe(false);
+		},
+	);
+
 	it.each(["success", "early-completion", "foreign-turn"])(
 		"correlates the root result through actual JSONL stdio: %s",
 		async (mode) => {

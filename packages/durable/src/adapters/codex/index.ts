@@ -31,6 +31,8 @@ export function createCodexDriver(options: { command?: string; args?: string[] }
 						const process = yield* spawner.spawn(
 							ChildProcess.make(options.command ?? "codex", options.args ?? ["app-server"], {
 								cwd: input.workspace,
+								// POSIX leaders may ignore SIGTERM; the spawner otherwise waits without a deadline.
+								forceKillAfter: "1 second",
 							}),
 						);
 						const stderr = yield* makeStderrTail(process.stderr);

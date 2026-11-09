@@ -88,10 +88,15 @@ The real host uses SQLite. Agent/member/workspace configuration is fixed for a s
 with a different configuration refuses rather than silently migrating it. Use a new
 `COLLAB_DATA` directory to try another configuration. Keep exactly one owner per store.
 
-Commands can spend provider tokens and modify files. Native shells are capped at 60 seconds;
+Commands can spend provider tokens and modify files. Native shells have a configured 60-second timeout;
 external turns use the package's 120-second default. These limits are not a total spend/memory
 budget or filesystem sandbox. The host environment and its credentials are accessible to
 trusted local execution. Use disposable workspaces and minimal credentials.
+
+Prompt native Bash shutdown on Windows is not verified: an existing interruption/reopen test
+takes about 30 seconds on this host. Codex requests one-second forced-kill escalation, with
+scripted attached-child cleanup tested on Windows; detached writers and Linux remain open.
+Do not start a replacement owner until former workspace writers are confirmed stopped.
 
 ## Transport contract
 
@@ -112,6 +117,10 @@ package's input rules. Author, workspace, provider and thread configuration cann
 in a command body. Membership is enforced by the package for commands and observation reads.
 Errors map to 400/401/403/404/409/413/415/429/503 as applicable; unexpected runtime failures
 return a generic 500. Retry ambiguous submit failures using the original ID and text.
+
+A storage exception can occur after SQLite persisted the command. It fails the entire thread's
+Harness, not just one lane; restart only after old-owner cleanup. Do not interpret the error
+as proof of rejection or generate a new ID for the same ambiguous submission.
 
 The browser retains that draft/ID until acceptance or explicit discard. It does not persist
 ambiguous drafts across a page reload. Discarding a retry does not cancel already accepted
