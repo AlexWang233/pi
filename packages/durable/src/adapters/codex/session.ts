@@ -35,12 +35,13 @@ export async function codexSession(
 			// A terminal/abort notification may arrive before the turn/start response is awaited.
 			void terminal.promise.catch(() => {});
 			let turnId: string | null = null;
+			let interrupt: Promise<void> | undefined;
 			let text = "";
 			let finalText = "";
 			await run(
 				client.handleServerNotification("turn/started", (event) =>
 					Effect.sync(() => {
-						if (event.threadId === threadId) turnId = event.turn.id;
+						if (event.threadId === threadId && turnId === null) turnId = event.turn.id;
 					}),
 				),
 			);
@@ -98,11 +99,14 @@ export async function codexSession(
 			}
 			const aborted = () => {
 				terminal.reject(turn.signal.reason);
-				if (turnId !== null) {
-					void Effect.runPromise(
+				if (turnId !== null && interrupt === undefined) {
+					interrupt = Effect.runPromise(
 						client
 							.request("turn/interrupt", { threadId, turnId })
 							.pipe(Effect.timeout("1 second"), Effect.ignore),
+					).then(
+						() => {},
+						() => {},
 					);
 				}
 			};
@@ -116,12 +120,17 @@ export async function codexSession(
 				const started = await run(
 					client.request("turn/start", { threadId, input: [{ type: "text", text: turn.text }] }),
 				);
+				if (turnId !== null && turnId !== started.turn.id) {
+					throw new Error("Codex turn/start response does not match the initial turn notification");
+				}
 				turnId = started.turn.id;
 				return await terminal.promise;
 			} finally {
 				turn.signal.removeEventListener("abort", aborted);
 				observation.abort();
 				await terminated;
+				// Let the bounded interrupt exchange finish before the caller closes the process scope.
+				await interrupt;
 			}
 		},
 	};

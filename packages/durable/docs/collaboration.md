@@ -165,8 +165,30 @@ certify all current CLI features or protocols. No real model turn has been run y
 
 The first adapter projects agent text and final results, rejects known interactive approval/
 user-input requests, and uses workspace-write with approval policy never. Rejected requests
-are visible failures, not automatic approvals. A richer approval UI, tool-progress rendering,
-more protocol error cases, and resumption tests remain future slices.
+are visible failures, not automatic approvals. Once a turn ID is known, later start notifications
+cannot retarget it. An initial notification that disagrees with the `turn/start` response fails
+instead of selecting an unrelated result. Completion before the start response is awaited is
+supported; an item completion alone is not a root outcome.
+
+On cancellation, the adapter attempts `turn/interrupt` independently of the aborted turn
+signal, and waits for acknowledgement or its one-second limit before returning to the caller
+for process cleanup. Missing acknowledgement does not prevent cleanup or prove the turn stopped
+cooperatively. The caller/runtime still owns `close()`, including on failure.
+
+[`codex-process.test.ts`](../test/codex-process.test.ts) adds 16 cases through the actual
+`createCodexDriver`, reused T3 client, JSONL stdio and OS child-process scope. A scripted Node
+app-server supplies recorded initialization/thread replies and synthetic events. Coverage:
+root/early/unrelated/mismatched turn correlation, item-only completion, root failure,
+`thread/resume`, file/command approval and user-input/unknown requests, unexpected exit with
+stderr, malformed JSONL, initialization failure, and interrupt with/without acknowledgement.
+The child PID is confirmed absent after normal closure and initialization exit on Windows.
+
+These are process/adapter tests, not real Codex model/authentication or descendant-tree tests.
+The resume case verifies protocol selection against a scripted response, not safe live
+continuation after uncertain effects. Malformed JSONL terminates the transport; known typed
+notifications that fail schema validation are instead warned about and dropped by the vendored
+client, so a missing valid completion still relies on the external deadline. Rich approval UI,
+tool summaries, Linux cleanup and live compatibility remain follow-up work.
 
 Shared cwd is not security isolation or conflict prevention. Codex and shell writers bypass
 Pi's in-process edit/write queue. This prototype assumes trusted collaborators, one owner per
