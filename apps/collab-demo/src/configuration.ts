@@ -32,7 +32,7 @@ export function parseConfiguration(value: unknown): DemoConfiguration {
 		if (
 			agent.kind === "native" &&
 			record(agent.model) &&
-			["openai", "anthropic", "google", "deepseek"].includes(String(agent.model.provider)) &&
+			["openai", "anthropic", "google", "deepseek", "ollama"].includes(String(agent.model.provider)) &&
 			typeof agent.model.provider === "string" &&
 			typeof agent.model.modelId === "string" &&
 			agent.model.modelId
@@ -46,7 +46,7 @@ export function parseConfiguration(value: unknown): DemoConfiguration {
 		) {
 			return { ...common, kind: "external", driver: "codex", model: agent.model };
 		}
-		throw new Error("Choose native openai/anthropic/google/deepseek with a model, or external codex");
+		throw new Error("Choose native openai/anthropic/google/deepseek/ollama with a model, or external codex");
 	});
 	for (const [name, items] of [
 		["members", members],

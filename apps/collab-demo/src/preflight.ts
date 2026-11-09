@@ -32,6 +32,7 @@ try {
 				missingKeys,
 				unchecked: [
 					"Provider authentication/model access",
+					"Local Ollama availability/downloaded models/capabilities",
 					"Codex executable/authentication/protocol",
 					"Data-directory permissions and stored configuration",
 					"Process containment and deployment",

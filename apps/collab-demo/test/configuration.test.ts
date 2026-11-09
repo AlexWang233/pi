@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { parseConfiguration } from "../src/configuration.ts";
 
 describe("demo host configuration", () => {
+	it("accepts a keyless local chat-model lane", () => {
+		expect(
+			parseConfiguration({
+				members: [{ id: "alice", tokenEnv: "COLLAB_TOKEN_ALICE" }],
+				agents: [{ id: "local", kind: "native", model: { provider: "ollama", modelId: "qwen2.5-coder:3b" } }],
+			}).agents,
+		).toHaveLength(1);
+	});
 	it("accepts all four native providers without requiring keys for unused providers", () => {
 		const config = parseConfiguration({
 			members: [{ id: "alice", tokenEnv: "COLLAB_TOKEN_ALICE" }],

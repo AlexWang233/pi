@@ -48,6 +48,11 @@ the current absence of file-conflict protection; no merge or rollback is promise
 
 ## Run with real agents
 
+For real local inference without provider keys, follow [Local models](LOCAL_MODELS.md).
+`config.ollama.example.json` configures two shared native lanes on one small Ollama model;
+this exercises native Pi, not the external Codex adapter. The setup includes an opt-in
+HTTP/SQLite/tool-use smoke check and an explicit list of checks that still need credentials/GCP.
+
 1. Copy `config.example.json` to the ignored `config.local.json`.
 2. Replace the native model placeholder with an ID from the local catalog:
 
@@ -89,6 +94,7 @@ registered; only selected native agents need keys. No multi-key live checks run 
 | `COLLAB_DATA` | `data`; SQLite database and its shared `workspace/` subdirectory |
 | `COLLAB_PORT` | `4310`; bind only to `127.0.0.1` |
 | `CODEX_BIN` | `codex`; installed CLI executable |
+| `COLLAB_OLLAMA_URL` | `http://127.0.0.1:11434/v1`; loopback-only local inference, no real provider key |
 
 The real host uses SQLite. Agent/member/workspace configuration is fixed for a store; reopening
 with a different configuration refuses rather than silently migrating it. Use a new
@@ -166,6 +172,7 @@ npm run check
 npm run build
 node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.test.ts test/configuration.test.ts test/preview.test.ts test/concurrency.test.ts test/load.test.ts
 node ../../node_modules/vitest/dist/cli.js --run test/startup.test.ts test/lifetime.test.ts test/preflight.test.ts
+node ../../node_modules/vitest/dist/cli.js --run test/ollama.test.ts
 ```
 
 Tests exercise real HTTP and Durable with deterministic I/O: authorization, scoped retry,

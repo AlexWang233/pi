@@ -1,0 +1,32 @@
+{
+	"localDate": "2026-11-08",
+	"timeZone": "America/Los_Angeles",
+	"completedAtUtc": "2026-11-09T04:49:13.950Z",
+	"node": "v22.23.4",
+	"ollama": "0.40.15",
+	"model": "qwen3:4b-instruct-2507-q4_K_M",
+	"modelDigest": "0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0",
+	"gpu": "NVIDIA GeForce RTX 4070 Laptop GPU (8 GB)",
+	"backend": "100% GPU per ollama ps",
+	"contextTokens": 8192,
+	"inferenceParallelism": 1,
+	"agents": 2,
+	"users": 2,
+	"completed": 4,
+	"filesVerified": 4,
+	"receiptRetry": "stable before and after reopen",
+	"sqliteReopen": "passed",
+	"elapsedMs": 26418,
+	"limits": [
+		"Read/write tools only; no shell or external harness",
+		"Graceful reopen, not crash recovery",
+		"No hosted-provider authentication or Codex turn",
+		"Ollama serializes inference; separate agent histories",
+		"One smoke run, not a model-quality or capacity benchmark"
+	],
+	"priorTrial": {
+		"model": "qwen2.5-coder:3b",
+		"digest": "f72c60cabf6237b07f6e632b2c48d533cef25eda2efbd34bed21c5e9c01e6225",
+		"result": "Failed first file assertion: completed response but requested file absent"
+	}
+}

@@ -11,13 +11,19 @@ The original budget remains **about 20 hours total**, including checks, deployme
 | Stage | Required outcome | Current status |
 | --- | --- | --- |
 | Local MVP | Package-owned threads, authenticated demo, attributed requests, shared agents/workspace, independent histories, queues, stop, reconnect and bounds | Implemented and deterministically tested; preview exercised in a browser |
-| Live integration | Native Pi and T3-backed Codex perform real coding turns | Real CLI initialization only; real model turns unverified |
+| Live integration | Native Pi and T3-backed Codex perform real coding turns | Native local Ollama smoke verified; hosted-provider turns and real Codex turns pending |
 | Failure/capacity evidence | Reproducible recovery, actual HTTP/SSE load measurements and failure analysis | Scripted subprocess/owner-crash evidence plus first load/600-second soak report complete; remaining recovery and real-process checks pending |
 | Assignment hand-in | GCP deployment, access/restart/teardown instructions, measured report and presentation | Deployment templates/runbook prepared; actual GCP and presentation pending |
 
 The preview demonstrates **three members sharing two agent lanes**, including all six user/agent pairs. These are shared agent identities, histories and queues. Every member currently accesses every lane. Fixed membership is sufficient; online presence and a permission editor are optional.
 
 Target one native Pi lane and one external Codex lane for the final live walkthrough. Native OpenAI/GPT, Anthropic/Claude, Google/Gemini and DeepSeek are registered through existing Pi AI providers. Only OpenAI credentials are planned now; other live and multi-key checks remain deferred. A native model provider is distinct from an external harness such as Claude Code.
+
+For independent local development, [Ollama/Qwen3 setup](apps/collab-demo/LOCAL_MODELS.md) now
+provides actual native model/tool execution without provider keys. Two users/two agents pass four
+file-content assertions, receipt retries and graceful SQLite reopen. This supplements deterministic
+tests; it does not fulfill hosted-provider authentication, real Codex turns or GCP verification.
+Notify the user at those exact access-dependent gates; they do not block other local implementation.
 
 ## 2. Architecture and actual implementation locations
 
@@ -92,7 +98,7 @@ records exact guarantees and costs. Core native recovery and receipt formats wer
 3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
 4. **Finish documentation and presentation.** Integrate package README/spec references, publish measurements/failure analysis and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
 
-The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 29 demo tests and an ad-hoc browser check. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
+The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 33 demo tests, an opt-in real local-model smoke and an ad-hoc browser check. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
 
 ## 6. GCP design, deferred until local readiness
 

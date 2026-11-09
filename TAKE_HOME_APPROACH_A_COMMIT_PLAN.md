@@ -26,6 +26,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: measure collaborative HTTP and SSE limits` | Four load modules, three new tests and [report](apps/collab-demo/load/README.md); 1301 accepted/completed commands including 1200-command soak, 30 stable retries | First slice complete; isolated commit timing, rate sweeps and real harness pressure remain follow-ups |
 | `fix: verify persistence boundaries and configure Codex kill escalation` | 12 new admission/native/storage tests, two Windows attached-descendant cases, one-second spawner escalation | Deterministic slice complete; Windows Bash delay and real/Linux containment remain open |
 | `feat: prepare host preflight and manual deployment` | Shared startup validation, read-only preflight, host exit on Harness failure, Linux service/backup templates and runbook | No live/GCP deployment or Linux runtime validation; automatic restart disabled |
+| `feat: verify native collaboration with local models` | Loopback Ollama composition using Pi's existing API, two-user/two-agent configuration, opt-in real HTTP/SQLite/tool smoke and offline contract tests | Qwen3 4B passes four actual writes/retry/reopen; hosted providers, Codex and GCP still need their own access/evidence |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -86,6 +87,12 @@ The user explicitly deferred this issue; continue independent preparation/docume
 **Done:** record tested boundaries/platforms in progress/scenarios. Unverified descendant cleanup remains an explicit deployment limitation; do not silently mark this gate complete.
 
 ### When privately configured: live integration smoke
+
+**Local substitute implemented:** [Ollama smoke](apps/collab-demo/LOCAL_MODELS.md) uses an actual
+small chat model and verifies files, attributed 2x2 sharing, stable retries and graceful SQLite
+reopen. This supports continued local coding without keys; MiniLM embeddings do not exercise
+agent tool calls. Keep the hosted-provider/Codex gates below pending and notify the user when
+those checks are next. No need to wait for GCP to continue independent implementation.
 
 Suggested message: `docs: record live native and Codex integration evidence`; code defects get separate `fix:` increments.
 

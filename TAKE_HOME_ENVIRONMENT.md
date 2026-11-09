@@ -1,6 +1,6 @@
 # Assignment development environment
 
-This checkout uses repository-local tools under `.artifacts/`. They do not replace the system Node/Python installations or permanently modify PATH. Dependencies are for approach A; T3 Code is a reference checkout and does not need a separate dependency installation yet.
+This checkout uses repository-local tools under `.artifacts/`. They do not replace the system Node/Python installations or permanently modify PATH. Dependencies are for approach A; T3's vendored adapter subset is installed with this fork, without installing the reference checkout's full toolchain.
 
 ## Activate tools
 
@@ -28,6 +28,7 @@ Repeat activation in each new terminal. Dot-sourcing (the leading `. `) updates 
 | Remaining npm dependencies | Installed from the existing `package-lock.json` with `npm ci --ignore-scripts --no-audit --no-fund` |
 | Git, Git Bash, SSH | Existing system installations |
 | SQLite | Provided by Node; no SQLite server or standalone installation needed |
+| Local inference | Portable Ollama 0.40.15 under `.artifacts/ollama/runtime/`; model cache under `.artifacts/ollama/models/`. [Setup, evidence and limits](apps/collab-demo/LOCAL_MODELS.md) |
 
 Node and Google Cloud archives were downloaded from their official sites and checked against published SHA-256 checksums. See [Node releases](https://nodejs.org/dist/latest-v22.x/) and [Google Cloud versioned archives](https://docs.cloud.google.com/sdk/docs/downloads-versioned-archives).
 
@@ -63,4 +64,9 @@ gcloud init
 
 Complete the browser login yourself. Confirm billing and Compute Engine access for the chosen project before provisioning resources. Installing the CLI does not create a project, enable billing, or deploy anything. Application Default Credentials are not needed merely to deploy with the gcloud CLI.
 
-For a real-agent demonstration, choose one supported model provider and configure its API credential privately when implementing the app. Do not paste credentials into chat, source files, or committed configuration. Deterministic provider examples and automated tests need no real provider credentials.
+For a hosted-provider demonstration, choose one supported model provider and configure its API credential privately. Do not paste credentials into chat, source files, or committed configuration. Deterministic provider examples and automated tests need no real provider credentials.
+
+For actual local-model responses without provider keys, use the [Ollama instructions](apps/collab-demo/LOCAL_MODELS.md).
+The app supports two native lanes on one small local chat model. MiniLM embeddings do not
+exercise conversational tool use. Hosted-provider compatibility, authenticated Codex turns and
+final Linux/GCP operations remain separate access-dependent checks; they do not block independent local coding.

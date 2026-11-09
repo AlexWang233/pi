@@ -7,5 +7,5 @@
 		"customConditions": ["source"],
 		"lib": ["ES2024", "DOM", "DOM.Iterable"]
 	},
-	"include": ["src/**/*.ts", "web/**/*.ts", "test/**/*.ts", "load/**/*.ts"]
+	"include": ["src/**/*.ts", "web/**/*.ts", "test/**/*.ts", "load/**/*.ts", "scripts/**/*.ts"]
 }

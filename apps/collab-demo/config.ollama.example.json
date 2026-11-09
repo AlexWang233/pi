@@ -1,0 +1,11 @@
+{
+	"members": [{ "id": "alice", "tokenEnv": "COLLAB_TOKEN_ALICE" }, { "id": "bob", "tokenEnv": "COLLAB_TOKEN_BOB" }],
+	"agents": [
+		{
+			"id": "local-a",
+			"kind": "native",
+			"model": { "provider": "ollama", "modelId": "qwen3:4b-instruct-2507-q4_K_M" }
+		},
+		{ "id": "local-b", "kind": "native", "model": { "provider": "ollama", "modelId": "qwen3:4b-instruct-2507-q4_K_M" } }
+	]
+}

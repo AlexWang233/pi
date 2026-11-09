@@ -81,11 +81,16 @@ describe("bounded collaborative observations", () => {
 		const app = await fixture();
 		cleanups.push(app.close);
 		const disconnect = new AbortController();
+		// Retain response bodies: fetch may release unreachable streams during GC, freeing viewer slots.
+		const viewers: Response[] = [];
 		cleanups.push(async () => {
 			disconnect.abort();
+			await Promise.all(viewers.map((viewer) => viewer.body!.cancel().catch(() => {})));
 		});
 		for (let index = 0; index < 32; index++) {
-			expect((await app.request(`${lane()}/events`, aliceToken, { signal: disconnect.signal })).status).toBe(200);
+			const viewer = await app.request(`${lane()}/events`, aliceToken, { signal: disconnect.signal });
+			viewers.push(viewer);
+			expect(viewer.status).toBe(200);
 		}
 		expect((await app.request(`${lane()}/events`, bobToken)).status).toBe(503);
 		expect(watch).toHaveBeenCalledTimes(2);

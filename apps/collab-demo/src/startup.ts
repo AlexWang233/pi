@@ -6,6 +6,7 @@ import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
 import { googleProvider } from "@earendil-works/pi-ai/providers/google";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
 import type { DemoConfiguration } from "./configuration.ts";
+import { ollamaProvider } from "./ollama.ts";
 
 const providerKeys: Readonly<Record<string, string>> = {
 	openai: "OPENAI_API_KEY",
@@ -29,11 +30,20 @@ export function prepareHost(config: DemoConfiguration, environment: NodeJS.Proce
 	const models = createModels();
 	for (const provider of [openaiProvider(), anthropicProvider(), googleProvider(), deepseekProvider()])
 		models.setProvider(provider);
+	const localModelIds = [
+		...new Set(
+			config.agents.flatMap((agent) =>
+				agent.kind === "native" && agent.model.provider === "ollama" ? [agent.model.modelId] : [],
+			),
+		),
+	];
+	if (localModelIds.length)
+		models.setProvider(ollamaProvider(localModelIds, environment.COLLAB_OLLAMA_URL ?? "http://127.0.0.1:11434/v1"));
 	const requiredKeys = new Set<string>();
 	for (const agent of config.agents) {
 		if (agent.kind !== "native") continue;
 		if (!models.getModel(agent.model.provider, agent.model.modelId)) throw new Error(`Unknown model for ${agent.id}`);
-		requiredKeys.add(providerKeys[agent.model.provider]);
+		if (agent.model.provider !== "ollama") requiredKeys.add(providerKeys[agent.model.provider]);
 	}
 	const data = resolve(workingDirectory, environment.COLLAB_DATA ?? "data");
 	return { port, tokens, models, data, workspace: resolve(data, "workspace"), requiredKeys: [...requiredKeys] };

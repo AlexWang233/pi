@@ -12,6 +12,23 @@ const config = {
 const environment = { COLLAB_TOKEN_ALICE: "a".repeat(24), COLLAB_TOKEN_BOB: "b".repeat(24) };
 
 describe("live host startup policy", () => {
+	it("registers selected local models once without hosted keys", async () => {
+		const host = prepareHost(
+			{
+				...config,
+				agents: ["one", "two"].map((id) => ({
+					id,
+					kind: "native" as const,
+					model: { provider: "ollama", modelId: "local-model" },
+				})),
+			},
+			environment,
+			process.cwd(),
+		);
+		expect(host.requiredKeys).toEqual([]);
+		expect(host.models.getModels("ollama")).toHaveLength(1);
+		expect(await host.models.getAuth("ollama")).toMatchObject({ auth: { apiKey: "ollama-local" } });
+	});
 	it("resolves the existing layout and supports an external lane without native API keys", () => {
 		const host = prepareHost(config, environment, process.cwd());
 		expect(host.requiredKeys).toEqual([]);
