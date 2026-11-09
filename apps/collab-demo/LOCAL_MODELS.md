@@ -161,8 +161,8 @@ The ad-hoc browser automation is separate from the committed tool smoke and norm
 | T3-backed real Codex turns, continuation and real CLI tool lifecycle | Installed Codex and working authentication for the current hosted-provider configuration | Native smoke does not exercise Codex; a Codex/local-backend composition is not implemented or verified |
 | Final GCP service, mounted disk, restart/reboot, Linux descendant cleanup, backup/restore and evaluator access | Selected GCP project/billing/IAM and Linux deployment | No; service templates alone do not establish these |
 
-The local browser gate now passes. Remaining independent specification review and presentation
-rehearsal require no key or GCP project. The next hosted native/Codex check requires private
+The local browser gate and specification integration are complete. Human presentation
+rehearsal requires no key or GCP project. The next hosted native/Codex check requires private
 OpenAI credentials and separate Codex authentication; this is the current credential gate.
 GCP project/billing/IAM is required only for the later deployment checks.
 Configure credentials privately in the launching environment, never in chat or committed files.

@@ -3,9 +3,10 @@
 This fork adds `/collaboration` and Node-only `/adapters/codex` entry points to the existing
 Durable package. It reuses the Session commit line, documents, conversations, native inbox,
 tasks, and storage. There is no application-owned queue or second persistence engine.
-This addendum is linked from the package [README](../README.md#collaborative-threads) and
-documents the implemented collaboration contract. Full reconciliation with the core normative
-specification remains a separate review; this change does not rewrite that specification.
+This addendum expands the fork contract in [specification section 14](spec.md#14-collaborative-threads-in-this-fork)
+and is linked from the package [README](../README.md#collaborative-threads). The full core
+specification was reviewed for this integration; its transaction/task/submission/watch rules
+remain unchanged. This is contract reconciliation, not a fresh audit of all core implementations.
 
 ## Current API
 
@@ -114,6 +115,9 @@ and no outcome settles `interrupted` without sending again. A crash between memo
 send can therefore interrupt an attempt that never reached the provider. A lost result can
 leave effects on disk; the runtime does not claim exactly-once shell execution.
 
+Retrying an interrupted command with its original identity returns the existing receipt and
+does not rerun it. Inspect uncertain effects before explicitly submitting a new command ID.
+
 Native recovery retains the existing Durable semantics. External successes store a private
 continuation reference; later commands can resume the provider thread. Real Codex continuation
 and descendant-process cleanup still require additional verification.
@@ -181,6 +185,14 @@ the latest 8 command summaries and up to 20 recent transcript entries, with 8,19
 display previews. Native watch folding bounds a stalled listener's pending frames. The host
 still owns network buffer limits and fanout. There is no global durable stream cursor or
 cross-agent total order; reconnect gets current bounded state and may page earlier history.
+The projection combines separate source watches and command reads; it is convergent presentation,
+not an atomic snapshot across those sources. Native completed-answer status can precede lane
+idleness when after-run hooks are selected, as described in specification section 8.3.
+
+External progress requests deferred persistence but updates a session-scoped document. That
+scope is ineligible for holding under [specification section 4.1](spec.md#41-deferred-commits),
+so these progress commits are stored immediately. Native `pi.live` progress can be held.
+This is a write-cost limitation; the external `withinMs` option does not establish batching.
 
 External retained progress/results default to 65,536 characters. Native model/tool budgets
 and shell timeouts still require host/tool configuration; display clipping does not limit

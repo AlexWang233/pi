@@ -41,7 +41,7 @@ Notify the user at those exact access-dependent gates; they do not block other l
 | Optional single-file coordination experiment | `collaboration/managed-file.ts`; not integrated with agents/demo |
 | Authentication, configuration, HTTP/SSE and browser | `apps/collab-demo/` |
 | Read-only workspace inspection and manual-refresh UI | `apps/collab-demo/src/workspace-files.ts`, `web/files.ts`; transport only |
-| Current package contract | [Collaboration addendum](packages/durable/docs/collaboration.md) and [README](packages/durable/README.md#collaborative-threads); full core-spec review/integration pending |
+| Current package contract | [Specification section 14](packages/durable/docs/spec.md#14-collaborative-threads-in-this-fork), [collaboration addendum](packages/durable/docs/collaboration.md) and [README](packages/durable/README.md#collaborative-threads); core-spec contract review/integration complete |
 
 There is no separate `commands.ts` or application execution database. Reuse Harness transactions, conversations, native inboxes, scheduling, watches and SQLite. The server verifies tokens; Durable enforces membership. A direct library host remains responsible for authenticating its callers.
 
@@ -85,12 +85,14 @@ Replay/scripted children establish protocol behavior without paid calls. Local C
 
 ## 5. Remaining delivery sequence
 
-**Immediate next work:** (1) finish the full core-spec review before integrating normative
-collaboration references and rehearse the new [presentation runbook](TAKE_HOME_PRESENTATION.md);
-neither needs keys or GCP; (2) verify bounded hosted OpenAI and real Codex turns once a private
+**Immediate next work:** (1) rehearse the [presentation runbook](TAKE_HOME_PRESENTATION.md)
+and record human presentation timing; this needs no keys or GCP; (2) verify bounded hosted
+OpenAI and real Codex turns once a private
 OpenAI key and separate Codex authentication are configured. We have reached that credential gate
 for hosted integration. Package README links and the regular Ollama browser walkthrough are done;
-no runtime defects surfaced. Implementation summaries must state the immediate next planned work
+no runtime defects surfaced. The full core specification was read and the fork contract integrated
+as section 14, retaining core semantics. This is documentation reconciliation, not a new audit of
+every core implementation. Implementation summaries must state the immediate next planned work
 and its prerequisites. GCP remains at the later deployment gate.
 
 The read-only file browser is implemented with explicit refresh, a 200-entry directory listing
@@ -116,7 +118,7 @@ records exact guarantees and costs. Core native recovery and receipt formats wer
 1. **Process-ownership investigation deferred by user.** The existing Windows Bash interruption/reopen test's roughly 30-second delay remains open; it fails at the default five-second limit and passes with a 40-second runner limit. Resume investigation later. Prompt shutdown, real Codex descendants and Linux process groups still need verification before workspace takeover claims. Injected SQLite failures and owner kills do not certify disk-full/corruption or power-loss safety.
 2. **Verify live integration when privately configured.** Bounded OpenAI-native and real Codex coding turns, continuation and stop. Separate real model evidence from initialization/simulation. Do not require all four provider keys.
 3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
-4. **Finish documentation and presentation.** README links, measurements and the presentation runbook are written. Finish full core-spec review/integration and rehearse eight minutes. Read the main Durable spec fully before modifying it; the addendum is not completed normative integration.
+4. **Finish documentation and presentation.** README links, measurements, specification section 14 and the presentation runbook are written. Core-spec contract review/integration is complete. Rehearse eight minutes and add actual hosted/Codex/cloud evidence only after those checks run.
 
 The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 38 demo tests, an opt-in real local-model smoke and ad-hoc browser checks. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
 

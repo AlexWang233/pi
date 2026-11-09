@@ -1,6 +1,10 @@
 # Durable specification
 
 `@earendil-works/pi-durable` is a durable, extensible agent harness. This document is normative.
+Sections 1–13 specify the core Harness. Section [14](#14-collaborative-threads-in-this-fork)
+specifies this fork's additive collaboration layer; its [contract and evidence](collaboration.md)
+describe the public API, tested boundaries, and remaining integration checks. Collaboration
+uses the core transaction, task, submission, and watch rules; it does not replace them.
 It uses existing package types as follows:
 
 ```ts
@@ -6556,3 +6560,114 @@ Durable has no:
 - JSONL global compaction or automatic corruption repair;
 - compatibility layer for earlier harness prototypes;
 - forced termination of non-cooperative extension code inside one process.
+
+## 14. Collaborative threads in this fork
+
+`@earendil-works/pi-durable/collaboration` adds shared agent lanes and attributed commands
+inside this package. A thread is application metadata over one Harness/store, with fixed
+members, named agents, and one shared workspace. Each agent has its own conversation/history;
+membership does not copy histories or create a private agent for each user. The application
+owns authentication, transport, environment construction, and Harness lifetime.
+
+### 14.1 Ownership and admission
+
+The host installs `createCollaboration(...).extension` before opening/recovering the Harness.
+`open()` initializes thread configuration and agent conversations atomically, or compares the
+normalized configuration with the stored one. A mismatch rejects; no implicit migration,
+dynamic membership, or concurrent-owner protocol is provided. One owning process per store
+and workspace is an operating requirement, not a distributed lock.
+
+`pi.collaboration` is a session-scoped document owned by this fork. It retains configuration,
+agent conversation/task/continuation references, and an append-only bounded command list.
+Changing its checkpoint policy does not expire receipts or compact transcript history.
+Session-global conversation/task IDs and ownership edges remain trusted runtime identities,
+not user capabilities (sections 2 and 9.2).
+
+The host authenticates a caller and supplies `actorId`; the package checks stored membership
+for submit, command lookup, history, watch, and stop. Every member can observe every lane and
+stop its ordinary work. Exact command lookup is scoped to its author; peer commands remain
+visible through authorized lane projections/history. Dynamic revocation and per-agent roles
+are outside this contract.
+
+Command identity is `(thread, actorId, agentId, commandId)`. Admission uses one Session commit:
+authorize, compare an existing payload, check capacity, then persist the receipt and executable
+intent together. Equal identity/text returns the existing receipt before capacity checks;
+changed text rejects. A callback failure rolls back its admission; a storage exception may
+follow persistence and fails the whole Session as in section 10.1. Retry an ambiguous admission
+with its original identity/text after recovery. A receipt means admission, not an answer or
+successful filesystem outcome.
+
+### 14.2 Native and external execution
+
+Native commands use transactional conversation submission (section 6), with caller/command
+identity encoded in the native request ID and attributed input metadata. Generation, tools,
+compaction, queue selection, and recovery follow sections 6–8. The demo uses one-at-a-time
+follow-up placement and `afterFailedRun: "withdraw"`; hosts that change those settings change
+native queue behavior. A native command's completed answer can precede run idleness when
+after-run hooks are selected (section 8.3).
+
+External commands create `pi.collaboration.external` tasks, owned by their agent conversation.
+Each admitted task records its unfinished predecessor and waits with `allSettled` (section 5).
+It proceeds only if that predecessor's command completed; otherwise it settles stopped.
+A fresh command admitted after the predecessor is terminal has no dependency on that old
+failure. Different lanes may overlap; serial admission is not serial execution across agents.
+
+Before driver open/send, the external task persists its `dispatched` memo outside any external
+effect. Recovery that finds that memo without a committed command outcome settles interrupted
+without reopening/sending the turn. A crash between the memo and send can therefore sacrifice
+work that never reached a provider. This is a task-specific conservative effect policy
+(section 5.2), not a change to native generation recovery, which can repeat a model request.
+Resubmitting the original interrupted identity returns its receipt; another execution requires
+an explicit new command identity after inspecting uncertain effects.
+
+The runtime closes an acquired driver session before settling its result. Success stores the
+bounded answer and private continuation reference with the task's terminal outcome. A missing
+driver fails visibly; native generation is not a fallback. If the task becomes terminal while
+command metadata still says queued/running, public command state and capacity derive interrupted
+from the task on the same transaction line. Already settled outcomes stand; reads do not repair
+metadata, fabricate history, or clear nonterminal missing-definition/migration blocks.
+
+Stop aborts that lane's ordinary work and queued user inputs through its conversation; peers
+continue. It is not per-command withdrawal, an approval decision, or filesystem undo. Drivers
+must honor cancellation and release resources. The deadline signals cancellation; neither it
+nor Harness close forcibly contains arbitrary non-cooperative code or escaped processes.
+
+### 14.3 Observation, persistence, and resource limits
+
+Collaboration watches project native conversation state and thread metadata into bounded lane
+snapshots. They combine separate source watches and command reads; they are convergent
+presentation, not an atomic cross-source or cross-agent snapshot. Source folding can omit
+intermediate progress (section 9). Stopping observation leaves accepted execution running.
+Reconnect reacquires current state and can page history; there is no durable transport cursor
+or global cross-agent event order. The host owns network fanout, buffering, and disconnection.
+
+External progress updates the session-scoped `pi.collaboration` document. Although its call
+requests deferred persistence, that scope is ineligible for holding under section 4.1: these
+updates are stored immediately. Native `pi.live` progress can be held under the core rule.
+Do not infer external progress batching or write throughput from its `withinMs` option.
+
+Defaults are 256 lifetime receipts, 16 pending commands per agent, 16,384 input characters,
+65,536 retained external output characters, and a 120-second external cancellation deadline.
+The projection keeps the newest eight command summaries and scans up to twenty recent entries,
+with 8,192-character display previews. These limits do not cap native history, model spend,
+process memory, disk growth, or complete shell output. Configuration-specific limits and
+failure evidence are documented in the [collaboration contract](collaboration.md).
+
+### 14.4 Files, adapters, and verification boundaries
+
+All agent conversations point to the same workspace; section 7.3's native single-file mutation
+queue does not protect a whole agent read/modify/write turn or coordinate shell/Codex writers.
+For example, A and B can both read `base`, then B's replacement can lose A's edit despite both
+commands completing. No semantic instruction arbitration, automatic merge, stash, or rollback
+is implied. The opt-in [managed-file API](managed-files.md) is separate and is not connected
+to the demo's agent tools. The read-only browser viewer is host transport, not publication.
+
+The Node-only `/adapters/codex` subpath implements the external-driver contract using vendored
+T3 client/protocol code and optional Effect/platform peers. Generic collaboration contracts
+expose no Effect types; Durable retains Chord internally. Shared cwd and membership are not
+an execution sandbox or hostile-tenant boundary.
+
+The [contract/evidence addendum](collaboration.md) separates deterministic tests, scripted CLI
+processes, actual local-model checks, and unverified hosted/Codex/GCP behavior. The specification
+states required behavior; it does not certify real provider authentication, arbitrary process
+containment, production capacity, power-loss safety, or deployed cloud delivery.

@@ -60,6 +60,8 @@ $env:COLLAB_CONFIG = 'config.ollama.example.json'
 $env:COLLAB_DATA = 'data/presentation'
 $env:COLLAB_TOKEN_ALICE = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
 $env:COLLAB_TOKEN_BOB = node -p "require('node:crypto').randomBytes(24).toString('base64url')"
+npm run build
+node --conditions=source --experimental-strip-types src/preflight.ts
 npm start
 ```
 
@@ -67,6 +69,9 @@ Open `http://127.0.0.1:4310` in two tabs/profiles. Paste each generated token lo
 page; tokens remain in page memory. Use a fresh data directory if the fixed configuration has
 changed; do not delete or repurpose an existing store. `npm run preview` instead uses simulated
 agents, port 4311 and disposable files. Label that fallback explicitly.
+Workspace packages must already be built; on a fresh checkout follow the
+[environment setup](TAKE_HOME_ENVIRONMENT.md) and run the root offline build first.
+Preflight checks configuration/assets/key presence; it does not contact Ollama or prove model access.
 
 The persistent live workspace appears after startup under
 `apps/collab-demo/data/presentation/workspace/`; its sibling `thread.sqlite` stores history/receipts.
@@ -110,6 +115,10 @@ the ordinary host handled cleanup. No active-shell stop or escaped descendant co
 Local screenshots/report remain in ignored `.artifacts/ollama-browser-*`; only the redacted,
 portable JSON report is tracked. Temporary processes, profile and data were removed afterward.
 
+The local presentation configuration also passed read-only preflight on November 8, without
+creating a data directory or contacting a model. This validates setup prerequisites, not human
+presentation timing or hosted/Codex access.
+
 ## Likely reviewer questions
 
 - **Why extend Durable?** The assignment asks for a version of it. Reusing its transaction line,
@@ -124,13 +133,21 @@ portable JSON report is tracked. Temporary processes, profile and data were remo
 - **Why one owner?** Fits the take-home budget; ownership/process/disk are single failure domains.
   Multiple workers require fenced ownership and workspace/process isolation, not a second process
   opening the same store.
-- **What is unfinished?** Full core-spec reconciliation, human rehearsal, real hosted native/Codex
+- **Where can writes bottleneck?** Admission and external progress share one metadata document.
+  External progress is stored immediately under the core scope rule, despite its deferred option.
+  A future measured optimization can coalesce progress in an eligible conversation document;
+  that needs projection/recovery tests and is outside this delivery increment.
+- **Where is the contract?** [Specification section 14](packages/durable/docs/spec.md#14-collaborative-threads-in-this-fork)
+  integrates the fork's rules with core transactions, tasks, submissions and watches. The
+  [addendum](packages/durable/docs/collaboration.md) expands API details and evidence.
+- **What is unfinished?** Human rehearsal, real hosted native/Codex
   turns, real/Linux containment and actual GCP deployment/backup restoration. The cloud kit is preparation.
 
 ## Immediate next work and access gates
 
-1. Review the full core specification before integrating normative references; rehearse this
-   walkthrough and record presentation timing. This needs no provider key or GCP project.
+1. Rehearse this walkthrough and record human presentation timing. Specification integration
+   is complete; the outlined eight minutes is a target, not a measured rehearsal. No provider
+   key or GCP project is needed for local rehearsal.
 2. Verify a real hosted native lane and the configured external Codex lane when private OpenAI
    credentials and Codex authentication are available. Local Ollama evidence does not establish them.
 3. After readiness, select the GCP project/access and perform the documented Linux deployment,

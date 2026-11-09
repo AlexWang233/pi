@@ -25,7 +25,6 @@ Built on [`@earendil-works/pi-ai`](../ai/README.md) for model access and `@earen
 - [Busy Conversations](#busy-conversations)
 - [Reset and Handoff](#reset-and-handoff)
 - [Compaction](#compaction)
-- [Agent Events (Experimental)](#agent-events-experimental)
 - [Hooks](#hooks)
 - [More Conversations and Forks](#more-conversations-and-forks)
 - [Abort and Subagents](#abort-and-subagents)
@@ -1038,8 +1037,8 @@ Examples that call OpenAI need `OPENAI_API_KEY`; most use the faux provider othe
 
 ## Design Documents
 
-- [`docs/spec.md`](https://github.com/earendil-works/pi/blob/main/packages/durable/docs/spec.md): the normative specification
-- [`docs/collaboration.md`](docs/collaboration.md): this fork's collaboration API, recovery contract and evidence; full reconciliation with the core normative specification remains a separate review
+- [`docs/spec.md`](docs/spec.md): the normative specification, including this fork's collaboration contract in section 14
+- [`docs/collaboration.md`](docs/collaboration.md): collaboration API, recovery contract and evidence, expanding specification section 14
 - [`docs/managed-files.md`](docs/managed-files.md): optional conditional file publication and its limits
 
 Benchmarks: `npm run bench:storage`, `npm run bench:storage:memory`, `npm run bench:tool-output`, and `npm run bench:nested-tools`.

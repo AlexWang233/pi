@@ -14,7 +14,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 
 | Suggested message / increment | Actual implementation and evidence | Remaining gap |
 | --- | --- | --- |
-| `docs: specify collaborative threads and external execution` | [Collaboration addendum](packages/durable/docs/collaboration.md), package README, plans and decisions | Full core-spec review/integration |
+| `docs: specify collaborative threads and external execution` | [Specification section 14](packages/durable/docs/spec.md#14-collaborative-threads-in-this-fork), collaboration addendum, package README, plans and decisions; full core-spec contract review complete | Keep evidence current after actual hosted/Codex/cloud checks |
 | `feat: add a T3-backed Codex adapter to Durable` | `src/adapters/codex/`, typed client/protocol/replay, exact optional peers, provenance and built notices | Real model turn; replay and CLI initialization already verified |
 | `feat: add collaborative threads and targeted commands` | `collaboration/types.ts`, `state.ts`, `thread.ts`, `index.ts`; atomic admission, membership, receipts and limits | Broader failure coverage; no separate `commands.ts` |
 | `feat: execute external commands through Durable tasks` | `external.ts`; predecessor FIFO, dispatch marker, outcomes, no uncertain redispatch | Live continuation; native retains existing inbox/generation |
@@ -28,7 +28,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: prepare host preflight and manual deployment` | Shared startup validation, read-only preflight, host exit on Harness failure, Linux service/backup templates and runbook | No live/GCP deployment or Linux runtime validation; automatic restart disabled |
 | `feat: verify native collaboration with local models` | Loopback Ollama composition using Pi's existing API, two-user/two-agent configuration, opt-in real HTTP/SQLite/tool smoke and offline contract tests | Qwen3 4B passes four actual writes/retry/reopen; hosted providers, Codex and GCP still need their own access/evidence |
 | `feat: inspect workspace files from the demo` | Authenticated read-only directory/text API and browser controls, manual refresh, five new HTTP/filesystem tests and desktop/mobile Chrome verification | No editing, diffs, automatic refresh or write-conflict protection |
-| `docs: record regular-host local integration and presentation` | Actual Ollama/browser check: five commands, all four user/agent pairings, file inspection, queue, reconnect and idle reopen; [presentation runbook](TAKE_HOME_PRESENTATION.md) and README API/examples | Human rehearsal and full core-spec review remain; no runtime changes in this increment |
+| `docs: record regular-host local integration and presentation` | Actual Ollama/browser check: five commands, all four user/agent pairings, file inspection, queue, reconnect and idle reopen; [presentation runbook](TAKE_HOME_PRESENTATION.md) and README API/examples | Human rehearsal remains; no runtime changes in this increment |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -63,10 +63,10 @@ measurements rather than implied results of this first slice.
 
 ### Immediate next implementations
 
-1. **Finish specification review and rehearse:** package README/API/example links and the
-   [presentation runbook](TAKE_HOME_PRESENTATION.md) are written. Read the full normative spec
-   before integrating collaboration references; rehearse the eight-minute trace. No external
-   credentials required. The normal Ollama browser walkthrough passed; no runtime defect was found.
+1. **Rehearse and record timing:** package README/API/example links, normative specification
+   section 14 and the [presentation runbook](TAKE_HOME_PRESENTATION.md) are written. Full core-spec
+   contract review/integration is complete; human rehearsal remains. No external credentials
+   required. The normal Ollama browser walkthrough passed; no runtime defect was found.
 2. **Hosted integration at the credential gate:** bounded native OpenAI and actual Codex turns
    require a privately configured OpenAI key and separate Codex authentication. Notify the user
    now that local evidence is ready; do not request all four provider keys. GCP remains later.
@@ -151,7 +151,7 @@ Suggested message: `docs: document collaborative Durable guarantees and measured
 
 **Timebox:** about 1 hour; preserve time for clean setup and rehearsal.
 
-- README/public API links and the presentation runbook are written. Finish normative spec integration after reading the main spec fully; the addendum is not already integrated into it.
+- README/public API links, specification section 14 and the presentation runbook are written. Full core-spec contract review/integration is complete; keep the specification, expanded contract and evidence consistent as implementation changes.
 - Document reproducible setup, T3 reuse/licenses, dependency changes, measured load, failure domains, cloud access/teardown and limits. Keep progress/scenarios consistent.
 - Explain VM/process/store failure, serialized commits, provider quotas, process pressure, observer memory and uncoordinated writes. Separate measurements from predictions.
 - Rehearse eight minutes: package API, M:N sharing, ordering/parallelism, retry/stop/reconnect, uncertain recovery, file-conflict limit, measured bottleneck and next options.
