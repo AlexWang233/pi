@@ -150,6 +150,14 @@ native API-key environment presence. It opens no store/socket, spawns no CLI and
 request. `configuration-valid` does not verify authentication, filesystem permissions or live
 model access. This check targets API-key setup; alternate OAuth/federation setup is not verified.
 
+If the OpenAI lane fails despite a configured key, inspect the retained provider error rather
+than assuming an environment-file problem. The observed November 8 failure was **no API credits
+remaining**, with the key loaded from `.env`. Add credits for the organization associated with
+that key through [API billing](https://platform.openai.com/settings/organization/billing/), then
+submit a new message. Reusing a terminal command's original ID does not execute it again.
+Restart only if changing the key/environment; a billing change alone does not require a new
+store or model. Preflight never checks credit balance. See the [official error guide](https://developers.openai.com/api/docs/guides/error-codes).
+
 The optional [config.codex.example.json](config.codex.example.json) pairs native OpenAI with
 external Codex. Select it through `COLLAB_CONFIG` and use a fresh `COLLAB_DATA` path. Codex
 requires its own installed CLI and working authentication; a native OpenAI API call does not
