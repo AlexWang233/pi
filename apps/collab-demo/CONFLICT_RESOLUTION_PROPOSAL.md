@@ -8,6 +8,77 @@ demonstrated in [the scenario register](PROBLEM_SCENARIOS.md).
 This document proposes solutions for selected high-impact scenarios using database and Git
 ideas. It does not propose replacing Durable's persistence engine or adding a database service.
 
+**Scope decision:** coordination of direct shell/Codex writes remains a future extension,
+as requested. The local T3 review below records reusable patterns; it does not enable them
+or change the current shared-directory execution model.
+
+## What the local T3 Code implementation actually provides
+
+Reviewed November 8, 2026 at commit `d5fc29fe5cb62db68bfbf824cfabe0ae94ac6ac4`
+in `E:\Github\t3code`. References below target that sibling checkout. This is source inspection,
+not a live T3 execution test or an audit of every provider adapter.
+
+### Workspace isolation and recovery
+
+**Problem:** two coding sessions can replace the same file, and reverting one session can
+erase changes belonging to the other. T3 offers independent working copies and explicitly
+checks whether a checkout is shared before restoring it.
+
+| Mechanism found in T3 | Evidence and actual behavior | What we can reuse |
+| --- | --- | --- |
+| Optional per-thread worktrees | [Thread guide](../../../t3code/docs/user/thread-sidebar.md), lines 3–14 and 56–59: a new worktree supplies a separate branch/directory; sending one prompt to multiple models creates separate threads/worktrees. [Workspace resolution](../../../t3code/apps/server/src/project/threadWorkspaceRoot.ts) selects `worktreePath`, falling back to the project root | Future isolated-task mode, with an explicit workspace per task/agent and reviewed integration into shared code. Separate worktrees are optional in T3; isolation is not guaranteed for every thread |
+| Shared side chats | [Side-chat guide](../../../t3code/docs/user/thread-sidebar.md), lines 297–312: parent and side chat use the same folder; Bring back passes conversation context to the parent | Separate histories with explicit context transfer. Bringing a conversation back is not evidence of a Git merge or safe simultaneous file editing |
+| Hidden checkpoint refs and a scratch index | [Git checkpoint implementation](../../../t3code/apps/server/src/vcs/GitVcsDriver.ts), lines 905–1296: capture uses `GIT_INDEX_FILE`, `write-tree`, `commit-tree`, and `update-ref` | Future before/after snapshots and reviewable diffs without staging into the user's normal index or advancing their branch. Snapshot capture does not serialize arbitrary writers or attribute every changed byte to one agent |
+| Refuse restore on shared checkouts | [Restore safety](../../../t3code/apps/server/src/orchestration-v2/CheckpointRestoreSafety.ts) checks the worktree, other threads, checkpoint scopes and provider sessions, including ancestor/descendant overlap. [Rollback execution](../../../t3code/apps/server/src/orchestration-v2/CheckpointRollbackService.ts) checks again and rolls back provider conversation before restoring files | Adopt this rule before offering file undo: refuse broad restore in our shared-agent thread. Prefer retained proposals and version-checked inverse changes. An isolated-worktree restore still needs review because manual edits in that checkout can also be undone |
+| Selected-operation workspace lease | [Lease implementation](../../../t3code/apps/server/src/workspace/workspaceLease.ts) is an in-process, cwd-keyed semaphore. [Turn startup](../../../t3code/apps/server/src/orchestration-v2/ProviderTurnStartService.ts), lines 1727–1735, explicitly holds it only during startup, releasing it before running the provider turn | Coordinate app-owned startup, cleanup and selected Git operations. Do not copy this helper and claim whole-turn ownership or distributed fencing; our stronger ownership proposal would need additional lifecycle and process supervision |
+
+**Concrete implication:** T3 can run task A in worktree A and task B in worktree B, so their
+ordinary shell writes target different working copies. Our current agents intentionally share
+one working directory. Giving each agent a private worktree would change immediate visibility
+of each other's edits and must be presented as an alternative mode, rather than silently
+replacing the assignment's shared-filesystem behavior.
+
+### Messages, approvals and multiple people
+
+| Mechanism found in T3 | Evidence and actual behavior | What we can reuse |
+| --- | --- | --- |
+| Durable queue versus steering | [Composer guide](../../../t3code/docs/user/composer.md), lines 61–89, describes server-saved queued follow-ups and capability-dependent steering. [Queue ordering](../../../t3code/apps/server/src/orchestration-v2/QueuedRunOrder.ts) uses persisted queue positions, with priority for delegated completion messages | Keep our existing per-agent queue. Later make steering an explicit capability and persist queue edits/cancellations; do not copy priority rules unless we implement delegation |
+| Serialized decisions, durable intent, later effects | [Architecture](../../../t3code/docs/internals/overview.md), lines 45–59, documents committed receipts/events/outbox effects. [Thread command executor](../../../t3code/apps/server/src/orchestration-v2/ThreadCommandExecutor.ts) supplies keyed locking; `Orchestrator.ts`, lines 14032 onward, wraps dispatch with thread locks | Already aligned with Durable's transactional admission and separate execution. Reuse the design principle through existing Durable primitives, rather than importing a second orchestration engine |
+| One recorded response to a pending request | [Runtime-request handling](../../../t3code/apps/server/src/orchestration-v2/Orchestrator.ts), lines 9268–9635: refuses non-pending requests, records resolved state and enqueues provider delivery. Its delivery-failure comment preserves the recorded decision when delivery is uncertain | Future approvals can use one atomic pending-to-decided transition plus an explicit delivery outcome. First-valid-decision behavior follows from serialized dispatch and the pending check; it is not a policy deciding whose conflicting instruction has greater authority |
+| Scoped clients and owner-mediated guests | [Environment auth](../../../t3code/docs/internals/environment-auth.md) separates scoped sessions from guest links. [Guest guide](../../../t3code/docs/user/guest-links.md) allows viewing a thread and proposing messages; the owner sends or dismisses them. Guests cannot answer agent requests | Optional observer/proposer/operator roles and moderated guest messages. This guest workflow is different from our M:N trusted-member model, in which Alice, Bob and Carol may all directly submit to every agent |
+
+The inspected mechanisms do not establish automatic reconciliation of contradictory user
+requirements or general conflict prevention for arbitrary agents sharing one directory.
+Multiple clients controlling an environment and guest sharing are useful interaction models,
+but do not by themselves supply our thread membership policy.
+
+### Stashing and the future extension we should retain
+
+T3's [Prompt stash](../../../t3code/docs/user/composer.md), lines 176–185, stores an unsent
+prompt and attachments. It is not Git stashing of agent file edits. The inspected Git paths
+use hidden checkpoint refs for snapshots; a dirty-checkout error in
+[`GitManager.ts`](../../../t3code/apps/server/src/git/GitManager.ts), line 2808, asks the user
+to commit or stash rather than automatically hiding their work. We found no automatic
+stash/apply conflict-resolution mechanism in these reviewed paths.
+
+Keep the following as **future extensions**, with no implementation commitment for this take-home:
+
+1. **Checkpoint and diff inspection:** capture review artifacts with a separate Git index,
+   preserve the user's branch/index, and refuse destructive shared-workspace restores.
+2. **Optional isolated task worktrees:** establish task ownership and a common base, run each
+   task in its own checkout, then propose a reviewed integration change. Preserve competing
+   proposals on conflicts. That review/integration policy would be our addition; the inspected
+   T3 code is not evidence that it implements this exact multi-agent merge workflow.
+3. **Shared-directory ownership alternative:** if immediate shared-file visibility is required,
+   serialize unrestricted turns through completion and verified cleanup. T3's short startup
+   lease is a reference for coordinating selected operations, not a complete implementation.
+4. **Approval and guest roles:** introduce explicit decision identity, eligible actors, one
+   durable decision and visible delivery state when these interaction modes enter scope.
+
+Avoid automatic stash/pop on the shared directory: it cannot reliably separate one agent's
+uncommitted edits from another's. Whole-checkout snapshots are useful review evidence, but
+also do not solve ownership or make broad rollback safe.
+
 ## Recommendation and constraints
 
 Use **optimistic concurrency control** for mediated edits: record which file version an agent
