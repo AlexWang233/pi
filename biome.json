@@ -39,6 +39,7 @@
 			"!packages/mom/data/**/*",
 			"!packages/durable/src/adapters/codex/vendor/**/*",
 			"!!**/node_modules",
+			"!!.artifacts",
 			"!!apps"
 		]
 	},

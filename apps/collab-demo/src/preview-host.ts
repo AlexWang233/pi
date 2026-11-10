@@ -16,6 +16,7 @@ import { type CollaborativeThreadConfig, createCollaboration } from "@earendil-w
 import { NodeExecutionEnv } from "@earendil-works/pi-durable/env/node";
 import { CodingTools } from "@earendil-works/pi-durable/tools";
 import { loadAssets } from "./assets.ts";
+import { ConflictDemo } from "./conflict-demo.ts";
 import { createDemoServer } from "./server.ts";
 
 type PreviewHost = { server: Server; harness: Awaited<ReturnType<typeof Harness.open>>; close(): Promise<void> };
@@ -86,6 +87,7 @@ export async function openPreview(
 		},
 		context,
 	);
+	let conflictDemo: ConflictDemo | undefined;
 	try {
 		const config: CollaborativeThreadConfig = {
 			id: "preview",
@@ -97,8 +99,9 @@ export async function openPreview(
 			],
 		};
 		const thread = await collaboration.open(harness, config, context);
+		conflictDemo = await ConflictDemo.open(join(workspace, ".conflict-demo"), config.members, context);
 		const demo = await createDemoServer(
-			{ threads: new Map([[config.id, { config, thread }]]), tokens, assets: await loadAssets() },
+			{ threads: new Map([[config.id, { config, thread, conflictDemo }]]), tokens, assets: await loadAssets() },
 			context,
 		);
 		return {
@@ -108,11 +111,16 @@ export async function openPreview(
 				try {
 					await demo.close();
 				} finally {
-					await harness.close(context);
+					try {
+						await conflictDemo?.close(context);
+					} finally {
+						await harness.close(context);
+					}
 				}
 			},
 		};
 	} catch (error) {
+		await conflictDemo?.close(context);
 		await harness.close(context);
 		throw error;
 	}

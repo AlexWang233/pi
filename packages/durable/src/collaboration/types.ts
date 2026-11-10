@@ -41,6 +41,8 @@ export type AgentSnapshot = {
 	busy: boolean;
 	progress: string;
 	commands: CommandStatus[];
+	/** Recent committed model-issued tool requests/results; not a complete event stream or proof of file success. */
+	tools: { id: string; name: string; status: "requested" | "completed" | "failed" }[];
 	messages: { id: string; role: "user" | "assistant"; author: string; text: string }[];
 };
 

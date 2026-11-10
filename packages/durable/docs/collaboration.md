@@ -92,6 +92,36 @@ uses the requesting author's identity. Histories remain separate even though fil
 
 ## Admission and ordering
 
+### Model-facing collaboration awareness
+
+Agents receive a collaboration policy, not just a shared directory. Before each native model
+request, the extension renders a `collaboration` system-prompt section from saved thread state:
+self/peer identities, members, active request authors and recent accepted-request metadata.
+External drivers receive the same policy in their instructions at each turn open/resume. Custom
+agent instructions and the original user text remain unchanged.
+
+For example, if GPT replaces a file Ollama previously wrote, Ollama is instructed to treat the
+different bytes as a possible peer/human edit, reread before editing, and avoid assuming its
+earlier write failed. It should preserve unrelated changes and ask when conflicting intent is
+unclear. A reread is not a lock, and a recent GPT request is not proof that GPT wrote that file.
+The policy does not fabricate file authorship, prevent reversions, share full peer histories,
+or enforce model compliance. Conflicting requirements and uncoordinated writes remain risks.
+
+Context includes up to eight members/agents, six recent receipts and four active requests,
+with identifiers abbreviated to 64 characters and full participant counts retained. Peer prompt
+text, answers and tool outputs are not promoted into the system section. Metadata is a recent
+observation, not an atomic view of filesystem effects or a complete event journal. Updating
+sections costs prompt tokens and can add ordinary system-section entries when metadata changes.
+
+Existing compatible stores receive this context on their next model request after installing
+the updated extension/restarting the owner; no fixed configuration rewrite or new database is
+required. Already-sent model requests are not updated mid-flight. External context refreshes at
+turn start, not continuously inside another harness. See [implementation](../src/collaboration/context.ts)
+and [request/file/reopen tests](../test/collaboration-context.test.ts). Tests use simulated models;
+real OpenAI/Ollama interpretation and current Codex behavior require separate live checks.
+
+### Request receipts and scheduling
+
 Command identity is `(thread, actorId, agentId, commandId)`. Equal text under the same identity
 returns its original receipt; changed text conflicts. Membership, payload comparison, pending
 capacity, receipt creation, and executable intent are decided in one transaction. A failed
@@ -258,7 +288,8 @@ SQLite/HTTP/SSE with simulated execution rather than real Codex capacity.
 An opt-in [`ManagedFile` API](managed-files.md) now implements conditional publication for
 one bounded text file, retained base/current/proposed evidence, stable retries and conservative
 blocking after uncertain writes. It uses the existing documents and file-mutation gate. It is
-not wired into model tools, Codex or the HTTP/browser demo; direct writers remain unprotected.
+not wired into normal model tools or Codex; the HTTP/browser demo uses it only in a separate
+scripted conflict scenario. Direct writers remain unprotected.
 
 The separate [HTTP/browser demo](../../../apps/collab-demo/README.md) now hosts this package
 API with bearer authentication, bounded SSE fanout, and a minimal client. Its credential-free

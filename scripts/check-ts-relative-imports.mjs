@@ -12,7 +12,8 @@ import {
 } from "typescript/unstable/ast/is";
 import { API } from "typescript/unstable/sync";
 
-const ignoredDirectories = new Set([".git", "coverage", "dist", "node_modules"]);
+// Downloaded tools and private credential caches are not application TypeScript sources.
+const ignoredDirectories = new Set([".git", ".artifacts", "coverage", "dist", "node_modules"]);
 const files = [];
 
 function collectTypescriptFiles(directory) {

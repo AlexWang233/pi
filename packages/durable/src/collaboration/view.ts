@@ -111,7 +111,25 @@ function projectAgent(
 	const nativeProgress =
 		live?.generation?.message?.content.flatMap((part) => (part.type === "text" ? [part.text] : [])).join("") ?? "";
 	const messages: AgentSnapshot["messages"] = [];
+	const tools: AgentSnapshot["tools"] = [];
 	for (const entry of view.entries.slice(-20)) {
+		for (const [index, message] of (entry.model ?? []).entries()) {
+			if (message.role === "assistant") {
+				for (const [partIndex, part] of message.content.entries()) {
+					if (part.type === "toolCall")
+						tools.push({
+							id: `${entry.id}:${index}:${partIndex}`,
+							name: part.name.slice(0, 128),
+							status: "requested",
+						});
+				}
+			} else if (message.role === "toolResult")
+				tools.push({
+					id: `${entry.id}:${index}`,
+					name: message.toolName.slice(0, 128),
+					status: message.isError ? "failed" : "completed",
+				});
+		}
 		if (entry.kind === "collab.input") {
 			// Collaboration owns collab.input and writes exactly this metadata for both execution kinds.
 			const data = entry.data as { actorId: string; text: string };
@@ -137,5 +155,6 @@ function projectAgent(
 			item.status === "completed" ? { ...item, answer: item.answer.slice(0, 8192) } : item,
 		),
 		messages,
+		tools: tools.slice(-24),
 	};
 }

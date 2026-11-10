@@ -171,6 +171,22 @@ td { color: #c7cdd4; }
 .file-viewer { min-width: 0; }
 .file-title { padding: 8px 12px; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 10px; overflow-wrap: anywhere; }
 .file-viewer pre { padding: 12px; max-height: 320px; overflow: auto; font-size: 11px; line-height: 1.7; }
+.conflict-panel { border: 1px solid #52665b; background: var(--surface); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.conflict-panel > summary { font-size: 13px; font-weight: 600; color: var(--accent); }
+.conflict-panel > .workspace-description { max-width: 950px; line-height: 1.8; }
+.conflict-steps { padding-left: 20px; color: var(--muted); font-size: 12px; line-height: 1.9; }
+.conflict-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; margin: 12px 0; }
+.conflict-card { min-width: 0; border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: var(--background); }
+.conflict-card h3 { color: var(--muted); font-size: 11px; font-weight: 500; margin-bottom: 8px; overflow-wrap: anywhere; }
+.conflict-card pre { font-size: 12px; max-height: 160px; overflow: auto; }
+.conflict-card[data-status="conflict"] { border-color: #9c7845; }
+.conflict-card[data-status="applied"] { border-color: #52665b; }
+.resolution-controls { margin: 12px 0; }
+.resolution-input { display: block; width: 100%; min-height: 85px; max-height: 240px; resize: vertical; margin: 8px 0; padding: 10px; background: var(--background); border: 1px solid var(--border); border-radius: 6px; font: 12px ui-monospace, monospace; }
+.activity-timeline { max-height: 130px; overflow: auto; padding-left: 17px; color: var(--muted); font-size: 10px; line-height: 1.8; margin: 9px 0 0; }
+.activity-timeline li { overflow-wrap: anywhere; }
+.activity-timeline [data-status="failed"], .activity-timeline [data-status="interrupted"] { color: #e4b2a7; }
+.activity-note { font-size: 9px; color: var(--subtle); line-height: 1.6; margin-top: 6px; }
 @media (max-width: 1100px) {
   .app-shell { grid-template-columns: 210px minmax(0, 1fr); }
   .brand { padding-inline: 12px; gap: 7px; }

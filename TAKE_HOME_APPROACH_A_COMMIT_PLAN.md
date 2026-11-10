@@ -1,6 +1,6 @@
 # Commit plan: collaborative Pi Durable, approach A
 
-**Revised November 8, 2026.** Build in this fork's existing `packages/durable`, reuse T3's Codex implementation and keep `apps/collab-demo` a transport/UI host. The [implementation plan](TAKE_HOME_IMPLEMENTATION_PLAN.md) defines architecture and extensions; [progress](TAKE_HOME_PROGRESS.md) contains exact evidence and decisions.
+**Revised November 10, 2026.** Build in this fork's existing `packages/durable`, reuse T3's Codex implementation and keep `apps/collab-demo` a transport/UI host. The [implementation plan](TAKE_HOME_IMPLEMENTATION_PLAN.md) defines architecture and extensions; [progress](TAKE_HOME_PROGRESS.md) contains exact evidence and decisions.
 
 These are **reviewable increments, not actual Git history or permission to commit**. Implemented rows group existing work; do not rebuild them or manufacture retrospective commits. No commits without the user's request.
 
@@ -8,7 +8,7 @@ These are **reviewable increments, not actual Git history or permission to commi
 
 The original budget remains about **20 hours total**, previously estimated as 18 planned plus 2 reserve. Elapsed effort is not recorded here. Remaining timeboxes are prioritization guides, not a fresh budget or a claim that all gaps fit the time remaining.
 
-Protect package ownership, actual T3 reuse, bounded failure behavior, evidence and GCP delivery. Defer extra features if time is tight. **General file-conflict prevention, managed-tool/UI integration, steering, dynamic roles and framework replacement are post-MVP options.** The existing managed-file experiment does not need expansion before delivery.
+Protect package ownership, actual T3 reuse, bounded failure behavior, evidence and GCP delivery. Defer extra features if time is tight. **General file-conflict prevention, managed agent tools, steering, dynamic roles and framework replacement remain extensions.** The user explicitly promoted the isolated scripted conflict panel and attributed activity feed for presentation; that bounded increment is now implemented.
 
 ## Implemented reviewable increments
 
@@ -20,7 +20,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: execute external commands through Durable tasks` | `external.ts`; predecessor FIFO, dispatch marker, outcomes, no uncertain redispatch | Live continuation; native retains existing inbox/generation |
 | `feat: expose bounded collaborative views and stop` | `view.ts`, bounded projections/history, disposal and lane stop | Rich tool views and total resource budgets deferred |
 | `feat: demonstrate many-to-many interaction over HTTP and SSE` | Token identity, package-backed routes, shared watches, three-user/two-agent preview and responsive UI | Live provider evidence; 16 demo tests and ad-hoc browser check exist |
-| `feat: prototype managed single-file publication` | Optional `managed-file.ts`, 15 tests and example 41 | Not integrated with model tools/HTTP/UI; general protection deferred |
+| `feat: prototype managed single-file publication` | Optional `managed-file.ts`, 15 tests and example 41 | Normal model tools/shell/Codex still bypass it; scripted GUI integration is a separate increment |
 | `fix: reconcile interrupted commands after owner failure` | Task-derived public status/capacity; seven recovery tests including four SQLite owner-kill cases | Native/storage boundaries and real descendant cleanup |
 | `fix: correlate Codex turns and await interrupt delivery` | Session correlation/teardown fixes; 16 scripted subprocess cases using actual T3 client | Direct child cleanup tested; real CLI tool descendants unverified |
 | `feat: measure collaborative HTTP and SSE limits` | Four load modules, three new tests and [report](apps/collab-demo/load/README.md); 1301 accepted/completed commands including 1200-command soak, 30 stable retries | First slice complete; isolated commit timing, rate sweeps and real harness pressure remain follow-ups |
@@ -30,6 +30,7 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: inspect workspace files from the demo` | Authenticated read-only directory/text API and browser controls, manual refresh, five new HTTP/filesystem tests and desktop/mobile Chrome verification | No editing, diffs, automatic refresh or write-conflict protection |
 | `docs: record regular-host local integration and presentation` | Actual Ollama/browser check: five commands, all four user/agent pairings, file inspection, queue, reconnect and idle reopen; [presentation runbook](TAKE_HOME_PRESENTATION.md) and README API/examples | Human rehearsal remains; no runtime changes in this increment |
 | `feat: persist local demo configuration in an env file` | Native Node `.env` loading in start/preflight, tracked secret-free template, ignored local files and two additional preflight cases for file-only setup/terminal precedence | Hosted/Codex turns still need configured credentials; preview stays independent |
+| `feat: demonstrate retained conflicts and concrete agent activity` | Two-user prepare/publish/resolve controls over a separate Durable/SQLite store; retained bases/current/proposals, immutable retry/reopen, 24-record native tool projection and 64-item browser observation feed. All 45 demo and 33 focused package tests plus actual browser checks pass | One saved walkthrough/no reset; not normal tool protection or a complete audit log. New code is not deployed to the user's VM yet |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -63,6 +64,14 @@ measurements rather than implied results of this first slice.
 ## Remaining reviewable increments
 
 ### Immediate next implementations
+
+**Current next work:** update the existing VM to the reviewed GUI increment, rebuild/restart and
+rehearse its two-user conflict steps. Initial service startup/HTTP 200 is confirmed by user
+screenshots; the new panel has only local Windows/browser evidence. Next optional coding slice:
+trusted-context managed editing tools with visible conflict outcomes and uncertain-write handling.
+No new keys are needed for the scripted panel; hosted turns keep their OpenAI/Ollama prerequisites.
+Live Codex needs separate authentication. The older access-gate checklist below is retained for
+remaining verification, not a claim that GCP has never been started.
 
 The current default, per user preference, is native OpenAI + local Ollama. First verify bounded
 mixed-provider coding turns with the saved OpenAI key and running local server; preflight has

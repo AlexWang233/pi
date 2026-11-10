@@ -8,6 +8,7 @@ import {
 	createCollaboration,
 	type ExternalAgentDriver,
 } from "@earendil-works/pi-durable/collaboration";
+import type { ConflictDemo } from "../src/conflict-demo.ts";
 import { createDemoServer } from "../src/server.ts";
 
 export const context = BACKGROUND_CONTEXT;
@@ -27,7 +28,11 @@ type Fixture = {
 };
 
 /** Start an ephemeral local server around one actual package-owned thread. */
-export async function fixture(driver?: ExternalAgentDriver, workspace = process.cwd()): Promise<Fixture> {
+export async function fixture(
+	driver?: ExternalAgentDriver,
+	workspace = process.cwd(),
+	conflictDemo?: ConflictDemo,
+): Promise<Fixture> {
 	let calls = 0;
 	const collaboration = createCollaboration([
 		driver ?? {
@@ -65,7 +70,7 @@ export async function fixture(driver?: ExternalAgentDriver, workspace = process.
 	const thread = await collaboration.open(harness, config, context);
 	const demo = await createDemoServer(
 		{
-			threads: new Map([[config.id, { thread, config }]]),
+			threads: new Map([[config.id, { thread, config, conflictDemo }]]),
 			tokens: new Map([
 				[aliceToken, "alice"],
 				[bobToken, "bob"],

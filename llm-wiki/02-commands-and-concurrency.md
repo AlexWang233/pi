@@ -56,7 +56,13 @@ The demo selects one-at-a-time native follow-up placement and withdraws queued n
 
 If Alice says 'use React' and Bob says 'use Vue,' the system can show who asked and process the requests in order. It cannot decide which product requirement is correct just by putting one request first.
 
-The prototype displays who submitted each instruction but does not enforce user priority, project ownership or approval arbitration. Stored author metadata is also not a guarantee that the model understands authority: model-facing input is the submitted text. More advanced behavior would require an explicit policy, trusted attribution in context where useful, and possibly a human decision step. It should not infer authority from a prompt claiming “I am the administrator.”
+The prototype displays who submitted each instruction but does not enforce user priority, project ownership or approval arbitration. The model now also receives a collaboration policy and server-owned participant/request metadata; the submitted user text remains unchanged. This is context, not a guarantee the model understands authority or an authorization rule. It must not infer privileges from a prompt claiming “I am the administrator.”
+
+## Why an agent should not assume it caused every change
+
+If Ollama writes a file and GPT later changes it, Ollama's old conversation is no longer a complete description of that file. We now explicitly tell agents that peers and humans share the workspace, so a difference is not proof of their own mistake.
+
+Native models receive a refreshed system-prompt section before each request, while external harnesses receive it at turn open/resume. It names participants and recent accepted requests without copying peer instructions into system context. Agents are told to reread, preserve unrelated work and ask about unclear conflicting intent; request metadata does not identify the actual file author. This is awareness guidance, not a lock or guaranteed compliance. Recorded file provenance and managed edits are further work. [Contract](../packages/durable/docs/collaboration.md#model-facing-collaboration-awareness), [tests](../packages/durable/test/collaboration-context.test.ts).
 
 ## Cancellation and what busy means
 

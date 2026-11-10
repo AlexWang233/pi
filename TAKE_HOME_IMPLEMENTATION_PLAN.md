@@ -1,6 +1,6 @@
 # Implementation plan: collaborative Pi Durable
 
-**Revised November 8, 2026.** Evolve `packages/durable` in this fork to support multiple people interacting with multiple coding agents in a shared thread workspace. Authentication, HTTP/SSE and the browser remain a thin demonstration application. This supersedes the wrapper-first recommendation in the [project guide](TAKE_HOME_PROJECT_GUIDE.md).
+**Revised November 10, 2026.** Evolve `packages/durable` in this fork to support multiple people interacting with multiple coding agents in a shared thread workspace. Authentication, HTTP/SSE and the browser remain a thin demonstration application. This supersedes the wrapper-first recommendation in the [project guide](TAKE_HOME_PROJECT_GUIDE.md).
 
 The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md) defines coding increments. The [progress record](TAKE_HOME_PROGRESS.md) records decisions and exact validation results. Implemented features do not mean the entire [assignment](PROJECT_INSTRUCTIONS.txt) is complete.
 
@@ -43,12 +43,14 @@ Notify the user at those exact access-dependent gates; they do not block other l
 | Bounded projections and disposable watches | `collaboration/view.ts` |
 | Generic public entry | `collaboration/index.ts`; `/collaboration` package export |
 | T3 client integration and session/process lifecycle | `src/adapters/codex/`; explicit `/adapters/codex` export |
-| Optional single-file coordination experiment | `collaboration/managed-file.ts`; not integrated with agents/demo |
+| Optional single-file coordination | `collaboration/managed-file.ts`; isolated scripted GUI now uses it, normal agent tools do not |
 | Authentication, configuration, HTTP/SSE and browser | `apps/collab-demo/` |
 | Read-only workspace inspection and manual-refresh UI | `apps/collab-demo/src/workspace-files.ts`, `web/files.ts`; transport only |
+| Controlled conflict demonstration | `src/conflict-demo.ts`, `web/conflict.ts`; separate Durable/SQLite store and scripted proposals, no model calls |
+| Attributed activity feed | Existing bounded package view plus `web/activity.ts`; observed request states and saved native tool summaries |
 | Current package contract | [Specification section 14](packages/durable/docs/spec.md#14-collaborative-threads-in-this-fork), [collaboration addendum](packages/durable/docs/collaboration.md) and [README](packages/durable/README.md#collaborative-threads); core-spec contract review/integration complete |
 
-There is no separate `commands.ts` or application execution database. Reuse Harness transactions, conversations, native inboxes, scheduling, watches and SQLite. The server verifies tokens; Durable enforces membership. A direct library host remains responsible for authenticating its callers.
+There is no separate `commands.ts` or custom application execution engine. Reuse Harness transactions, conversations, native inboxes, scheduling, watches and SQLite. The new scripted conflict scenario opens a separate existing Durable Harness/store to isolate its file and metadata; it does not schedule model work. The server verifies tokens; Durable enforces membership. A direct library host remains responsible for authenticating its callers.
 
 Generic contracts do not expose Effect/T3 types. The optional Node adapter isolates exact Effect/platform dependencies behind its subpath. **Chord remains inside Durable.** Approach A adds collaboration without completing framework removal. Later approach B can replace internals inside this fork, retaining behavioral tests; preparing for it does not require a second runtime package.
 
@@ -90,7 +92,19 @@ Replay/scripted children establish protocol behavior without paid calls. Local C
 
 ## 5. Remaining delivery sequence
 
-**Immediate next work:** (1) rehearse the [presentation runbook](TAKE_HOME_PRESENTATION.md)
+**November 10 update:** the user requested concrete collaboration demonstrations. The step-controlled
+conflict GUI and attributed activity feed are now implemented locally: 45 demo and 33 focused
+Durable tests pass, plus actual desktop/mobile browser checks with simulated providers. Initial
+GCP startup is confirmed by user screenshots; this increment still needs deployment/rehearsal.
+The scenario uses one saved, retry-safe walkthrough outside live agent files. Managed editing
+tools and uncertain-write reconciliation remain further implementation, not current guarantees.
+
+The delivery priorities below retain their original gates; the immediate next work is to
+deploy/rehearse this increment, then consider trusted-context managed editing tools. No new
+provider keys are needed for the scripted panel. Hosted requests use the configured OpenAI key
+and Ollama; live Codex still needs separate authentication.
+
+**Presentation/access work:** (1) rehearse the [presentation runbook](TAKE_HOME_PRESENTATION.md)
 and record human presentation timing; this needs no keys or GCP; (2) verify bounded hosted
 OpenAI and real Codex turns once a private
 OpenAI key and separate Codex authentication are configured. We have reached that credential gate
@@ -143,7 +157,7 @@ These are options after core delivery, not mandatory additions. Select one coher
 
 | Extension | Proposed behavior | Trade-off / prerequisite |
 | --- | --- | --- |
-| Managed tools and conflict UI | Bind proposals to trusted actor/command context; show stale rejection and explicit resolution | Participating tools only; add reconciliation/unblock for prepared/uncertain writes before unattended use |
+| Managed agent tools | Extend the implemented scripted conflict panel by binding actual tool proposals to trusted actor/command context | Participating tools only; add reconciliation/unblock for prepared/uncertain writes before unattended use |
 | Multi-file/stale-context validation | Validate retained read sets; retain conflicts and review Git-style three-way merge candidates | More recovery state; files and metadata are not automatically one atomic transaction |
 | Unrestricted shell/Codex coordination | Own workspace for the full turn and descendant lifetime, including shell effects | Less parallelism; every writer must participate. Advisory leases cannot fence an existing raw process |
 | Isolated task worktrees | Separate edits, then reviewed integration | Merge/setup costs; alternative to immediate shared-file visibility |

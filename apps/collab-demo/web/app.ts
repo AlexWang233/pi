@@ -1,4 +1,7 @@
 // Shared workspace UI with attributed conversations, stable retries, and live command queues.
+
+import { createActivityFeed } from "./activity.ts";
+import { createConflictDemo } from "./conflict.ts";
 import { createWorkspaceFiles } from "./files.ts";
 import { sseData } from "./stream.ts";
 
@@ -138,7 +141,9 @@ async function connect(token: string, signal: AbortSignal): Promise<void> {
 		coordination.append(matrix);
 		overview.append(heading, description, coordination);
 		const grid = element("div", "agent-grid");
-		group.append(overview, createWorkspaceFiles(thread.id, token, signal), grid);
+		group.append(overview);
+		if (thread.conflictDemo === true) group.append(createConflictDemo(thread.id, listing.actor, token, signal));
+		group.append(createWorkspaceFiles(thread.id, token, signal), grid);
 		lanes.append(group);
 		for (const agent of thread.agents) {
 			if (
@@ -219,9 +224,20 @@ function createLane(
 	connection.append(element("span", "status-dot"), connectionText);
 	header.append(element("span", "agent-glyph", kind === "native" ? ">_" : "<>"), heading, connection);
 	const activity = element("details", "command-activity");
+	activity.open = true;
 	const activitySummary = element("summary", "", "Activity · No commands yet");
 	const commands = element("div", "command-list");
-	activity.append(activitySummary, commands);
+	const timeline = createActivityFeed(agentId);
+	activity.append(
+		activitySummary,
+		commands,
+		timeline.root,
+		element(
+			"p",
+			"activity-note",
+			"Recent observed changes, not a complete event log. Reconnect restores current receipts and saved tool records; missed transitions are not invented. Tool results do not prove the requested file change succeeded.",
+		),
+	);
 	const transcript = element("div", "transcript");
 	transcript.setAttribute("aria-label", `Conversation with ${agentId}`);
 	const empty = element("div", "conversation-empty");
@@ -418,6 +434,7 @@ function createLane(
 					}
 					let running = 0;
 					let queued = 0;
+					const receipts: { actorId: string; id: string; status: string }[] = [];
 					const commandRows = agent.commands.map((command: unknown) => {
 						if (
 							!object(command) ||
@@ -428,6 +445,7 @@ function createLane(
 							throw new Error("Invalid command state");
 						if (command.status === "running") running++;
 						if (command.status === "queued") queued++;
+						receipts.push({ actorId: command.actorId, id: command.id, status: command.status });
 						const row = element("div", "command-row");
 						row.dataset.status = command.status;
 						const author = element("span", "command-author", command.actorId);
@@ -444,6 +462,7 @@ function createLane(
 					commands.replaceChildren(
 						...(commandRows.length ? commandRows : [element("p", "command-empty", "No commands yet")]),
 					);
+					timeline.update(receipts, agent.tools);
 					activitySummary.textContent =
 						running || queued
 							? `Activity · ${running} running · ${queued} queued`

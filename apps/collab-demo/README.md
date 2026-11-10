@@ -11,6 +11,68 @@ Open **Access & coordination** to inspect the M:N matrix and shared-file limitat
 screens stack the conversations and provide a **Workspace & sign in** navigation drawer.
 Visual hierarchy was informed by T3 Code; this remains an original plain DOM/CSS frontend.
 
+## Show a concrete conflict and its resolution
+
+Open **Shared-file conflict · Controlled demonstration** after signing in. Use Alice and Bob
+in separate browser profiles (the first two configured members participate; others observe):
+
+1. Both click **1. Prepare my edit**. Both saved bases show the same original content.
+2. Alice clicks **2. Publish my edit**. Her greeting change becomes the current file.
+3. Bob clicks **2. Publish my edit**. His stale theme replacement is retained as **conflict**;
+   the current file still contains Alice's greeting. Compare the saved bases, proposals and current text.
+4. Bob reviews/edits the resolution text and clicks **3. Publish my resolution**. Both pages
+   show the applied resolution and the original rejected proposal. Nothing is automatically merged.
+5. Reload/reconnect either browser and reopen the panel to restore the saved evidence.
+
+These are authenticated, scripted proposals using the real package `ManagedFile` API, SQLite
+and actual file bytes. **They are not LLM instructions and do not protect normal model/shell/Codex writes.**
+No model key or running Ollama is needed for these panel actions; the live host's normal startup
+still requires its configured providers. The credential-free preview supplies the same panel.
+
+The live host uses a separate `COLLAB_DATA/conflict-demo/walkthrough.sqlite` and
+`COLLAB_DATA/conflict-demo/workspace/shared.txt`, outside the live agents' working directory.
+The preview places its isolated store under the temporary workspace's hidden `.conflict-demo/`
+directory; graceful preview exit removes everything. This is separation for trusted collaborators,
+not a sandbox against shell commands reaching outside their working directory.
+
+There is **one saved walkthrough per installation**, with fixed step IDs: repeated requests retry
+the same operation rather than consume unbounded proposals. Either member can publish first;
+the stale member owns resolution. There is no reset/delete route. Keep evidence and use a fresh
+demo installation/data directory for a fresh rehearsal; do not delete the production database.
+Prepared/uncertain publications remain visible and block new mutations under the package policy;
+no automatic write replay or repair is added. The demonstration store closes with the host and
+is included in the existing whole-data-directory backup.
+
+## Read concrete agent activity
+
+Each agent's open **Activity** section shows attributed request statuses and a bounded observation
+feed. Native tool requests/results are projected from committed conversation entries: for example,
+`alice → openai · request ... · observed running` and `openai · write tool · completed`.
+Tool records are agent-scoped, not guessed to belong to a particular user's request. Arguments,
+raw outputs, provider call IDs and runtime task IDs are not exposed by this projection.
+
+The feed keeps 64 distinct observed changes per page; package snapshots expose eight receipts
+and up to 24 tool records from the recent 20-entry window. Reload restores the current bounded
+evidence, not every past transition. Display order reflects observation, not a global cross-agent
+clock. A tool request is not proof it executed, a successful tool result is not proof the requested
+coding task is correct, and no fabricated percentage is shown. External drivers still expose their
+existing progress text rather than structured native tool records. Use the file viewer to check outcomes.
+
+## Agents know they share the workspace
+
+The collaboration extension now supplies each model with its identity, peer agents, shared-file
+policy, active request authors and bounded recent request metadata. Native context refreshes
+before each model request; external context refreshes when its turn opens/resumes. If a file
+differs from an earlier write, the agent is instructed to consider a peer/human edit, reread
+before editing, preserve unrelated changes and ask when intent conflicts. It must not guess
+the author of a change from request metadata. Ordinary writes remain unprotected.
+
+Rebuild Durable and restart the existing owner to apply the update; keep the existing
+configuration, tokens and database. No new key or data reset is needed. Existing in-flight
+model requests keep the context they were already sent. This is instruction/context support,
+not guaranteed model behavior or a complete file-change history. See the
+[package contract and tests](../../packages/durable/docs/collaboration.md#model-facing-collaboration-awareness).
+
 ## Node runtime
 
 Use Node **22.19 or newer** with `node:sqlite` available. This workstation's system Node
@@ -73,7 +135,8 @@ The preview uses a simulated native model and a simulated external driver. Each 
 runs Pi's actual write tool on `native-preview.txt`; each external command waits briefly, then
 writes its submitted text to `external-preview.txt` in the same temporary directory. Responses
 are scripted; the preview does not interpret arbitrary coding instructions, contact a provider,
-or exercise Codex. It uses memory storage and removes the temporary directory on graceful exit.
+or exercise Codex. Agent execution uses memory storage; the controlled conflict panel uses
+SQLite inside the same temporary root. Graceful exit removes that temporary directory.
 Ctrl+C stops the host. A forced termination may leave that directory behind.
 
 For an explicit M:N walkthrough, same-agent queue behavior, and reproduced shared-file conflicts,
@@ -171,7 +234,7 @@ registered; only selected native agents need keys. No multi-key live checks run 
 | Setting | Default / purpose |
 | --- | --- |
 | `COLLAB_CONFIG` | `config.local.json`; private host configuration path |
-| `COLLAB_DATA` | `data`; SQLite database and its shared `workspace/` subdirectory |
+| `COLLAB_DATA` | `data`; main SQLite/workspace plus an isolated `conflict-demo/` store/workspace |
 | `COLLAB_PORT` | `4310`; bind only to `127.0.0.1` |
 | `CODEX_BIN` | `codex`; installed CLI executable |
 | `COLLAB_OLLAMA_URL` | `http://127.0.0.1:11434/v1`; loopback-only local inference, no real provider key |
@@ -198,6 +261,8 @@ All API routes require `Authorization: Bearer <user token>`.
 | --- | --- |
 | `GET /api/threads` | User identity, accessible threads, named agents and recovery descriptions |
 | `GET /api/threads/:thread/files?path=src/App.tsx` | Read-only relative-path inspection; omit `path` to list the workspace root |
+| `GET /api/threads/:thread/conflict-demo` | Current isolated file, prepared bases and retained proposals; membership required |
+| `POST /api/threads/:thread/conflict-demo` | `{kind:"prepare"}`, `{kind:"publish"}`, or `{kind:"resolve",content}`; authenticated actor only, stable server-selected step IDs |
 | `POST /api/threads/:thread/agents/:agent/commands` | JSON `{id,text}`; durable `202` receipt |
 | `GET /api/threads/:thread/agents/:agent/commands/:id` | Requesting user's command status |
 | `GET /api/threads/:thread/agents/:agent/state` | Current bounded package snapshot |
@@ -219,7 +284,8 @@ on failure. It does not automatically reopen the store. Shutdown can still wait 
 
 The [Linux/GCP preparation kit](deploy/README.md) includes a manual-start systemd template,
 private environment template, stopped-store backup script, SSH access and restore/teardown
-instructions. It has not been deployed or runtime-verified on Linux. GCP remains deferred.
+instructions. User screenshots confirm initial Linux service startup and HTTP 200; the new
+conflict/activity increment has not been deployed there. See the [current GCP guide](../../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md).
 
 The browser retains that draft/ID until acceptance or explicit discard. It does not persist
 ambiguous drafts across a page reload. Discarding a retry does not cancel already accepted
@@ -255,6 +321,7 @@ node ../../node_modules/vitest/dist/cli.js --run test/http.test.ts test/streams.
 node ../../node_modules/vitest/dist/cli.js --run test/startup.test.ts test/lifetime.test.ts test/preflight.test.ts
 node ../../node_modules/vitest/dist/cli.js --run test/ollama.test.ts
 node ../../node_modules/vitest/dist/cli.js --run test/workspace-files.test.ts
+node ../../node_modules/vitest/dist/cli.js --run test/conflict-demo.test.ts test/activity.test.ts
 ```
 
 Tests exercise real HTTP and Durable with deterministic I/O: authorization, scoped retry,
@@ -289,7 +356,12 @@ The idle SIGTERM event was delivered through a QA-only IPC preload on Windows, n
 shutdown test. Desktop/mobile screenshots were inspected; see [local setup/evidence](LOCAL_MODELS.md).
 The [presentation runbook](../../TAKE_HOME_PRESENTATION.md) gives a repeatable manual trace.
 
-Still pending: hosted-provider/Codex coding turns, remaining forced-process
+The conflict/activity increment adds four cases covering authenticated scripted publication,
+unchanged bytes on stale rejection, explicit resolution/retry, SQLite reopen and browser wire
+validation. The preview integration checks native tool-request/result summaries without raw
+provider/task identities. No model calls are made by these tests.
+
+Still pending: reproducibly recorded hosted-provider/Codex coding turns, remaining forced-process
 crash boundaries and real descendant cleanup, broader capacity measurements, and GCP deployment. The current host
-is for a trusted local team, without public HTTPS, distributed ownership, rich tool rendering,
+is for a trusted local team, without public HTTPS, distributed ownership, complete tool traces/diffs,
 or an approval UI. Track those separately in [the implementation record](../../TAKE_HOME_PROGRESS.md).

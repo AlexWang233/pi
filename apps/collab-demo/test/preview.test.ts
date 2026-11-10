@@ -30,6 +30,8 @@ describe("credential-free browser preview", () => {
 				const script = await fetch(`${origin}/app.js`);
 				expect(script.headers.get("content-type")).toContain("text/javascript");
 				expect(await script.text()).toContain('"./stream.js"');
+				for (const asset of ["activity.js", "conflict.js"])
+					expect((await fetch(`${origin}/${asset}`)).status).toBe(200);
 				await Promise.all(
 					["native-simulated", "external-simulated"].map(async (agent) => {
 						const response = await fetch(`${origin}/api/threads/preview/agents/${agent}/commands`, {
@@ -46,7 +48,12 @@ describe("credential-free browser preview", () => {
 				const peerState = await fetch(`${origin}/api/threads/preview/agents/native-simulated/state`, {
 					headers: { Authorization: "Bearer preview-bob" },
 				});
-				expect(await peerState.json()).toMatchObject({ commands: [{ actorId: "alice", status: "completed" }] });
+				const peer = await peerState.json();
+				expect(peer).toMatchObject({ commands: [{ actorId: "alice", status: "completed" }] });
+				expect(peer.tools).toEqual([
+					{ id: expect.any(String), name: "write", status: "requested" },
+					{ id: expect.any(String), name: "write", status: "completed" },
+				]);
 				// The same shared-file command is available on both execution paths.
 				// Successful sequential commands can still intentionally replace prior work.
 				for (const [actor, agent] of [

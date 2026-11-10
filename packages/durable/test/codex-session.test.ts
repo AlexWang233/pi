@@ -21,9 +21,12 @@ import { createCollaboration } from "../src/collaboration/index.ts";
 import { createRegistry, Harness, MemoryStorage } from "../src/index.ts";
 import transcriptJson from "./fixtures/collaboration-codex.json" with { type: "json" };
 
-async function replayFixture() {
+async function replayFixture(instructions = "") {
+	const source = structuredClone(transcriptJson);
+	const start = source.entries.find((entry) => entry.type === "expect_outbound" && entry.label === "thread/start")!;
+	start.frame.params!.developerInstructions = instructions;
 	// Recording input is a wire boundary; validate it with the upstream transcript schema.
-	const transcript = Schema.decodeUnknownSync(CodexAppServerReplayTranscript)(transcriptJson);
+	const transcript = Schema.decodeUnknownSync(CodexAppServerReplayTranscript)(source);
 	const scope = await Effect.runPromise(Scope.make());
 	const driver = await Effect.runPromise(makeReplayDriver(transcript));
 	const services = await Effect.runPromise(Layer.buildWithScope(layerReplayWithDriver(driver), scope));
@@ -76,12 +79,17 @@ describe("T3-backed Codex session", () => {
 	});
 
 	it("executes a durably admitted command through the actual T3 replay client", async () => {
-		const replay = await replayFixture();
+		let replay: Awaited<ReturnType<typeof replayFixture>> | undefined;
 		const context = BACKGROUND_CONTEXT;
 		const collaboration = createCollaboration([
 			{
 				name: "codex",
-				open: (input) => codexSession(replay.client, input, replay.close),
+				open: async (input) => {
+					expect(input.instructions).toContain("Shared workspace collaboration policy");
+					expect(input.instructions).toContain('"actor":"alice","request":"c1"');
+					replay = await replayFixture(input.instructions);
+					return codexSession(replay.client, input, replay.close);
+				},
 			},
 		]);
 		const registry = createRegistry();
@@ -106,13 +114,13 @@ describe("T3-backed Codex session", () => {
 					(item) => item.kind === "collab.answer",
 				),
 			).toBe(true);
-			expect(await Effect.runPromise(Ref.get(replay.driver.state))).toEqual({
-				cursor: replay.transcript.entries.length,
+			expect(await Effect.runPromise(Ref.get(replay!.driver.state))).toEqual({
+				cursor: replay!.transcript.entries.length,
 				failure: null,
 			});
 		} finally {
 			await harness.close(context);
-			await replay.close();
+			await replay?.close();
 		}
 	});
 });

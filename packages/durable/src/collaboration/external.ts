@@ -3,6 +3,7 @@ import type { Context } from "@earendil-works/chord/context";
 import type { Extension, Harness } from "../harness/types.ts";
 import { defineTask } from "../tasks.ts";
 import type { TaskRuntime } from "../types.ts";
+import { collaborationContext, collaborationSection } from "./context.ts";
 import { type StoredCommand, ThreadDoc, type ThreadState } from "./state.ts";
 import {
 	CollaborativeThread,
@@ -87,7 +88,9 @@ export function createCollaboration(drivers: readonly ExternalAgentDriver[] = []
 						workspace: config.workspace,
 						agentId: agent.id,
 						model: execution.model,
-						instructions: agent.instructions,
+						instructions: [agent.instructions, collaborationContext(state, agent.id, [command])]
+							.filter(Boolean)
+							.join("\n\n"),
 						continuation: state.thread!.agents.find((item) => item.id === agent.id)!.continuation,
 						signal,
 					});
@@ -138,7 +141,7 @@ export function createCollaboration(drivers: readonly ExternalAgentDriver[] = []
 			await settle(runtime, record.input.command, { status: "stopped", reason: "Agent stopped" }, context);
 		},
 	});
-	const extension: Extension = { name: "pi.collaboration", tasks: [task] };
+	const extension: Extension = { name: "pi.collaboration", tasks: [task], sections: [collaborationSection] };
 	return {
 		extension,
 		open: (harness: Harness, config: CollaborativeThreadConfig, context: Context) =>

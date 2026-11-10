@@ -11,6 +11,7 @@ import { openNodeSqliteStorage } from "@earendil-works/pi-durable/storage/sqlite
 import { CodingTools } from "@earendil-works/pi-durable/tools";
 import { loadAssets } from "./assets.ts";
 import { parseConfiguration } from "./configuration.ts";
+import { ConflictDemo } from "./conflict-demo.ts";
 import { waitForHostShutdown } from "./lifetime.ts";
 import { createDemoServer } from "./server.ts";
 import { prepareHost } from "./startup.ts";
@@ -51,6 +52,7 @@ const harness = await Harness.open(
 	},
 	context,
 );
+let conflictDemo: ConflictDemo | undefined;
 try {
 	const threadConfig = {
 		id: "project",
@@ -59,8 +61,10 @@ try {
 		agents: config.agents,
 	};
 	const thread = await collaboration.open(harness, threadConfig, context);
+	if (threadConfig.members.length >= 2)
+		conflictDemo = await ConflictDemo.open(resolve(data, "conflict-demo"), threadConfig.members, context);
 	const demo = await createDemoServer(
-		{ threads: new Map([[threadConfig.id, { thread, config: threadConfig }]]), tokens, assets },
+		{ threads: new Map([[threadConfig.id, { thread, config: threadConfig, conflictDemo }]]), tokens, assets },
 		context,
 	);
 	try {
@@ -76,5 +80,9 @@ try {
 		await demo.close();
 	}
 } finally {
-	await harness.close(context);
+	try {
+		await conflictDemo?.close(context);
+	} finally {
+		await harness.close(context);
+	}
 }

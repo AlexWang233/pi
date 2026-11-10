@@ -2,7 +2,7 @@
 
 The web app lets people see shared instructions, agent progress, and actual workspace files. For a useful presentation, show a problem happening and the system's response, rather than only showing two chat windows.
 
-The existing [runbook](../apps/collab-demo/README.md) explains actual controls and [presentation outline](../TAKE_HOME_PRESENTATION.md) gives an eight-minute structure. The scenario panel discussed below remains proposed work. The glossary explains [snapshots, projections, and SSE](09-technical-terms.md#projections-snapshots-sse-and-audit-logs) and [backpressure and coalescing](09-technical-terms.md#backpressure-fan-out-and-coalescing).
+The existing [runbook](../apps/collab-demo/README.md) explains actual controls and [presentation outline](../TAKE_HOME_PRESENTATION.md) gives an eight-minute structure. The managed-file scenario panel is now implemented locally; it remains separate from normal model-tool writes and has not been deployed to GCP. The glossary explains [snapshots, projections, and SSE](09-technical-terms.md#projections-snapshots-sse-and-audit-logs) and [backpressure and coalescing](09-technical-terms.md#backpressure-fan-out-and-coalescing).
 
 ## Why HTTP commands and SSE snapshots
 
@@ -42,9 +42,15 @@ The endpoint rejects hidden paths, `node_modules`, traversal and linked targets 
 
 ## How the proposed scenario panel improves the story
 
-A proposed scenario panel would let the presenter click through a file conflict one step at a time. It would use the real managed-file API with scripted participants, clearly showing that this is not yet how the normal model agents write.
+The scenario panel lets two signed-in users click through a file conflict one step at a time. It uses the real managed-file API with scripted proposals and a separate SQLite store, clearly showing that this is not yet how normal model agents write.
 
-The first bounded scenario should show both retained reads, Alice's applied proposal, Bob's rejected stale proposal, retained base/current/proposed content and an explicit resolution. Queue/cancellation and reconnect presets can follow if they add value. This is proposed UI integration, not a feature currently available in the live agents; adding buttons alone would not bind ordinary OpenAI/Ollama tools to managed publication. An isolated disposable scenario store would avoid altering the live team's workspace and fixed thread configuration.
+Both users click Prepare; Alice publishes first, then Bob publishes his stale replacement. The panel retains both bases, the applied edit and the rejected proposal; Bob explicitly submits resolution text and both browsers see the resulting file. One walkthrough is saved per installation, and retries/reconnect do not create new steps. A two-second refresh runs only while the panel is open. Live agent files and fixed thread configuration remain untouched. See the [actual controls and limits](../apps/collab-demo/README.md#show-a-concrete-conflict-and-its-resolution).
+
+## What the activity feed means
+
+The activity feed shows who submitted a request, its observed status, and saved native tool requests/results. It gives concrete evidence of work without pretending to know a percentage complete or every transition that occurred offline.
+
+For example, Alice's request can be observed running, followed by a saved `write` tool request/result. Tool activity belongs to the agent, not a guessed individual request when attribution is ambiguous. The page keeps 64 distinct observations and restores only bounded current evidence after reload; it is not a complete audit log or global chronology. Tool arguments/results are not exposed by the new summary, and actual files still need inspection to establish a successful edit. [Projection](../packages/durable/src/collaboration/view.ts), [browser feed](../apps/collab-demo/web/activity.ts).
 
 ## Separate the live and deterministic demonstrations
 

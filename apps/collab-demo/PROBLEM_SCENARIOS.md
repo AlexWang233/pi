@@ -7,13 +7,14 @@ and future scenarios; **a proposed MVP response is not an implemented guarantee*
 **Scope:** trusted collaborators, one owning process per thread/store, independent agent
 histories, and a shared filesystem within each thread. Native Pi, external Codex, and simulated
 preview drivers have different capabilities. The preview is not live-provider evidence.
-Assessment reflects the implementation record dated November 8, 2026.
+Assessment reflects the implementation record updated November 10, 2026; historical checks retain their dates.
 
 See [Proposed coordination and conflict resolution](CONFLICT_RESOLUTION_PROPOSAL.md) for
 concrete database/Git-inspired designs addressing selected scenarios, their guarantees,
 implementation sequence and acceptance cases. Its first opt-in
 [`ManagedFile` API](../../packages/durable/docs/managed-files.md) is implemented and tested;
-model-tool/HTTP integration and broader cross-harness protections remain proposals.
+an isolated scripted HTTP/browser walkthrough now uses it. Normal model-tool integration and
+broader cross-harness protections remain proposals.
 
 ## How to read the register
 
@@ -38,7 +39,7 @@ a high-severity risk, such as an interrupted command whose filesystem effects ar
 | U3 — Conflicting approvals: Alice approves while Bob rejects | High for destructive work; otherwise Medium | **Deferred:** no shared approval workflow. Codex uses approval policy `never` and visibly rejects interactive approval requests; this path is not established by live tests | If added, persist an approval ID, eligible responders, expiry, and one atomic decision. Define whether first valid response wins or rejection takes priority. Reject stale/unauthorized replies and publish the decision |
 | U4 — Agent cancellation: Alice stops an agent while Bob has queued work | Medium–High | **Partial:** lane-wide stop and peer isolation are tested; Bob's queued work also stops. Outcomes are observable, but the initiating member is not persisted in a cancellation audit record | Label stop scope before the action. Persist initiator/time/reason and broadcast it. Do not equate stopping execution with undoing prior file changes |
 | U5 — Stale UI causes the wrong action: a user clicks Stop just as one command finishes and another starts | Medium | **Open:** Stop targets the current lane, not an expected command/version | Keep the lane-wide label explicit. A later command-specific control should include the expected command ID and reject stale requests |
-| U6 — Lost authorship or misunderstood context: an agent treats two users' competing requests as one person's plan | Medium–High | **Partial:** authenticated author metadata is stored/displayed. Model input is the submitted text; stored attribution is not a guarantee that the model understands user identity or authority | Add trusted caller attribution to model-facing context if required, while distinguishing it from untrusted text. Define who can override requirements; never infer privileges from a prompt |
+| U6 — Lost authorship or misunderstood context: an agent treats two users' competing requests as one person's plan | Medium–High | **Partial:** authenticated attribution is stored/displayed and a model-facing section now supplies participants, active authors and recent receipt metadata. Shared-workspace guidance warns against assuming changed files imply its own mistake. Peer instruction text is not promoted into system context | Verify live model behavior; add actual file-effect provenance/managed tools where needed. This context does not establish file authorship, priority, authority or guaranteed model compliance |
 | U7 — Changing membership or agents mid-session: Bob is removed while his stream remains open | High if revocation is expected | **Deferred:** thread configuration is fixed and incompatible reopen is rejected; no dynamic revocation or per-agent access model | Keep fixed membership explicit. Dynamic changes need durable membership versions, stream revocation, and a policy for already accepted/queued work |
 | U8 — Agent-to-agent deadlock or runaway delegation: A waits for B, which waits for A | Medium–High | **Deferred:** no general agent-to-agent delegation protocol. Current external ordering is a one-way predecessor chain | If introduced, bound depth/turns, correlate requests, propagate deadlines/cancellation, and reject dependency cycles. Do not add another scheduler just to anticipate this feature |
 
@@ -46,7 +47,7 @@ a high-severity risk, such as an interrupted command whose filesystem effects ar
 
 | ID / problem and example | Severity | Current handling and evidence | MVP response or next protection |
 | --- | --- | --- | --- |
-| F1 — Simultaneous file edits: agents A and B both modify `App.tsx` | High | **Partial:** opt-in `ManagedFile` API rejects a stale replacement and retains base/current/proposed. Concurrent handles are tested. Existing model tools and demo bypass it and still reproduce lost updates | Wire a restricted managed execution mode, or own the whole workspace turn for unrestricted harnesses. All native, CLI, shell and manual writers must participate; the API alone does not protect them |
+| F1 — Simultaneous file edits: agents A and B both modify `App.tsx` | High | **Partial:** opt-in `ManagedFile` API and isolated scripted GUI reject a stale replacement and retain base/current/proposed. Normal model tools/shell/Codex bypass it and still reproduce lost updates | Wire a restricted managed execution mode, or own the whole workspace turn for unrestricted harnesses. All native, CLI, shell and manual writers must participate; the API alone does not protect them |
 | F2 — Stale agent context: B plans against code A has since changed | High | **Partial:** managed publication compares the retained destination content before writing. Separate histories, cached plans and dependencies in other files are not invalidated | Connect fresh-read/propose tools to agents, then add declared read-set validation if needed. A new read ID is required to refresh the managed base; rejecting stale destination content does not refresh model assumptions |
 | F3 — Shared shell-command side effects: A runs tests while B changes dependencies or Git state | High for destructive operations; otherwise Medium | **Partial:** live native shells have a 60-second cap; external turns have a deadline. No workspace-wide operation coordination or rich shared operation list | Expose active operations and serialize incompatible installs, migrations, resets, builds, or test environments. Bound command runtime; a timeout does not make overlapping commands compatible |
 | F4 — Partial changes and rollback: a cancelled agent edited two of five files | High | **Open:** cancellation/failure does not restore files; receipt and filesystem changes are not one transaction | Report partial-effects risk and preserve a reviewable diff/checkpoint. Reverting requires ownership-aware review; blindly resetting can destroy another agent's accepted changes |
@@ -126,6 +127,7 @@ The worked examples below show the current behavior and these trade-offs concret
 | [Stream tests](test/streams.test.ts) | Deterministic fanout/reconnect/stop isolation, viewer limit, framing and controlled response backpressure |
 | [Concurrency tests](test/concurrency.test.ts) | Six user/agent pairs, gated native ordering and a deliberately reproduced lost update |
 | [Preview test](test/preview.test.ts) | Real native tools/shared-file writes and served browser modules with simulated provider/CLI I/O |
+| [Conflict GUI tests](test/conflict-demo.test.ts) and [activity tests](test/activity.test.ts) | Two authenticated scripted editors, preserved bytes on stale rejection, explicit resolution/retry, SQLite reopen and validated activity labels; normal agent writes are not protected |
 | [Package collaboration tests](../../packages/durable/test/collaboration.test.ts) | Admission, external ordering/stop/deadline/cleanup, close/reopen and SQLite identity preservation |
 | [Recovery tests](../../packages/durable/test/collaboration-recovery.test.ts) | Scheduler-fault status/capacity, late progress rejection and four forced owner-process kill/reopen cases on SQLite; deterministic drivers, not real CLI cleanup |
 | [Managed-file tests](../../packages/durable/test/managed-file.test.ts) | Opt-in single-file stale rejection, retained proposals, stable retries, partial-write/settlement failure and SQLite reopen; not direct shell/Codex protection |
@@ -138,6 +140,19 @@ The worked examples below show the current behavior and these trade-offs concret
 | [Implementation record](../../TAKE_HOME_PROGRESS.md) | Actual check results, remaining risks and unperformed validation |
 
 ## Worked examples and walkthrough
+
+### Controlled managed-file GUI
+
+Open **Shared-file conflict · Controlled demonstration** as Alice and Bob in separate profiles.
+Both prepare, Alice publishes first, Bob's stale edit is rejected, and Bob explicitly resolves
+using reviewed text. Both pages show current/base/proposed content and retained outcomes.
+This scenario uses a separate Durable/SQLite store and real file, with no model call and no
+change to the live agents' workspace. Reconnect restores saved evidence; fixed step IDs make
+retries safe. There is one walkthrough and no reset route. See the [runbook](README.md#show-a-concrete-conflict-and-its-resolution).
+
+Each normal lane also shows attributed observed request statuses and recent committed native
+tool requests/results. This is bounded presentation evidence, not a full chronological audit
+or proof that a coding task succeeded. Neither new GUI feature protects arbitrary agent writes.
 
 ### Relationship model
 

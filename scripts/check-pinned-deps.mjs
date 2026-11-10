@@ -3,7 +3,8 @@ import { join } from "node:path";
 
 const dependencySections = ["dependencies", "devDependencies", "optionalDependencies"];
 const exactVersionPattern = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
-const ignoredDirectories = new Set([".git", "dist", "node_modules"]);
+// Local tool downloads and credential caches are not repository dependency declarations.
+const ignoredDirectories = new Set([".git", ".artifacts", "dist", "node_modules"]);
 const packageJsonFiles = [];
 
 function collectPackageJsonFiles(directory) {

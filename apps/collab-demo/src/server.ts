@@ -7,10 +7,15 @@ import {
 	type CollaborativeThread,
 	type CollaborativeThreadConfig,
 } from "@earendil-works/pi-durable/collaboration";
+import type { ConflictDemo } from "./conflict-demo.ts";
 import { LaneStream } from "./streams.ts";
 import { inspectWorkspace, WorkspaceFileError } from "./workspace-files.ts";
 
-export type HostedThread = { thread: CollaborativeThread; config: CollaborativeThreadConfig };
+export type HostedThread = {
+	thread: CollaborativeThread;
+	config: CollaborativeThreadConfig;
+	conflictDemo?: ConflictDemo;
+};
 export type DemoServerOptions = {
 	threads: ReadonlyMap<string, HostedThread>;
 	tokens: ReadonlyMap<string, string>;
@@ -84,9 +89,10 @@ export async function createDemoServer(options: DemoServerOptions, context: Cont
 				actor,
 				threads: [...options.threads.values()]
 					.filter(({ config }) => config.members.includes(actor))
-					.map(({ config }) => ({
+					.map(({ config, conflictDemo }) => ({
 						id: config.id,
 						members: config.members,
+						conflictDemo: conflictDemo !== undefined,
 						agents: config.agents.map((agent) => ({
 							id: agent.id,
 							kind: agent.kind,
@@ -94,6 +100,36 @@ export async function createDemoServer(options: DemoServerOptions, context: Cont
 						})),
 					})),
 			});
+			return;
+		}
+		const conflict = /^\/api\/threads\/([^/]+)\/conflict-demo$/.exec(url.pathname);
+		if (conflict) {
+			let id: string;
+			try {
+				id = decodeURIComponent(conflict[1]);
+			} catch {
+				throw new HttpError(400, "Invalid path encoding");
+			}
+			const hosted = options.threads.get(id);
+			if (!hosted) throw new HttpError(404, "Unknown thread");
+			await hosted.thread.history(actor, hosted.config.agents[0].id, 1, undefined, context);
+			if (!hosted.conflictDemo) throw new HttpError(404, "Walkthrough unavailable");
+			if (request.method === "GET") json(response, 200, await hosted.conflictDemo.view(actor, context));
+			else if (request.method === "POST") {
+				const body = await readBody(request);
+				// Wire boundary: identities, paths and proposal IDs are chosen by the server, never supplied by clients.
+				if (!isObject(body) || Object.keys(body).some((key) => key !== "kind" && key !== "content"))
+					throw new HttpError(400, "Expected a walkthrough action only");
+				if ((body.kind === "prepare" || body.kind === "publish") && body.content === undefined)
+					json(response, 200, await hosted.conflictDemo.perform(actor, { kind: body.kind }, context));
+				else if (body.kind === "resolve" && typeof body.content === "string")
+					json(
+						response,
+						200,
+						await hosted.conflictDemo.perform(actor, { kind: "resolve", content: body.content }, context),
+					);
+				else throw new HttpError(400, "Expected prepare, publish, or resolve with text content");
+			} else throw new HttpError(405, "Unsupported method");
 			return;
 		}
 		const files = /^\/api\/threads\/([^/]+)\/files$/.exec(url.pathname);

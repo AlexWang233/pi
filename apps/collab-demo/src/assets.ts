@@ -11,6 +11,8 @@ export async function loadAssets(): Promise<Map<string, { contentType: string; b
 		["/app.js", "../dist/web/app.js", "text/javascript; charset=utf-8"],
 		["/stream.js", "../dist/web/stream.js", "text/javascript; charset=utf-8"],
 		["/files.js", "../dist/web/files.js", "text/javascript; charset=utf-8"],
+		["/activity.js", "../dist/web/activity.js", "text/javascript; charset=utf-8"],
+		["/conflict.js", "../dist/web/conflict.js", "text/javascript; charset=utf-8"],
 	] as const)
 		assets.set(path, { body: await readFile(new URL(file, import.meta.url), "utf8"), contentType });
 	return assets;
