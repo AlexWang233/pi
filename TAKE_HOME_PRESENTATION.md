@@ -1,36 +1,49 @@
 # Presentation and evaluator walkthrough
 
-**Status, November 9, 2026:** local collaborative Pi Durable works with actual Ollama inference,
-and the user has confirmed OpenAI works. A reproducible hosted-provider/recovery report, real
-Codex turn/continuation and GCP deployment remain outstanding. Use [progress](TAKE_HOME_PROGRESS.md) for exact evidence
-and [the deployment runbook](apps/collab-demo/deploy/README.md) for prepared, uninstalled templates.
+**Status, November 10, 2026:** the conflict GUI, bounded native activity feed and refreshed
+agent collaboration context are implemented. The deck now leads with a two-user handoff and keeps
+the conflict problem beside its demonstration. Cloud website access is user-reported; the current
+deployed revision, slow GCP Ollama chat, real Codex turns and operational acceptance still need
+verification. See [progress](TAKE_HOME_PROGRESS.md) and the [collaboration explanation](llm-wiki/10-collaboration-awareness.md).
 
 ## Slide deck and speaker notes
 
-The [Moloch/Beamer presentation](presentations/take-home/README.md) contains 12 main slides and four
-backup slides, with 8 minutes 30 seconds of planned cues. Allow roughly 8–10 minutes with model
-latency; human rehearsal remains pending. Outputs include [PowerPoint](presentations/take-home/output/collaborative-pi-durable.pptx),
-[slide PDF](presentations/take-home/output/collaborative-pi-durable.pdf), and a
-[speaker-note handout](presentations/take-home/output/speaker-notes.pdf).
+The [Moloch/Beamer deck](presentations/take-home/README.md) has **14 main slides and four backups**,
+with ten minutes of planned cues. Current outputs: [revised PowerPoint](presentations/take-home/output/collaborative-pi-durable-revised.pptx),
+[slide PDF](presentations/take-home/output/collaborative-pi-durable-revised.pdf) and
+[speaker-note handout](presentations/take-home/output/speaker-notes-revised.pdf).
 
-Each slide's [notes](presentations/take-home/speaker-notes.md) give speaking points, suggested
-demonstrations, a fallback, a boundary to state and wiki/source links. GCP demonstrations are
-explicitly planned for after deployment. The included screenshot is a recorded local Ollama run.
-The PPTX preserves the compiled LaTeX appearance as images with editable notes; change visual
-content in [slides.tex](presentations/take-home/slides.tex) and rebuild using the deck README.
+Each slide's [notes](presentations/take-home/speaker-notes.md) use short speaking points with
+examples and optional technical details beneath them. Brackets explain unfamiliar terms where
+used, including external harness [separate agent application]. Numbered demo steps, fallback,
+limits, transitions and wiki/source links follow. PowerPoint notes are editable; slide visuals
+are compiled LaTeX images. Change the LaTeX/JSON sources and rebuild using `--output-suffix=-revised`.
+The historical screenshot shows local Ollama, not the exact new handoff or a GCP run. Earlier
+unsuffixed outputs remain available for comparison.
 
-## Eight-minute outline
+## Ten-minute outline
 
-| Time | Show / explain | Limit to state |
+| Slides | Show / explain | Limit to state |
 | --- | --- | --- |
-| 0:00–0:45 | Problem: multiple users instruct shared coding agents in one workspace; explain why this fork extends Durable itself | Shared access does not reconcile contradictory human intent |
-| 0:45–2:00 | [Package API](packages/durable/README.md#collaborative-threads): one thread/store, named lanes, membership, receipt identity, existing transactions/tasks | Authentication and browser delivery are host-owned; Chord remains internally |
-| 2:00–3:30 | Alice and Bob both use both agents; show attributed inputs, same-lane queue and peer observation | Separate histories; the local backend serializes inference even though lanes are independent |
-| 3:30–4:30 | Create distinct files, inspect actual text through **Workspace files · Read only**, then refresh after a follow-up edit | Current bytes, not a diff/checkpoint or atomic snapshot; shared writes remain unprotected |
-| 4:30–5:30 | Lost-response retry contract, reconnect and restart evidence; contrast native recovery with uncertain external interruption | One receipt may span repeated native model requests; no exactly-once shell effects |
-| 5:30–6:30 | [Measured report](apps/collab-demo/load/README.md): burst capacity refusal and 600.89-second soak | Simulated execution over real SQLite/HTTP/SSE; not real Codex throughput or a memory bound |
-| 6:30–7:15 | Single owner/process/VM failure domain; prepared GCP service, backup/access/teardown design | No deployed VM or verified Linux containment/restore yet |
-| 7:15–8:00 | Explain T3 reuse and the selected next steps, with alternatives and costs | General file coordination, richer approvals and framework replacement are extensions |
+| 1–3 | Alice starts work; Bob sees and continues it on the same agent; Ollama can review the same files | Human coordination and shared control distinguish this from private agent sessions |
+| 4–6 | Package boundaries, saved requests versus model answers, visible activity and file inspection | Same-ID retry differs from new Send; completion does not establish code correctness |
+| 7–8 | Lost-update trace immediately followed by generate/publish/refuse/resolve/reset | Destination checks protect managed proposals, not ordinary coding writes or dependencies |
+| 9 | Peer awareness, rereading and context overhead | Guidance does not enforce edit safety or establish file authorship |
+| 10–12 | Recovery, T3 reuse, controlled/live/load evidence | No universal exactly-once effects or real Codex turn claim |
+| 13–14 | Cloud website access, pending acceptance and next protection slice | Access is user-reported; latest revision, latency, containment and restore need verification |
+
+Timing is a rehearsal target. Use the conflict GUI as the main interactive proof; shorten the
+native model run if latency makes it unpredictable. Never race live models to force a conflict.
+
+Before presenting slide 8, generate both proposals in the same round if model latency would
+interrupt the talk. Disclose this preparation, then demonstrate publication/refusal/resolution
+and Reset live. Generating a proposal has already finished by the time a user resolves it;
+the model is not paused awaiting resolution, and no automatic continuation is implemented.
+
+Slide 2 uses a workflow rather than an access matrix: Bob sees Alice's instruction and sends a
+follow-up into the same conversation/queue, while another agent has separate history but sees
+the shared files. Both users can inspect or stop shared work. Equal access is the current
+trusted-team policy; different permissions would be a separate feature.
 
 ## Architecture to point at
 
@@ -97,6 +110,12 @@ these presentation files behind.
 
 ## Suggested interaction trace
 
+For the short slide-3 handoff, use the current default OpenAI/Ollama configuration: Alice asks
+OpenAI to create `handoff.txt` containing `DRAFT`; Bob observes the attributed request and asks
+the same agent to replace it with `REVIEWED`. Both inspect the file. If rehearsed latency permits,
+Bob asks Ollama to read it. This demonstrates one person continuing another person's work without
+copying a transcript. The longer local-only trace below exercises all four pairings for preparation.
+
 1. Alice → `local-a`: **Use the write tool once to create alice.txt containing exactly ALICE-ONE. Then reply DONE.**
 2. While it is busy, Bob → `local-a`: **Use the edit tool once on alice.txt to replace ALICE-ONE with ALICE-TWO. Then reply DONE.** Show that this input queues.
 3. Bob → `local-b`: **Use the write tool once to create bob.txt containing exactly BOB-ONE. Then reply DONE.**
@@ -121,7 +140,7 @@ is a graceful idle restart demonstration, not active shell takeover or power-los
 | [Real browser report](apps/collab-demo/scripts/results/2026-11-08-ollama-browser.json) | Normal `main.ts` host, actual local model, two page identities, five completed commands, four pairings, real file outcomes, offline/reconnect, idle shutdown/reopen and stable receipt retry |
 | [Earlier local tool smoke](apps/collab-demo/scripts/results/2026-11-08-ollama.json) | Four independent tool-written files, receipt retry and graceful SQLite reopen with read/write-only tools |
 | [Risk register](apps/collab-demo/PROBLEM_SCENARIOS.md) | Tested behavior, partial protections and explicit gaps; no implied conflict-free arbitrary writes |
-| [Managed-file example 41](packages/durable/test/examples/41-managed-file-conflict.ts) | Optional stale rejection and retained conflicts; no agent/UI integration |
+| [Managed-file example 41](packages/durable/test/examples/41-managed-file-conflict.ts) | Stale rejection and retained conflicts; scripted GUI integrated, ordinary agents remain outside it |
 | [Load report](apps/collab-demo/load/README.md) | 20 baseline + 81 burst + 1200 soak completions, 519 intentional burst rejections, 30 stable retry probes |
 | [Recovery contract](packages/durable/docs/collaboration.md#recovery-and-external-effects) | Exact forced-kill/storage-fault boundaries and their limits |
 
@@ -157,18 +176,34 @@ presentation timing or hosted/Codex access.
 - **Where is the contract?** [Specification section 14](packages/durable/docs/spec.md#14-collaborative-threads-in-this-fork)
   integrates the fork's rules with core transactions, tasks, submissions and watches. The
   [addendum](packages/durable/docs/collaboration.md) expands API details and evidence.
-- **What is unfinished?** Human rehearsal, real hosted native/Codex
-  turns, real/Linux containment and actual GCP deployment/backup restoration. The cloud kit is preparation.
+- **What is unfinished?** Human rehearsal, reproducible hosted native/Codex turns,
+  verification of updated GCP features, GCP Ollama latency, Linux containment and backup restoration.
+  User-reported website access does not establish these properties.
+
+## Controlled conflict and awareness demonstrations
+
+1. Use two authenticated browser identities on a fresh isolated presentation store. Open
+   **Shared-file conflict · Controlled demonstration** in both pages.
+2. Both choose a native model, edit their prompt and select **1. Generate my proposal**. Inspect generated output before publishing. Alice selects **2. Publish my edit**, then Bob does the
+   same. Show the refused stale proposal and retained original/current/proposed contents.
+3. Bob enters combined resolution text and selects **3. Publish my resolution**. Inspect the
+   resulting file in both pages. This is explicit resolution, not automatic merging.
+4. Select **Reset round for both users** to restore default prompts and neutral file contents.
+   Old-round actions are refused; previous evidence is retained up to 64 rounds, and live coding files stay intact. Example 41
+   remains a terminal fallback with its own temporary files and no model/server dependency.
+5. For awareness, rehearse separately with a disposable file: Ollama writes blue, GPT changes
+   it to green, then Ollama rereads and describes the current file without restoring blue.
+   The prompt supplies peer awareness, not proof of who wrote the file. Model compliance is
+   still to be verified; it does not replace managed publication checks.
 
 ## Immediate next work and access gates
 
-1. Rehearse this walkthrough and record human presentation timing. Specification integration
-   is complete; the outlined eight minutes is a target, not a measured rehearsal. No provider
-   key or GCP project is needed for local rehearsal.
-2. Verify a real hosted native lane and the configured external Codex lane when private OpenAI
-   credentials and Codex authentication are available. Local Ollama evidence does not establish them.
-3. After readiness, select the GCP project/access and perform the documented Linux deployment,
-   containment, restart/reboot, backup/restore and evaluator-access checks. No resources are provisioned yet.
+1. Rehearse the updated deck and real OpenAI/Ollama peer-edit trace; record timing and actual
+   file outcomes. Scripted GUI rehearsal needs no keys; live native checks use existing access.
+2. Next protection slice: trusted-context managed model tools and file-effect provenance,
+   with an explicit policy for ordinary shell/external bypass writes and uncertain publication.
+3. Deploy the updated revision and verify the chosen GCP access route, Linux cleanup and
+   backup restoration. Real Codex coding/continuation requires separate authentication.
 
-Do not expand to new UI features or broad file coordination merely to fill these access-dependent
-gaps. Keep the user's deferred Windows Bash investigation explicit and preserve the original time budget.
+Keep worktrees, automatic merge, multi-file transactions, roles/approvals and distributed workers
+as extensions. Preserve the user's deferred Windows Bash investigation and the take-home scope.

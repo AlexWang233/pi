@@ -43,14 +43,14 @@ Notify the user at those exact access-dependent gates; they do not block other l
 | Bounded projections and disposable watches | `collaboration/view.ts` |
 | Generic public entry | `collaboration/index.ts`; `/collaboration` package export |
 | T3 client integration and session/process lifecycle | `src/adapters/codex/`; explicit `/adapters/codex` export |
-| Optional single-file coordination | `collaboration/managed-file.ts`; isolated scripted GUI now uses it, normal agent tools do not |
+| Optional single-file coordination | `collaboration/managed-file.ts`; isolated proposal GUI now uses it, normal agent tools do not |
 | Authentication, configuration, HTTP/SSE and browser | `apps/collab-demo/` |
 | Read-only workspace inspection and manual-refresh UI | `apps/collab-demo/src/workspace-files.ts`, `web/files.ts`; transport only |
-| Controlled conflict demonstration | `src/conflict-demo.ts`, `web/conflict.ts`; separate Durable/SQLite store and scripted proposals, no model calls |
+| Controlled conflict demonstration | `src/conflict-demo.ts`, `web/conflict.ts`; saved rounds, custom native-model proposals without tools, managed publish/resolve and shared reset; fixed preview samples |
 | Attributed activity feed | Existing bounded package view plus `web/activity.ts`; observed request states and saved native tool summaries |
 | Current package contract | [Specification section 14](packages/durable/docs/spec.md#14-collaborative-threads-in-this-fork), [collaboration addendum](packages/durable/docs/collaboration.md) and [README](packages/durable/README.md#collaborative-threads); core-spec contract review/integration complete |
 
-There is no separate `commands.ts` or custom application execution engine. Reuse Harness transactions, conversations, native inboxes, scheduling, watches and SQLite. The new scripted conflict scenario opens a separate existing Durable Harness/store to isolate its file and metadata; it does not schedule model work. The server verifies tokens; Durable enforces membership. A direct library host remains responsible for authenticating its callers.
+There is no separate `commands.ts` or custom application execution engine. Reuse Harness transactions, conversations, native inboxes, scheduling, watches and SQLite. The conflict panel reuses separate Durable Harnesses/stores for an active-round pointer and each round. Proposal generation uses ordinary native admission/execution without filesystem tools; publication remains an explicit managed operation. The server verifies tokens; Durable enforces membership. A direct library host remains responsible for authenticating its callers.
 
 Generic contracts do not expose Effect/T3 types. The optional Node adapter isolates exact Effect/platform dependencies behind its subpath. **Chord remains inside Durable.** Approach A adds collaboration without completing framework removal. Later approach B can replace internals inside this fork, retaining behavioral tests; preparing for it does not require a second runtime package.
 
@@ -96,7 +96,7 @@ Replay/scripted children establish protocol behavior without paid calls. Local C
 conflict GUI and attributed activity feed are now implemented locally: 45 demo and 33 focused
 Durable tests pass, plus actual desktop/mobile browser checks with simulated providers. Initial
 GCP startup is confirmed by user screenshots; this increment still needs deployment/rehearsal.
-The scenario uses one saved, retry-safe walkthrough outside live agent files. Managed editing
+The scenario now supports up to 64 saved rounds, custom prompts/native models and shared Reset outside live coding files. Old-round actions are refused; an actual Ollama generation/publish/reset check and all 48 demo tests pass. Managed editing
 tools and uncertain-write reconciliation remain further implementation, not current guarantees.
 
 The delivery priorities below retain their original gates; the immediate next work is to
@@ -137,9 +137,9 @@ records exact guarantees and costs. Core native recovery and receipt formats wer
 1. **Process-ownership investigation deferred by user.** The existing Windows Bash interruption/reopen test's roughly 30-second delay remains open; it fails at the default five-second limit and passes with a 40-second runner limit. Resume investigation later. Prompt shutdown, real Codex descendants and Linux process groups still need verification before workspace takeover claims. Injected SQLite failures and owner kills do not certify disk-full/corruption or power-loss safety.
 2. **Verify live integration when privately configured.** Bounded OpenAI-native and real Codex coding turns, continuation and stop. Separate real model evidence from initialization/simulation. Do not require all four provider keys.
 3. **Deploy to GCP after local readiness.** Verify the single-owner setup below. Missing project/access is a dependency, not completed cloud delivery.
-4. **Finish documentation and presentation.** README links, measurements, specification section 14 and the presentation runbook are written. Core-spec contract review/integration is complete. Rehearse eight minutes and add actual hosted/Codex/cloud evidence only after those checks run.
+4. **Finish documentation and presentation.** README links, measurements, specification section 14 and the presentation runbook are written. Core-spec contract review/integration is complete. Rehearse the ten-minute deck and add actual hosted/Codex/cloud evidence only after those checks run.
 
-The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 38 demo tests, an opt-in real local-model smoke and ad-hoc browser checks. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
+The [commit plan](TAKE_HOME_APPROACH_A_COMMIT_PLAN.md#remaining-reviewable-increments) defines coding/test gates. Evidence includes examples 38–41, recovery/boundary tests, 18 scripted Codex subprocess cases, 48 demo tests, an opt-in real local-model smoke and ad-hoc browser checks. Exact validation dates, runner limits and results remain in [progress](TAKE_HOME_PROGRESS.md#validation-log); do not add repeated runs as new coverage.
 
 ## 6. GCP design, deferred until local readiness
 
@@ -157,7 +157,7 @@ These are options after core delivery, not mandatory additions. Select one coher
 
 | Extension | Proposed behavior | Trade-off / prerequisite |
 | --- | --- | --- |
-| Managed agent tools | Extend the implemented scripted conflict panel by binding actual tool proposals to trusted actor/command context | Participating tools only; add reconciliation/unblock for prepared/uncertain writes before unattended use |
+| Managed agent tools | Extend the implemented proposal-only conflict panel by binding actual tool proposals to trusted actor/command context | Participating tools only; add reconciliation/unblock for prepared/uncertain writes before unattended use |
 | Multi-file/stale-context validation | Validate retained read sets; retain conflicts and review Git-style three-way merge candidates | More recovery state; files and metadata are not automatically one atomic transaction |
 | Unrestricted shell/Codex coordination | Own workspace for the full turn and descendant lifetime, including shell effects | Less parallelism; every writer must participate. Advisory leases cannot fence an existing raw process |
 | Isolated task worktrees | Separate edits, then reviewed integration | Merge/setup costs; alternative to immediate shared-file visibility |

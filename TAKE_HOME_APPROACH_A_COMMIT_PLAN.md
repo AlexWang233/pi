@@ -30,7 +30,9 @@ Protect package ownership, actual T3 reuse, bounded failure behavior, evidence a
 | `feat: inspect workspace files from the demo` | Authenticated read-only directory/text API and browser controls, manual refresh, five new HTTP/filesystem tests and desktop/mobile Chrome verification | No editing, diffs, automatic refresh or write-conflict protection |
 | `docs: record regular-host local integration and presentation` | Actual Ollama/browser check: five commands, all four user/agent pairings, file inspection, queue, reconnect and idle reopen; [presentation runbook](TAKE_HOME_PRESENTATION.md) and README API/examples | Human rehearsal remains; no runtime changes in this increment |
 | `feat: persist local demo configuration in an env file` | Native Node `.env` loading in start/preflight, tracked secret-free template, ignored local files and two additional preflight cases for file-only setup/terminal precedence | Hosted/Codex turns still need configured credentials; preview stays independent |
-| `feat: demonstrate retained conflicts and concrete agent activity` | Two-user prepare/publish/resolve controls over a separate Durable/SQLite store; retained bases/current/proposals, immutable retry/reopen, 24-record native tool projection and 64-item browser observation feed. All 45 demo and 33 focused package tests plus actual browser checks pass | One saved walkthrough/no reset; not normal tool protection or a complete audit log. New code is not deployed to the user's VM yet |
+| `feat: demonstrate retained conflicts and concrete agent activity` | Two-user prepare/publish/resolve controls over a separate Durable/SQLite store; retained bases/current/proposals, immutable retry/reopen, 24-record native tool projection and 64-item browser observation feed. All 45 demo and 33 focused package tests plus actual browser checks pass | Initial one-shot lifecycle superseded by the resettable-round increment below; not normal coding-tool protection or a complete audit log. New code is not deployed to the user's VM yet |
+
+| `feat: reset managed conflict rounds and generate custom proposals` | Durable active-round pointer, separate tool-free participant conversations on configured native models, explicit managed publication/resolution and expected-round rejection. All 48 demo tests, two-identity browser checks and actual Ollama generation/refusal/reset pass | Up to 64 retained rounds; no archive pruning or uncertain-write repair. Normal coding tools/external harnesses bypass the protocol; updated GCP behavior remains unverified |
 
 Reference examples: [38: collaboration](packages/durable/test/examples/38-collaborative-thread.ts), [39: CLI initialization](packages/durable/test/examples/39-codex-initialize.ts), [40: native providers](packages/durable/test/examples/40-native-providers.ts), [41: managed-file conflict](packages/durable/test/examples/41-managed-file-conflict.ts). Examples 38/41 are deterministic; 39 starts no model turn; 40 defaults to catalog-only execution.
 
@@ -66,7 +68,7 @@ measurements rather than implied results of this first slice.
 ### Immediate next implementations
 
 **Current next work:** update the existing VM to the reviewed GUI increment, rebuild/restart and
-rehearse its two-user conflict steps. Initial service startup/HTTP 200 is confirmed by user
+rehearse custom prompts, managed publication and shared Reset. Initial service startup/HTTP 200 is confirmed by user
 screenshots; the new panel has only local Windows/browser evidence. Next optional coding slice:
 trusted-context managed editing tools with visible conflict outcomes and uncertain-write handling.
 No new keys are needed for the scripted panel; hosted turns keep their OpenAI/Ollama prerequisites.
@@ -169,7 +171,7 @@ Suggested message: `docs: document collaborative Durable guarantees and measured
 - README/public API links, specification section 14 and the presentation runbook are written. Full core-spec contract review/integration is complete; keep the specification, expanded contract and evidence consistent as implementation changes.
 - Document reproducible setup, T3 reuse/licenses, dependency changes, measured load, failure domains, cloud access/teardown and limits. Keep progress/scenarios consistent.
 - Explain VM/process/store failure, serialized commits, provider quotas, process pressure, observer memory and uncoordinated writes. Separate measurements from predictions.
-- Rehearse eight minutes: package API, M:N sharing, ordering/parallelism, retry/stop/reconnect, uncertain recovery, file-conflict limit, measured bottleneck and next options.
+- Rehearse the ten-minute deck: package API, M:N sharing, ordering/parallelism, retry/stop/reconnect, uncertain recovery, file-conflict limit, measured bottleneck and next options.
 - Follow clean setup instructions; identify automated/manual evidence. No actual commit unless requested; follow current-branch changelog rules.
 
 ## Post-MVP commit options

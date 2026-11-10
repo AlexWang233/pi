@@ -13,35 +13,50 @@ Visual hierarchy was informed by T3 Code; this remains an original plain DOM/CSS
 
 ## Show a concrete conflict and its resolution
 
-Open **Shared-file conflict · Controlled demonstration** after signing in. Use Alice and Bob
-in separate browser profiles (the first two configured members participate; others observe):
+Open **Shared-file conflict · Controlled demonstration** after signing in. The first two
+configured members participate; others observe. Use Alice and Bob in separate browser profiles:
 
-1. Both click **1. Prepare my edit**. Both saved bases show the same original content.
-2. Alice clicks **2. Publish my edit**. Her greeting change becomes the current file.
-3. Bob clicks **2. Publish my edit**. His stale theme replacement is retained as **conflict**;
-   the current file still contains Alice's greeting. Compare the saved bases, proposals and current text.
-4. Bob reviews/edits the resolution text and clicks **3. Publish my resolution**. Both pages
-   show the applied resolution and the original rejected proposal. Nothing is automatically merged.
-5. Reload/reconnect either browser and reopen the panel to restore the saved evidence.
+1. Select a native model and edit **My edit instruction**. Defaults ask Alice's model for
+   `Greeting: Hello` / `Theme: light`, and Bob's for `Greeting: Hi from the team` / `Theme: dark`.
+   The initial file is `Greeting: Welcome` / `Theme: neutral`, so both defaults change it.
+2. Both click **1. Generate my proposal**. Each retains the current base, then uses the selected
+   model to generate replacement text. Wait for completed generation and inspect both proposals.
+   Generation does **not** write the file. Each user has a separate conversation even if both
+   select the same model; these are proposal-only agents, not the normal lanes' histories/tools.
+3. Alice clicks **2. Publish my edit**. Bob then publishes his stale proposal: the managed-file
+   API refuses it and preserves Alice's bytes. Inspect original/current/proposed text.
+4. Bob reviews/edits **Explicit resolution** and clicks **3. Publish my resolution**. This is a
+   human decision, not an automatic merge. Conflicting intent still needs a human choice.
+5. Click **Reset round for both users** to restore the neutral file, default prompts and fresh
+   steps. Both views catch up by polling; reload/relogin restores the active saved round.
 
-These are authenticated, scripted proposals using the real package `ManagedFile` API, SQLite
-and actual file bytes. **They are not LLM instructions and do not protect normal model/shell/Codex writes.**
-No model key or running Ollama is needed for these panel actions; the live host's normal startup
-still requires its configured providers. The credential-free preview supplies the same panel.
+The live host uses the configured **native** model providers, including OpenAI and Ollama.
+Generation uses ordinary Durable admission/execution in an isolated SQLite store, with **no file
+or shell tools installed**. Only explicit publication uses `ManagedFile`. Provider usage and
+latency apply; no new credentials are needed beyond the chosen provider. External Codex is not
+a proposal-generation option. An external-only configuration has no conflict panel.
 
-The live host uses a separate `COLLAB_DATA/conflict-demo/walkthrough.sqlite` and
-`COLLAB_DATA/conflict-demo/workspace/shared.txt`, outside the live agents' working directory.
-The preview places its isolated store under the temporary workspace's hidden `.conflict-demo/`
-directory; graceful preview exit removes everything. This is separation for trusted collaborators,
-not a sandbox against shell commands reaching outside their working directory.
+`npm run preview` keeps the same reset/publish UI but returns clearly labelled **fixed sample
+outputs** with no model calls. It does not interpret custom prompts; use `npm start` for that.
+Neither mode changes the live agents' workspace or protects ordinary model/shell/Codex writes.
+An unchanged proposal does not invalidate another base, and identical generated outputs may
+produce no conflict. Inspect outputs instead of assuming every prompt pair must conflict.
 
-There is **one saved walkthrough per installation**, with fixed step IDs: repeated requests retry
-the same operation rather than consume unbounded proposals. Either member can publish first;
-the stale member owns resolution. There is no reset/delete route. Keep evidence and use a fresh
-demo installation/data directory for a fresh rehearsal; do not delete the production database.
-Prepared/uncertain publications remain visible and block new mutations under the package policy;
-no automatic write replay or repair is added. The demonstration store closes with the host and
-is included in the existing whole-data-directory backup.
+The controller is `COLLAB_DATA/conflict-demo/rounds.sqlite`. Each round has
+`COLLAB_DATA/conflict-demo/rounds/<server-generated-id>/walkthrough.sqlite` and
+`workspace/shared.txt`. Reset creates a fresh store/file and atomically saves the active round
+pointer; it then closes the previous generation runtime. Old responses cannot publish into the
+new round: every mutation includes its expected round ID, and stale requests receive `409`.
+No live database or workspace is deleted. Older one-shot walkthrough files are left intact;
+this version begins a new round-based walkthrough instead of migrating that evidence.
+
+Up to **64 saved rounds** are retained per demo data directory, with one immutable prompt/model
+preparation per participant per round. Repeated Prepare retries the same admitted generation;
+changing its prompt requires Reset. Generation failures stay visible and cannot publish. Reset
+can cancel generation, but cannot silently bypass an uncertain managed-file effect: prepared or
+uncertain publication requires inspection. There is no automatic repair or archive-pruning UI.
+The stopped whole-data-directory backup includes the controller and all rounds. Preview stores
+these under its hidden temporary `.conflict-demo/` directory and removes them on graceful exit.
 
 ## Read concrete agent activity
 
@@ -262,7 +277,7 @@ All API routes require `Authorization: Bearer <user token>`.
 | `GET /api/threads` | User identity, accessible threads, named agents and recovery descriptions |
 | `GET /api/threads/:thread/files?path=src/App.tsx` | Read-only relative-path inspection; omit `path` to list the workspace root |
 | `GET /api/threads/:thread/conflict-demo` | Current isolated file, prepared bases and retained proposals; membership required |
-| `POST /api/threads/:thread/conflict-demo` | `{kind:"prepare"}`, `{kind:"publish"}`, or `{kind:"resolve",content}`; authenticated actor only, stable server-selected step IDs |
+| `POST /api/threads/:thread/conflict-demo` | `{kind:"prepare",round,agentId,prompt}`, `{kind:"publish",round}`, `{kind:"resolve",round,content}`, or `{kind:"reset",round}`; authenticated actor, native model allowlist, stale-round refusal |
 | `POST /api/threads/:thread/agents/:agent/commands` | JSON `{id,text}`; durable `202` receipt |
 | `GET /api/threads/:thread/agents/:agent/commands/:id` | Requesting user's command status |
 | `GET /api/threads/:thread/agents/:agent/state` | Current bounded package snapshot |
@@ -285,7 +300,7 @@ on failure. It does not automatically reopen the store. Shutdown can still wait 
 The [Linux/GCP preparation kit](deploy/README.md) includes a manual-start systemd template,
 private environment template, stopped-store backup script, SSH access and restore/teardown
 instructions. User screenshots confirm initial Linux service startup and HTTP 200; the new
-conflict/activity increment has not been deployed there. See the [current GCP guide](../../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md).
+updated round/generation behavior has not been verified there. See the [current GCP guide](../../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md).
 
 The browser retains that draft/ID until acceptance or explicit discard. It does not persist
 ambiguous drafts across a page reload. Discarding a retry does not cancel already accepted
@@ -359,7 +374,7 @@ The [presentation runbook](../../TAKE_HOME_PRESENTATION.md) gives a repeatable m
 The conflict/activity increment adds four cases covering authenticated scripted publication,
 unchanged bytes on stale rejection, explicit resolution/retry, SQLite reopen and browser wire
 validation. The preview integration checks native tool-request/result summaries without raw
-provider/task identities. No model calls are made by these tests.
+provider/task identities. The regular tests use faux model responses; they make no paid provider calls. The reset/custom-prompt increment adds repeated reset/reopen, stale-round actions, isolated same-model generation, cancellation and failure checks. All 48 demo tests pass. A separate real Ollama check generated both default proposals without writing, then verified actual publication, stale refusal and reset; see [portable evidence](scripts/results/2026-11-10-conflict-rounds-ollama.json).
 
 Still pending: reproducibly recorded hosted-provider/Codex coding turns, remaining forced-process
 crash boundaries and real descendant cleanup, broader capacity measurements, and GCP deployment. The current host

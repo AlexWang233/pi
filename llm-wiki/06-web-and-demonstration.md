@@ -2,7 +2,7 @@
 
 The web app lets people see shared instructions, agent progress, and actual workspace files. For a useful presentation, show a problem happening and the system's response, rather than only showing two chat windows.
 
-The existing [runbook](../apps/collab-demo/README.md) explains actual controls and [presentation outline](../TAKE_HOME_PRESENTATION.md) gives an eight-minute structure. The managed-file scenario panel is now implemented locally; it remains separate from normal model-tool writes and has not been deployed to GCP. The glossary explains [snapshots, projections, and SSE](09-technical-terms.md#projections-snapshots-sse-and-audit-logs) and [backpressure and coalescing](09-technical-terms.md#backpressure-fan-out-and-coalescing).
+The existing [runbook](../apps/collab-demo/README.md) explains actual controls and [presentation outline](../TAKE_HOME_PRESENTATION.md) gives a ten-minute structure. The managed-file scenario panel is now implemented locally; it remains separate from normal model-tool writes and has not been verified on GCP. The glossary explains [snapshots, projections, and SSE](09-technical-terms.md#projections-snapshots-sse-and-audit-logs) and [backpressure and coalescing](09-technical-terms.md#backpressure-fan-out-and-coalescing).
 
 ## Why HTTP commands and SSE snapshots
 
@@ -40,11 +40,11 @@ Users can browse the current project folder and read small text files directly i
 
 The endpoint rejects hidden paths, `node_modules`, traversal and linked targets under its documented policy, caps reads at 64 KiB, and considers the first 200 directory entries plus an overflow probe. That improves reviewability and limits read cost, while concurrent edits can still change what is read. Parent replacement races mean it is path hygiene for trusted collaborators, not confinement against hostile writers. [File API](../apps/collab-demo/src/workspace-files.ts), [browser module](../apps/collab-demo/web/files.ts).
 
-## How the proposed scenario panel improves the story
+## How the scenario panel demonstrates a conflict
 
-The scenario panel lets two signed-in users click through a file conflict one step at a time. It uses the real managed-file API with scripted proposals and a separate SQLite store, clearly showing that this is not yet how normal model agents write.
+The scenario panel lets two signed-in users click through a file conflict one step at a time. The live host uses custom prompts and selected native models to generate proposals, then publishes through the real managed-file API. These tool-free proposal conversations and SQLite files are separate from the normal coding lanes; preview returns fixed sample proposals.
 
-Both users click Prepare; Alice publishes first, then Bob publishes his stale replacement. The panel retains both bases, the applied edit and the rejected proposal; Bob explicitly submits resolution text and both browsers see the resulting file. One walkthrough is saved per installation, and retries/reconnect do not create new steps. A two-second refresh runs only while the panel is open. Live agent files and fixed thread configuration remain untouched. See the [actual controls and limits](../apps/collab-demo/README.md#show-a-concrete-conflict-and-its-resolution).
+Both users choose a model/prompt and click Generate; each retains its base before model work. Alice publishes first, then Bob publishes his stale replacement. The panel retains both bases, the applied edit and the rejected proposal; Bob explicitly submits resolution text and both browsers see the resulting file. Reset starts a new saved round, restores default inputs and closes the previous generation runtime; both pages catch up. Up to 64 rounds are retained, retries stay within a round, and stale-round actions receive a refusal. A two-second refresh runs only while the panel is open. Live agent files and fixed thread configuration remain untouched. See the [actual controls and limits](../apps/collab-demo/README.md#show-a-concrete-conflict-and-its-resolution).
 
 ## What the activity feed means
 
@@ -56,7 +56,7 @@ For example, Alice's request can be observed running, followed by a saved `write
 
 Use real OpenAI/Ollama to show that agents can use tools and share work with users. Use a scripted, repeatable example to show the exact file-conflict order, so model speed or unpredictable answers do not hide the lesson.
 
-Example 41 can run independently of the web server and model services, including in an SSH terminal on a future GCP VM. It creates actual temporary files, shows applied/conflict/resolution results, and cleans up. Automated tests create their own isolated runtime and servers where needed; only explicit live-model checks require model availability. Build workspace packages first where the examples/tests consume built exports. [Example 41](../packages/durable/test/examples/41-managed-file-conflict.ts), [concurrency test](../apps/collab-demo/test/concurrency.test.ts).
+The GUI now offers this controlled managed-file walkthrough; example 41 remains a terminal fallback independent of the web server and model services, including on the GCP VM. It creates actual temporary files, shows applied/conflict/resolution results, and cleans up. Automated tests create their own isolated runtime and servers where needed; only explicit live-model checks require model availability. Build workspace packages first where the examples/tests consume built exports. [Example 41](../packages/durable/test/examples/41-managed-file-conflict.ts), [concurrency test](../apps/collab-demo/test/concurrency.test.ts).
 
 ```powershell
 . E:\Github\pi\.artifacts\env.ps1
@@ -68,4 +68,4 @@ node --conditions=source --experimental-strip-types test/examples/41-managed-fil
 
 Start with people sharing agents, then show why two agents can still conflict on a file. Finish by explaining what survives a restart, what was tested, and what remains unfinished.
 
-For eight minutes, spend roughly two on architecture and ownership, two on the live shared-agent GUI, two on a controlled race/managed API comparison, and two on recovery, load and deployment trade-offs. A backup terminal example or saved result is useful when model latency is unpredictable. Human rehearsal timing, live Codex and GCP delivery remain separate checks; a prepared outline is not evidence those checks ran. Do not expose `.env` values while screen-sharing.
+For ten minutes, spend roughly two on architecture and requests, two on shared agents/activity, three on stale context and the controlled conflict GUI, and three on recovery, evidence and deployment. Explain that [collaboration awareness](10-collaboration-awareness.md) guides model behavior while managed publication enforces a conditional write. A backup terminal example or saved result is useful when model latency is unpredictable. Human rehearsal timing, live Codex and GCP delivery remain separate checks; a prepared outline is not evidence those checks ran. Do not expose `.env` values while screen-sharing.

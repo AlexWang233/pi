@@ -61,8 +61,14 @@ try {
 		agents: config.agents,
 	};
 	const thread = await collaboration.open(harness, threadConfig, context);
-	if (threadConfig.members.length >= 2)
-		conflictDemo = await ConflictDemo.open(resolve(data, "conflict-demo"), threadConfig.members, context);
+	const proposalAgents = config.agents.filter((agent) => agent.kind === "native");
+	if (threadConfig.members.length >= 2 && proposalAgents.length > 0)
+		conflictDemo = await ConflictDemo.open(
+			resolve(data, "conflict-demo"),
+			threadConfig.members,
+			{ kind: "live", models, agents: proposalAgents },
+			context,
+		);
 	const demo = await createDemoServer(
 		{ threads: new Map([[threadConfig.id, { thread, config: threadConfig, conflictDemo }]]), tokens, assets },
 		context,

@@ -1,6 +1,6 @@
 # Implementation record
 
-**Last updated:** November 10, 2026. **Status:** agents now receive refreshed collaboration context: peers, request authors, recent admission metadata and shared-file guidance. Tests verify real temporary writes/review and existing SQLite reopen without resetting configuration. The isolated conflict panel/activity feed remain available. Ordinary model/shell/Codex writes remain unprotected; guidance does not guarantee model compliance or identify file authors. GCP startup is user-confirmed, but these code updates need deployment/live interpretation checks. No commits created by the assistant; Windows Bash investigation remains deferred.
+**Last updated:** November 10, 2026. **Status:** the conflict GUI now supports shared Reset and custom prompts using configured native models. Proposal generation uses separate tool-free Durable conversations; explicit ManagedFile publication remains required. Real Ollama generation/reset and two-user scripted browser checks pass. Ordinary coding/shell/Codex writes remain unprotected. Updated GCP behavior, live OpenAI proposal checks and Linux acceptance remain unverified; Windows Bash investigation stays deferred.
 
 ## Current scope
 
@@ -22,7 +22,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | External execution/recovery | Implemented; forced owner-crash evidence added | Ordinary Durable tasks, predecessor ordering, deadlines/stop, terminal-task status reconciliation and four deterministic SQLite owner-kill cases; real CLI descendant cleanup remains unverified |
 | Views/stop/limits | First slice implemented | Bounded projections/disposal; native shells configured with a 60-second timeout, but Windows Bash shutdown delay remains open (I12); total resource budgets and richer tool views remain |
 | Thin demo | Implemented; deterministic transport and browser smoke verified | [Runbook](apps/collab-demo/README.md), authenticated HTTP/SSE, shared watch fanout, responsive browser client, key-free preview; local native smoke passed separately, interactive hosted-provider/Codex walkthrough remains pending |
-| Managed single-file coordination | Package API and isolated scripted GUI implemented | Authenticated prepare/publish/resolve controls, actual file evidence, repeat-safe steps and SQLite reopen; normal agent tools remain outside this API |
+| Managed single-file coordination | Package API and resettable model-proposal GUI implemented | Authenticated generate/publish/resolve/reset controls, scoped round identities and SQLite reopen; real Ollama proposal evidence, normal coding tools remain outside this API |
 | GCP live deployment | Initial startup confirmed by user | Service active, loopback app/Ollama ports and HTTP 200 shown in screenshots; new GUI increment, reproducible real turns, Linux recovery/restore acceptance remain unverified |
 | Concrete request/tool activity | Implemented and tested | Attributed receipt observations plus at most 24 saved native tool records; 64-item browser feed. No full event journal, raw tool payloads or guessed per-request tool attribution |
 | Model-facing collaboration context | Implemented; deterministic wiring verified | Native per-request section and external per-turn instructions; existing SQLite thread receives peers/author metadata, custom instructions preserved. Real model interpretation remains unverified |
@@ -31,8 +31,8 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | Mixed-provider default | Configured; user confirms both providers function | OpenAI `gpt-5.4-mini` + local Ollama Qwen3 4B; separate Codex example retained. User confirms OpenAI recovered after the historical credit failure and Ollama edits work; no new automated mixed-provider/recovery report |
 | Real local-model integration | Tool smoke and regular-host browser check passed | Portable Ollama 0.40.15, Qwen3 4B Instruct; separate four-write smoke and five-command browser walkthrough, all 2x2 pairings, stable retries and idle SQLite reopen; [setup/evidence](apps/collab-demo/LOCAL_MODELS.md) |
 | Workspace file browser | Implemented and tested | Read-only authorized directory/text endpoint, lazy folder navigation and manual refresh; five HTTP/filesystem cases, simulated-provider checks and actual Ollama desktop/mobile browser verification |
-| Presentation | Deck built; human rehearsal pending | [Moloch/Beamer sources, PowerPoint, PDFs and per-slide notes](presentations/take-home/README.md); 12 main + four backup slides, 8:30 target cues. Native PowerPoint open/render and all 16 notes verified; GCP demos remain planned, not deployed |
-| Interview preparation wiki | Written and expanded | [Start here](llm-wiki/README.md), eight overview/drill pages, [technical-terms guide](llm-wiki/09-technical-terms.md) and [categorized question bank](llm-wiki/interview-questions/README.md) with eight question types; 48 detailed questions and six diagrams. Terms are retained and explained for readers new to harness engineering. Sections retain 2–3 sentence summaries and deeper paragraphs |
+| Presentation | Two-user story and structured notes rebuilt; human rehearsal pending | [Revised Moloch/Beamer deck and notes](presentations/take-home/README.md); 14 main + four backup slides, 10-minute target. Handoff replaces the access matrix; stale-edit problem/resolution are adjacent; short points have examples and bracket definitions. Cloud access is user-reported; latest revision and operational acceptance need verification |
+| Interview preparation wiki | Updated for collaboration awareness | [Start here](llm-wiki/README.md), [new awareness page](llm-wiki/10-collaboration-awareness.md), glossary and nine question categories with 53 questions across 21 wiki pages. Plain-English summaries, peer-edit diagram, costs and guidance-versus-enforcement limits are linked from notes |
 | Load/failure report | First measured slice complete | [Workload/report](apps/collab-demo/load/README.md) and portable JSON; baseline 20/20 completed, burst 81/81 plus 519 capacity rejections, soak 1200/1200 in 600.89 seconds. Maximum throughput and real CLI process load remain unmeasured |
 | Admission/native/storage recovery boundaries | Deterministic slice implemented | 12 cases, including six additional owner kills and six storage faults. Receipt persistence, native request resend, unsafe-tool no-replay and external result uncertainty verified; not full process containment |
 
@@ -81,10 +81,11 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | D39 | Default to native OpenAI + local Ollama per user preference; keep Codex optional | Uses one hosted credential and the cached local model without requiring Codex login for everyday use. GPT-5.4 Mini is present in the local catalog and documented for coding/tool calls; account access is not certified by preflight. Two native providers do not establish external-harness integration. Preserve the Codex composition in its own example and use a fresh store for changed agents |
 | D40 | Check runtime before importing demo TypeScript or SQLite | System Node 22.12.0 lacks default SQLite availability; prepared 22.23.4 works. A small dependency-free launcher check rejects unsupported Node/disabled SQLite with executable/version and the activation command. Do not patch storage imports, add a SQLite dependency or silently switch the user's global runtime |
 | D41 | Keep LaTeX as the presentation's visual source and one JSON source for notes | Uses the local Moloch theme without modifying its clone. PPTX packages compiled slide images with native editable notes; visual edits require rebuilding LaTeX. Native PowerPoint export/check avoids relying on structural XML checks alone. The full builder requires Windows PowerShell/PowerPoint; PDF/Markdown notes retain linked references |
-| D42 | Isolate a scripted conflict walkthrough in its own Durable/SQLite store and actual file | Uses the package API rather than another conflict algorithm; two authenticated members control their own proposals. No model latency or changes to live files/configuration. One saved walkthrough, stable step IDs and no reset route bound storage; fresh rehearsal needs fresh isolated data |
+| D42 | Initial design, superseded by D46 for rounds: isolate a scripted conflict walkthrough in its own Durable/SQLite store and actual file | Uses the package API rather than another conflict algorithm; two authenticated members control their own proposals. No model latency or changes to live files/configuration. One saved walkthrough, stable step IDs and no reset route bound storage; fresh rehearsal needs fresh isolated data |
 | D43 | Show observed receipts and committed native tool records, not invented progress | Tool requests/results come from the recent entry window; no arguments, outputs, provider call IDs or task IDs. Page feed is bounded, can miss transitions and is not a global chronology; tool events remain agent-scoped because request attribution may be ambiguous |
 | D44 | Exclude `.artifacts` from repository scanners, preserving credential permissions | Root checks encountered access-denied errors traversing the user's gcloud cache. Biome/dependency/import scanners now prune only the local tooling directory; credentials were not read, moved or permission-modified |
 | D45 | Render collaboration awareness from saved state rather than rewriting fixed agent configuration | Existing stores acquire the section on new native requests; external turns get it on open/resume. Preserve custom instructions/user text/receipts. Bounded IDs and admission metadata add prompt tokens/system-section updates; peer text is not promoted. This is guidance, not provenance, exclusion or guaranteed compliance |
+| D46 | Separate proposal generation from publication, with a durable active-round pointer | Uses selected native models but no file/shell tools or live lane history. Isolated participant conversations avoid batching two users into one answer. Reset switches to a fresh store/file and closes old generation; expected-round IDs refuse late actions. Up to 64 archived rounds cost disk space; uncertain publication still blocks reset. Neutral initial content makes both requested defaults actual edits |
 
 ## Implemented entry points and examples
 
@@ -102,7 +103,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 - [Load runner and report](apps/collab-demo/load/README.md): real authenticated transport and SQLite, isolated deterministic provider state, explicit command/start accounting, retry probes, paused reader and reconnect waves; no paid calls or Codex processes.
 - [Deployment preparation](apps/collab-demo/deploy/README.md): preflight, service/environment templates, stopped-store backup, evaluator forwarding, acceptance gates and restore/teardown. Prepared only; actual GCP remains deferred.
 - [Local models](apps/collab-demo/LOCAL_MODELS.md): portable installation, regular-browser configuration, opt-in HTTP/SQLite smoke and exact external-access gates. The regular deterministic preview remains separate.
-- [Presentation and evaluator walkthrough](TAKE_HOME_PRESENTATION.md): eight-minute outline, actual local-model interaction trace, evidence links and reviewer questions; human rehearsal still pending.
+- [Presentation and evaluator walkthrough](TAKE_HOME_PRESENTATION.md): ten-minute outline, actual local-model interaction trace, controlled GUI steps, evidence links and reviewer questions; human rehearsal still pending.
 
 ## Current risks and open checks
 
@@ -111,7 +112,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | I1: Live model/GCP access | Four hosted providers selectable plus local Ollama; user now confirms OpenAI and Ollama function. Recorded local-model smoke exists; external Codex and cloud remain unverified | Capture a reproducible hosted/mixed-provider report if needed; retain separate Codex authentication and GCP project/billing/IAM gates. Historical billing failure is no longer treated as the current blocker |
 | I2: Protocol compatibility | 18 scripted subprocess cases cover protocol/lifecycle plus attached Windows descendants. Local Codex 0.164.0-alpha.11.1 initializes; real turn/continuation not verified | Test live compatibility and real/escaped descendants on Windows/Linux. Typed invalid notifications may wait until external deadline |
 | I3: Recovery evidence | Existing external owner kills plus six new admission/native owner kills and six SQLite storage-fault cases pass. One native receipt can span two model requests; unsafe tool effects are not replayed | Linux, real CLI/shell containment, host/power loss and actual disk-full/corruption remain unverified. Injected storage faults are not filesystem failure certification |
-| I4: Shared files | Managed API and scripted GUI reject stale edits, but ordinary model tools/shell/Codex bypass them. The original lost-update test still describes normal agent writes. No hostile tenant isolation | Bind managed tools to trusted actor/command context, or implement whole-turn ownership covering unrestricted writers; add recovery reconciliation before unattended use |
+| I4: Shared files | Managed API and proposal GUI reject stale edits, but ordinary model tools/shell/Codex bypass them. The original lost-update test still describes normal agent writes. No hostile tenant isolation | Bind managed tools to trusted actor/command context, or implement whole-turn ownership covering unrestricted writers; add recovery reconciliation before unattended use |
 | I5: Resource bounds | Package and transport caps plus native shell timeout; initial load records sampled RSS/heap, CPU and event-loop delay. Client/server share a process; paused reader does not prove a socket limit was reached | Separate-client/socket-pressure and real-process/spend limits remain; do not infer a whole-process bound or leak freedom |
 | I6: Write/read cost | One metadata document holds bounded receipts and external progress; session scope makes progress immediately stored despite its deferred option. Views combine separate source watches/command reads. The measured burst exposes configured pending capacity, not an isolated storage/CPU ceiling | Measure commit/projection cost before optimizing. A later coalesced conversation-progress document requires projection/recovery tests; do not claim batching from the current option |
 | I7: Exceptional task faults | Public status/capacity now derive interrupted from a terminal task with unsettled metadata; settlement-fault and actual restart-limit paths are tested. Raw collaboration metadata can still retain running | Public API is authoritative for display; later audit tooling should join task/command records. Nonterminal missing-definition/migration blocks and richer unavailable status remain separate follow-up work |
@@ -123,7 +124,7 @@ Extend `packages/durable` with collaborative threads and external coding-agent e
 | I13: Deployment preparation | Unit/archive templates exist; Bash syntax is checked, but systemd, mounted volume, service authentication, lock/backup runtime and restore have not been exercised on Linux | Verify on an isolated Linux host before deployment claims. Automatic restart stays disabled; backup requires confirmed writer termination and downtime |
 | I14: Local-model fidelity | One small Qwen3 model passed four tool-written files; earlier 3B trial did not. Local IDs are declarations, not discovered capabilities; inference is serialized | Keep outcome assertions and recorded digests. Verify selected local model/context before use; this does not replace hosted/CLI checks or establish complex coding quality |
 | I15: Workspace inspection | Current text/directory inspection is available to every thread member. Manual refresh, 200 scanned entries and 64-KiB limit; no atomic snapshot or write protection. Link checks can race parent-path replacement | Keep trusted collaborators and disposable workspaces; do not advertise sandboxing. Actual Ollama browser walkthrough now passes. Pagination, file-change indicators and diffs remain optional later improvements |
-| I16: Controlled scenario lifecycle | One persisted walkthrough; no reset, automatic merge or uncertain-write reconciliation. Same-host serialization groups presentation steps, not filesystem/SQLite atomicity. Open panels poll every two seconds | Rehearse in fresh isolated data; retain the existing evidence. Later add bounded archived rounds/repair only if needed. Native tool summaries omit older/nested/external details; complete audit/diff views remain extensions |
+| I16: Controlled scenario lifecycle | Reset creates fresh stores/files; up to 64 saved rounds, no archive pruning or uncertain-write repair. Model output may be unchanged/identical or fail; native-only generation has no file tools. Two-second polling is not instant presence | Rehearse and inspect generated text; same-round retries preserve identity, stale-round actions fail. Extend ordinary coding tools/provenance separately; add archive pruning only if needed |
 
 The host-authenticated identity is a trust boundary: the library enforces membership but does not authenticate arbitrary callers itself. Do not present direct library calls as a complete authentication system.
 
@@ -174,6 +175,7 @@ The host-authenticated identity is a trust boundary: the library enforces member
 | --- | --- | --- |
 | November 10 | Conflict panel and activity feed | All **45 demo tests across 13 files** and **33 focused Durable tests across 3 files** passed. Adds four demo cases for real SQLite/HTTP conflict steps, authorization/injection, immutable retries/reopen and browser projections; preview checks saved tool request/result summaries. Root/app checks, Durable build and browser build passed; no dependency/lock changes or model/cloud calls |
 | November 10 | Actual browser control check | Chrome **156.0.8078.80**, two isolated authenticated contexts, both bases, Alice publication/Bob stale refusal, shared polling, explicit resolution with actual byte assertions, literal HTML-like text, native tool feed, relogin and 390-pixel no-overflow layout passed. Desktop/mobile screenshots visually inspected; ignored `.artifacts/collaboration-panels-*` evidence. Providers simulated; no GCP execution |
+| November 10 | Wiki and presentation refresh | 21 wiki pages, 53 categorized questions; **438 local links/anchors** across wiki, notes and presentation entry points resolve. Moloch compilation has no overfull content; 18-slide PDF/PPTX and 18-page note handout rebuilt. All slides visually inspected; native PowerPoint reopen/render and all 18 notes verified, PPTX ZIP/XML checks pass. Root `npm run check` passes with prepared Node 22.23.4; the initial unactivated-runtime run failed the dependency scan, corrected by activation. No application tests, provider calls, credentials or cloud changes; human rehearsal and rendered Mermaid verification remain pending |
 
 The earlier 86 include **13 package feature tests** and 73 affected native regression tests; managed files add **15 new package tests**, recovery **7**, the initial Codex subprocess increment **16**, and the boundary/process increment **14** (12 plus two). The demo now has **45 separate tests**: the prior 41 plus four conflict/activity cases, not repeated runs counted as coverage. All 45 passed in this increment. Browser checks and real local-model smoke are separate evidence. SQLite's existing experimental warning remains on Node 22. No full workspace test suite or paid model call was run. Maximum production capacity, real CLI/escaped descendant cleanup and host/power-loss behavior remain unmeasured.
 
@@ -189,7 +191,7 @@ The replay fixture now expects the injected developer instructions while retaini
 comparison; vendor code/recording are unchanged. This is prompt-delivery evidence, not proof that
 OpenAI/Ollama will always preserve another agent's edits.
 
-- Use the [presentation runbook](TAKE_HOME_PRESENTATION.md) for the eight-minute outline and real local-model interaction trace; human timing/rehearsal is still outstanding.
+- Use the [presentation runbook](TAKE_HOME_PRESENTATION.md) for the ten-minute outline and real local-model interaction trace; human timing/rehearsal is still outstanding.
 - Demonstrate package-owned admission first, then show the same behavior over HTTP.
 - Show all six user/agent pairings, same-agent queuing versus different-agent overlap, then the controlled lost-update trace. Queue correctness does not establish correct merging or agreement between conflicting instructions.
 - Use preview's two simulated lanes to explain transport without conflating scripted responses with model intelligence. It writes two real files through native tools/external execution in the same disposable workspace.
@@ -240,4 +242,61 @@ OpenAI/Ollama will always preserve another agent's edits.
 - Follow-up UI limitation: native command status exposes a generic `model_error`, while the specific provider diagnostic remains in the stored assistant entry. Consider a bounded, safely rendered failure detail in the command/UI projection so billing/authentication problems are actionable without direct database inspection; this is recorded as future work, not implemented here.
 - GCP guide increment turns the existing preparation kit into an operator walkthrough, with official Google/Ollama/Node references checked on November 9. It preserves the OpenAI/Ollama default, explains GCP versus application/provider identities, and uses a dedicated network with IAP-only SSH ingress and no VM service account. Demo commands distinguish the live GUI/API from isolated race, managed-file, recovery and load fixtures. Twenty-two Bash blocks, eleven PowerShell blocks and two embedded JavaScript examples pass syntax checks; guide links/anchors resolve. No VM commands, cloud changes, API-key reads, real model calls, or runtime tests were executed. Infrastructure pricing, Linux functionality and model latency remain deployment-time checks.
 - Conflict/activity increment adds the isolated scripted GUI and bounded native tool records without changing agent execution, write tools, scheduling or recovery algorithms. Browser automation initially hit an environment-specific Chrome page timeout; an owned headless process with GPU/sandbox disabled for the trusted fixture and waiting for module load completed the check. Test content was rendered literally. Only owned temporary servers/profiles/files were used; no live demo, credentials or GCP resource was changed.
-- **Immediate next implementations:** deploy/restart and rehearse awareness with an actual peer overwrite/review, then add trusted-context managed editing/file-effect provenance and explicit conflict results if scope permits. No new keys are needed beyond the configured OpenAI key/Ollama; Codex still needs separate authentication. Current request metadata is not file authorship. Presentation refresh and Linux recovery/backup acceptance remain follow-ups; Windows Bash investigation stays deferred.
+- Presentation refresh now includes the implemented managed conflict GUI, bounded activity and refreshed native/external context. It retains LaTeX/Moloch visuals and authoritative JSON notes; PowerPoint contains compiled images with editable notes. The new screenshot is local scripted browser evidence, not live model or GCP evidence. Public HTTPS and updated deployment remain unverified despite user-confirmed initial VM startup.
+- **Immediate next implementations:** deploy/restart and rehearse awareness with an actual peer overwrite/review, then add trusted-context managed editing/file-effect provenance and explicit conflict results if scope permits. No new keys are needed beyond the configured OpenAI key/Ollama; Codex still needs separate authentication. Current request metadata is not file authorship. Linux recovery/backup acceptance and human rehearsal remain follow-ups; Windows Bash investigation stays deferred.
+
+## Resettable live-proposal increment
+
+The old panel intentionally had no reset and reused fixed step IDs. The new round controller
+retains saved history while creating a fresh file/store for each reset; refresh/relogin follows
+the saved pointer. Old one-shot files are left intact. Each participant can choose a configured
+native model and custom prompt; isolated proposal conversations have no file tools, and only
+explicit managed publication writes. Preview clearly keeps fixed sample outputs.
+
+Validation: all **48 demo tests across 13 files** pass, including five conflict-round cases for
+repeated reset/reopen, stale actions, authenticated inputs, separate same-model conversations,
+immutable retry, failure and cancellation. Actual Chrome 156 checked two identities, draft
+preservation, stale refusal/resolution, reset in both views, relogin and 390-pixel layout.
+Root `npm run check`, app check/build and 478 local documentation links/anchors pass. The deck
+and all 18 note sections were regenerated with the current controls and provider prerequisites.
+The actual keyless Ollama Qwen3 4B check generated both defaults in 2.866 seconds, asserted that
+generation left the file unchanged, then checked managed refusal and reset. This is one local
+integration check, not a latency guarantee, live OpenAI check or GCP evidence. No paid provider
+calls, credential edits or cloud changes occurred. [Portable result](apps/collab-demo/scripts/results/2026-11-10-conflict-rounds-ollama.json).
+
+Immediate next work: rehearse custom prompts with the existing OpenAI/Ollama configuration and
+deploy the updated revision; then add trusted-context managed coding tools/file-effect provenance
+if scope permits. No additional native key is needed. Codex requires separate authentication;
+GCP access/cleanup/backup acceptance remains outstanding. Reset cannot repair an uncertain write.
+
+## Presentation structure and note revision
+
+The revised deck starts with Alice and Bob continuing one agent conversation, including attributed
+instructions, a shared queue and shared Stop. A third user with identical access did not explain
+the added coordination problem or match the default two-user demo. The handoff is followed by
+architecture/request handling; the stale-edit trace now immediately precedes its managed GUI
+demonstration at slides 7–8. Peer awareness follows at slide 9 so guidance and enforced checks
+are explained separately. Recovery, execution paths, evidence and deployment complete the story.
+
+Every note now has short main points and nested examples/optional technical details. Brackets
+define terms at their use, including external harness [separate agent application]. The JSON
+source drives Markdown, a one-page-per-slide PDF and native editable PowerPoint notes. Notes
+distinguish new Send from same-ID retry, destination checks from dependency checks, and completed
+proposal generation from a paused agent. Demo steps permit prepared live proposals when latency
+would interrupt the talk, with that preparation disclosed.
+
+The builder accepts `--output-suffix=-revised`, preserving the previous deck for comparison and
+avoiding replacement of an open PowerPoint. Visuals retain the Moloch theme and editable LaTeX
+source. This increment changes presentation sources/export only, not runtime guarantees. Cloud
+website access is now recorded as user-reported; the GCP Ollama delay remains an open diagnosis.
+
+Validation: 18-slide PDF/PPTX and 18-page note handout rebuilt with no LaTeX overflow; all slides
+visually reviewed. Native PowerPoint reopened the revised deck and retained every speaking point,
+detail and demo step. All note references and 86 presentation-entry Markdown links/anchors resolve.
+Root `npm run check` passes. No application tests, model calls, credential changes or cloud actions
+were required for this authoring increment; the existing earlier outputs were preserved.
+
+Immediate next work: rehearse the Alice/Bob handoff and conflict sequence using existing
+OpenAI/Ollama access, then continue managed coding tools/file-effect provenance and dependency
+validation if scope permits. No new native key is needed. Codex needs separate authentication;
+hosted rehearsal requires the latest deployed revision and GCP latency/operational checks.

@@ -14,7 +14,7 @@ The earlier small local-model trial demonstrated exactly that distinction: a com
 
 Use explicit promises or barriers that let both participants report a finished read before the test releases either writer. Sending two requests with `Promise.all` only overlaps submission; it does not guarantee the necessary file-operation order.
 
-The lost-update test initializes `base`, waits until both drivers have read it, releases A, checks A's file result, then releases B and checks the overwritten result. A managed counterpart can use the same base-sharing setup and assert stale rejection instead. This makes the causal ordering inspectable and lets a proposed GUI stop at the same boundaries for explanation. See [the actual test](../../apps/collab-demo/test/concurrency.test.ts) and [conflict demonstration](../04-files-and-conflicts.md#how-to-demonstrate-the-race-reliably).
+The lost-update test initializes `base`, waits until both drivers have read it, releases A, checks A's file result, then releases B and checks the overwritten result. A managed counterpart can use the same base-sharing setup and assert stale rejection instead. This makes the causal ordering inspectable and lets the implemented scripted GUI stop at the same boundaries for explanation. See [the actual test](../../apps/collab-demo/test/concurrency.test.ts) and [conflict demonstration](../04-files-and-conflicts.md#how-to-demonstrate-the-race-reliably).
 
 ## A recovery test passes after increasing its timeout: have you fixed the problem?
 

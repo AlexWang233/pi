@@ -13,7 +13,7 @@ See [Proposed coordination and conflict resolution](CONFLICT_RESOLUTION_PROPOSAL
 concrete database/Git-inspired designs addressing selected scenarios, their guarantees,
 implementation sequence and acceptance cases. Its first opt-in
 [`ManagedFile` API](../../packages/durable/docs/managed-files.md) is implemented and tested;
-an isolated scripted HTTP/browser walkthrough now uses it. Normal model-tool integration and
+an isolated HTTP/browser walkthrough now uses live tool-free proposal generation or scripted preview. Normal coding-tool integration and
 broader cross-harness protections remain proposals.
 
 ## How to read the register
@@ -47,7 +47,7 @@ a high-severity risk, such as an interrupted command whose filesystem effects ar
 
 | ID / problem and example | Severity | Current handling and evidence | MVP response or next protection |
 | --- | --- | --- | --- |
-| F1 — Simultaneous file edits: agents A and B both modify `App.tsx` | High | **Partial:** opt-in `ManagedFile` API and isolated scripted GUI reject a stale replacement and retain base/current/proposed. Normal model tools/shell/Codex bypass it and still reproduce lost updates | Wire a restricted managed execution mode, or own the whole workspace turn for unrestricted harnesses. All native, CLI, shell and manual writers must participate; the API alone does not protect them |
+| F1 — Simultaneous file edits: agents A and B both modify `App.tsx` | High | **Partial:** opt-in `ManagedFile` API and isolated proposal GUI reject a stale replacement and retain base/current/proposed. Live generation has no file tools; explicit Publish applies it. Normal coding tools/shell/Codex bypass it and still reproduce lost updates | Wire a restricted managed execution mode, or own the whole workspace turn for unrestricted harnesses. All native, CLI, shell and manual writers must participate; the API alone does not protect them |
 | F2 — Stale agent context: B plans against code A has since changed | High | **Partial:** managed publication compares the retained destination content before writing. Separate histories, cached plans and dependencies in other files are not invalidated | Connect fresh-read/propose tools to agents, then add declared read-set validation if needed. A new read ID is required to refresh the managed base; rejecting stale destination content does not refresh model assumptions |
 | F3 — Shared shell-command side effects: A runs tests while B changes dependencies or Git state | High for destructive operations; otherwise Medium | **Partial:** live native shells have a 60-second cap; external turns have a deadline. No workspace-wide operation coordination or rich shared operation list | Expose active operations and serialize incompatible installs, migrations, resets, builds, or test environments. Bound command runtime; a timeout does not make overlapping commands compatible |
 | F4 — Partial changes and rollback: a cancelled agent edited two of five files | High | **Open:** cancellation/failure does not restore files; receipt and filesystem changes are not one transaction | Report partial-effects risk and preserve a reviewable diff/checkpoint. Reverting requires ownership-aware review; blindly resetting can destroy another agent's accepted changes |
@@ -63,6 +63,7 @@ a high-severity risk, such as an interrupted command whose filesystem effects ar
 | T4 — Slow viewers and reconnect storms: a stalled client accumulates output or many viewers reconnect together | Medium–High | **Partial:** shared watches, viewer/frame/write-buffer caps and controlled backpressure tests. The load runner adds a real paused HTTP reader and healthy reconnect waves; attachment does not prove buffer saturation or disconnection | Keep limits; separately measure server/kernel socket pressure and simultaneous reconnect storms. Add backoff/jitter and admission controls if measured pressure requires them |
 | T5 — Misleading status or duplicate events: a tool completes before the root command, or a reconnect repeats messages | Medium–High | **Partial:** T3 replay and actual-driver scripted process cases cover item-only/early/unrelated/mismatched root events. Fixed unrelated starts retargeting the current turn. Ad-hoc Chrome verifies reconnect without duplicate entries | Keep accepted/running/completed/failed distinct. Broaden live/duplicate-event coverage; `202` is admission and progress is transient, separate from lane idleness |
 | T6 — Incomplete history or clipped output: an older failure is no longer in the latest command panel | Medium | **Partial:** snapshots retain eight commands, bounded recent messages and previews; browser transcript retains 200 entries. History is paged/projected, not a complete audit export | Label display/retention limits. Provide explicit outcome/history inspection or an export if needed; do not present bounded projections as every event or full native tool output |
+| T7 — Walkthrough reset races: Bob publishes an old proposal after Alice resets | Medium | **Tested:** every mutation names its expected round; Reset switches the durable pointer to fresh isolated state and closes old generation. Stale-round actions are refused; browser polling/relogin restores defaults and current evidence | Retain up to 64 rounds without deleting live data. Generation has no file tools; uncertain managed publication blocks reset. Archive pruning and operator repair remain extensions |
 
 ## Execution, persistence, and recovery
 
@@ -127,7 +128,7 @@ The worked examples below show the current behavior and these trade-offs concret
 | [Stream tests](test/streams.test.ts) | Deterministic fanout/reconnect/stop isolation, viewer limit, framing and controlled response backpressure |
 | [Concurrency tests](test/concurrency.test.ts) | Six user/agent pairs, gated native ordering and a deliberately reproduced lost update |
 | [Preview test](test/preview.test.ts) | Real native tools/shared-file writes and served browser modules with simulated provider/CLI I/O |
-| [Conflict GUI tests](test/conflict-demo.test.ts) and [activity tests](test/activity.test.ts) | Two authenticated scripted editors, preserved bytes on stale rejection, explicit resolution/retry, SQLite reopen and validated activity labels; normal agent writes are not protected |
+| [Conflict GUI tests](test/conflict-demo.test.ts) and [activity tests](test/activity.test.ts) | Reset/reopen and stale actions, separate same-model conversations, generation without tools, failure/cancellation and preserved managed-file outcomes; faux responses, ordinary coding writes remain unprotected |
 | [Package collaboration tests](../../packages/durable/test/collaboration.test.ts) | Admission, external ordering/stop/deadline/cleanup, close/reopen and SQLite identity preservation |
 | [Recovery tests](../../packages/durable/test/collaboration-recovery.test.ts) | Scheduler-fault status/capacity, late progress rejection and four forced owner-process kill/reopen cases on SQLite; deterministic drivers, not real CLI cleanup |
 | [Managed-file tests](../../packages/durable/test/managed-file.test.ts) | Opt-in single-file stale rejection, retained proposals, stable retries, partial-write/settlement failure and SQLite reopen; not direct shell/Codex protection |
@@ -136,7 +137,7 @@ The worked examples below show the current behavior and these trade-offs concret
 | [Persistence boundary tests](../../packages/durable/test/collaboration-boundaries.test.ts) | 12 cases: six admission/native owner kills and six SQLite commit faults, stable identities, model resend versus unsafe-tool no-replay, and uncertain external result recovery |
 | [Load runner/report](load/README.md) and [load tests](test/load.test.ts) | SQLite and real authenticated HTTP/SSE, bounded submit concurrency, start accounting, retry probes, paused reader and reconnect waves; report states completed durations and measurement limits |
 | [Local setup/evidence](LOCAL_MODELS.md) and [regular-host browser report](scripts/results/2026-11-08-ollama-browser.json) | Actual local Qwen3 tool outcomes, two browser identities/all four pairings, same-agent queue, file inspection/refresh, offline catch-up, idle reopen and stable retry; no hosted/Codex, active-shell or GCP verification |
-| [Presentation runbook](../../TAKE_HOME_PRESENTATION.md) | Eight-minute outline, repeatable local interaction trace and explicit outstanding gates; human rehearsal remains pending |
+| [Presentation runbook](../../TAKE_HOME_PRESENTATION.md) | Ten-minute outline, repeatable local interaction trace and explicit outstanding gates; human rehearsal remains pending |
 | [Implementation record](../../TAKE_HOME_PROGRESS.md) | Actual check results, remaining risks and unperformed validation |
 
 ## Worked examples and walkthrough
@@ -144,11 +145,16 @@ The worked examples below show the current behavior and these trade-offs concret
 ### Controlled managed-file GUI
 
 Open **Shared-file conflict · Controlled demonstration** as Alice and Bob in separate profiles.
-Both prepare, Alice publishes first, Bob's stale edit is rejected, and Bob explicitly resolves
+Both choose a native model/prompt and generate proposals, Alice publishes first, Bob's stale edit is rejected, and Bob explicitly resolves
 using reviewed text. Both pages show current/base/proposed content and retained outcomes.
-This scenario uses a separate Durable/SQLite store and real file, with no model call and no
-change to the live agents' workspace. Reconnect restores saved evidence; fixed step IDs make
-retries safe. There is one walkthrough and no reset route. See the [runbook](README.md#show-a-concrete-conflict-and-its-resolution).
+Live generation uses isolated participant conversations with no file tools; only explicit
+managed publication writes the separate real file. Preview returns fixed samples without model
+calls. Reset restores a neutral file/default prompts in a new round and closes old generation;
+the expected round ID rejects late actions. Reconnect restores the active round, up to 64 rounds
+are retained, and live coding histories/files stay untouched. An actual Ollama check covers
+generation, unchanged bytes before Publish, stale refusal and Reset. See the
+[runbook](README.md#show-a-concrete-conflict-and-its-resolution) and
+[portable result](scripts/results/2026-11-10-conflict-rounds-ollama.json).
 
 Each normal lane also shows attributed observed request statuses and recent committed native
 tool requests/results. This is bounded presentation evidence, not a full chronological audit

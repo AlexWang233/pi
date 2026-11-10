@@ -1,8 +1,8 @@
 # Slide-by-slide speaker notes
 
-12 main slides, 8 minutes 30 seconds of planned cues; four optional backup slides.
+14 main slides, 10 minutes 0 seconds of planned cues; 4 optional backup slides.
 
-GCP is not deployed. All hosted demonstrations below are plans for after deployment.
+Use each short main point as the explanation; the sub-bullets supply examples and optional technical detail. Brackets define project-specific terms.
 
 The notes in the PowerPoint export come from the same `notes.json` source.
 
@@ -12,283 +12,474 @@ The notes in the PowerPoint export come from the same `notes.json` source.
 
 **Speaking points**
 
-- I extended Pi Durable itself so several people can instruct shared coding agents in the same project folder. The central engineering work is deciding what gets saved, how shared requests are ordered, and what recovery can safely repeat.
-- This is a take-home prototype built with AI assistance and reused upstream code. I will distinguish implemented behavior, measured evidence, and planned extensions.
+- This fork lets Alice and Bob instruct the same coding agents in one project folder.
+  - Example: Alice starts a change; Bob sees it, adds a follow-up and asks another agent to review the files.
+- The engineering work is shared control, saved requests and explicit failure handling.
+  - Technical: a harness [software running the model/tool loop] already existed in Durable. We extended it rather than rebuilding that loop.
 
-**Suggested demonstration:** No interaction yet. Keep two authenticated browser sessions ready on the future GCP host and use a disposable presentation thread/store.
+**Show / demonstrate**
 
-**Fallback:** Use the included local screenshot and controlled file trace if the model or hosted app is unavailable.
+1. Keep two browser profiles ready as Alice and Bob. Do not display their access tokens.
 
-**Boundary to state:** GCP is not deployed. All cloud demonstrations in these notes are a post-deployment plan, not a record of a completed cloud run.
+**If unavailable:** Use the recorded local screenshot if the website is unavailable.
+
+**Limit to state:** This is a trusted-team prototype; ordinary coding writes are not generally conflict-safe.
+
+**Transition:** First, what changes when a second person joins the same agents?
 
 **References:** [llm-wiki/README.md#the-short-project-pitch](../../llm-wiki/README.md#the-short-project-pitch); [PROJECT_INSTRUCTIONS.txt](../../PROJECT_INSTRUCTIONS.txt)
 
-## 02. Shared agents, separate conversations
+## 02. Two people share the same agent history
 
-**Target time:** 25 seconds.
+**Target time:** 40 seconds.
 
 **Speaking points**
 
-- M:N means users share agent identities, not that every person gets a private copy of each agent. Alice and Bob can both address A and B; A has one shared conversation and queue, and B has a separate conversation.
-- Both agents see the same workspace files. The three-by-two table illustrates the relationship model and matches the deterministic preview; the normal real-provider example has two users and two agents.
-- The system can record Alice asking for React and Bob asking for Vue. Ordering and attribution do not decide which product requirement should win.
+- Bob sees Alice's work in the same agent conversation; he does not need to copy it into another chat.
+  - Example: Alice asks OpenAI to add search. Bob adds: "Handle empty searches too." Both instructions keep their author names.
+- A second person can affect another person's work, so queueing and shared control matter.
+  - Example: Bob's follow-up waits if OpenAI is busy. Stop affects that shared agent and its queued inputs, including Alice's.
+  - Technical: a lane [one named agent's conversation and queue] is shared by both users; it is not a private copy per browser.
+- A second agent can inspect the same files while keeping its own conversation history.
+  - Example: Bob asks Ollama to review the search implementation. This is a user-directed request, not automatic delegation between agents.
 
-**Suggested demonstration:** On the future GCP app, show the member list, both agent panels, and the access/coordination section. Use Alice and Bob for the live four pairings; add Carol only in a separately configured fresh store if you want six pairings.
+**Show / demonstrate**
 
-**Fallback:** Point to the access matrix and explain why two pages observe the same agent history.
+1. Point to Alice and Bob in two browser profiles.
+2. Point to OpenAI and Ollama, matching the actual two-user/two-agent default.
 
-**Boundary to state:** Membership is fixed for a saved store. The matrix shows access, not online presence or per-agent privacy; agents do not automatically share every conversation message.
+**If unavailable:** Walk through the three rows on the slide; an access matrix is unnecessary.
+
+**Limit to state:** We show attribution and ordering, not automatic agreement between conflicting human requirements.
+
+**Transition:** Here is the same handoff in the web app.
 
 **References:** [llm-wiki/02-commands-and-concurrency.md#many-to-many-sharing-is-a-relationship-model](../../llm-wiki/02-commands-and-concurrency.md#many-to-many-sharing-is-a-relationship-model); [llm-wiki/interview-questions/01-architecture-and-scope.md#why-do-two-agents-share-files-but-keep-separate-conversation-histories](../../llm-wiki/interview-questions/01-architecture-and-scope.md#why-do-two-agents-share-files-but-keep-separate-conversation-histories)
 
-## 03. Collaboration belongs inside Durable
+## 03. Demo: one person hands work to another
 
-**Target time:** 60 seconds.
-
-**Speaking points**
-
-- The host identifies Alice from her login token. The collaboration package checks membership and saves her attributed request; existing Durable conversations, inboxes, tasks, and storage run the work.
-- The key design decision was avoiding a second queue and database in the web server. Otherwise the server could accept a request and crash before handing it to Durable. Saving the receipt and work together removes that particular gap.
-- Pi AI and native coding tools were reused. The optional external path uses a T3-backed Codex adapter. Chord remains inside Durable, so this is a flexible package boundary, not a claim that all framework dependence was removed.
-
-**Suggested demonstration:** Keep this architectural explanation on the slide. Optionally show that Alice's and Bob's browser pages use the same host; a standalone package example can exercise collaboration without the web server.
-
-**Fallback:** Trace Alice -> authenticated host -> collaboration package -> Durable -> native tools or Codex -> shared workspace.
-
-**Boundary to state:** The current model is one exclusive owner per thread store/workspace. The browser and read-only file viewer do not own the agent execution queue.
-
-**References:** [llm-wiki/01-architecture.md#why-the-feature-lives-inside-durable](../../llm-wiki/01-architecture.md#why-the-feature-lives-inside-durable); [llm-wiki/01-architecture.md#what-was-added-and-what-was-reused](../../llm-wiki/01-architecture.md#what-was-added-and-what-was-reused); [llm-wiki/09-technical-terms.md#thread-conversation-lane-session-and-harness](../../llm-wiki/09-technical-terms.md#thread-conversation-lane-session-and-harness)
-
-## 04. Accept once; run when the agent is ready
-
-**Target time:** 40 seconds.
+**Target time:** 65 seconds.
 
 **Speaking points**
 
-- Acceptance is a short saved-state decision; the model can take much longer. The HTTP 202 reply means the request was accepted, not that the requested code is correct. Work can begin after the save before that reply reaches the browser; the slide lists conceptual stages, not a promise to wait for network delivery.
-- If the response is lost after saving, Alice retries the same thread/user/agent/request ID and text to find the original receipt. A new ID is new work; the same identity with changed text is rejected.
-- The demo runs follow-ups one at a time on each agent. Independent agent lanes can overlap, while database commits take turns separately; neither rule protects all shared-file changes.
+- Show Bob observing and continuing Alice's request on the same agent.
+  - Example: Alice creates handoff.txt; Bob updates that same file through the shared OpenAI conversation.
+- Check the real file, not just the model's answer.
+  - Example: after Bob's edit, both pages refresh Workspace files and see the updated text.
+- The second agent is another participant in the same workspace.
+  - Example: Bob asks Ollama to read the file. Its separate history does not require a separate copy of the project.
 
-**Suggested demonstration:** If the first live instruction is still active, submit Bob's prepared follow-up to the same agent and point to queued status. Do not rely on typing speed. To show an actual ambiguous-response retry, use a separately rehearsed request harness preserving the exact original ID; there is no current GUI fault-injection button.
+**Show / demonstrate**
 
-**Fallback:** Use the click-to-result sequence diagram in the linked wiki. A stable-ID retry test is more reliable than manually interrupting a fast live request.
+1. Alice to OpenAI: "Create handoff.txt containing exactly DRAFT. Then reply DONE."
+2. Bob observes Alice's instruction, then tells the same agent: "Replace DRAFT with REVIEWED in handoff.txt. Then reply DONE."
+3. Both refresh Workspace files. If rehearsed latency permits, Bob asks Ollama to read handoff.txt; otherwise show the recorded result.
 
-**Boundary to state:** Do not equate one accepted command with one model request or one file effect. Browser reload/relogin can lose its unsent or ambiguous local retry draft.
+**If unavailable:** Use the historical local Ollama screenshot and describe the handoff as a planned live sequence.
 
-**References:** [llm-wiki/02-commands-and-concurrency.md#a-command-from-click-to-result](../../llm-wiki/02-commands-and-concurrency.md#a-command-from-click-to-result); [llm-wiki/02-commands-and-concurrency.md#retry-identity-and-idempotent-admission](../../llm-wiki/02-commands-and-concurrency.md#retry-identity-and-idempotent-admission); [llm-wiki/09-technical-terms.md#idempotency-deduplication-and-exactly-once-claims](../../llm-wiki/09-technical-terms.md#idempotency-deduplication-and-exactly-once-claims)
+**Limit to state:** The screenshot is local recorded evidence. Fast completion may hide queueing; GCP Ollama latency is still being investigated.
 
-## 05. Demo: two people share the same agents
-
-**Target time:** 105 seconds.
-
-**Speaking points**
-
-- I will show shared observations and actual file bytes. A model's DONE message is not my test of success.
-- The screenshot is from the recorded local Ollama run, not from GCP. It also shows a model describing an edit mismatch despite correct final bytes, which is why independent file inspection matters.
-- Use the configured agent IDs shown in the app; A and B are explanatory names. Local Ollama can process inference serially even though agent histories and runtime lanes are independent.
-
-**Suggested demonstration:** After GCP readiness: open two browser profiles and privately authenticate as Alice and Bob. Alice -> A: 'Use the write tool once to create alice.txt containing exactly ALICE-ONE. Then reply DONE.' Bob -> A: 'Use the edit tool once on alice.txt to replace ALICE-ONE with ALICE-TWO. Then reply DONE.' Bob -> B: 'Use the write tool once to create bob.txt containing exactly BOB-ONE. Then reply DONE.' Alice -> B: 'Use the read tool on bob.txt, then reply with only its contents.' Inspect ALICE-TWO and BOB-ONE in Workspace files, using manual Refresh. Reconnect/reload Alice and sign in again if needed; show saved history without resubmitting. Paste prompts prepared in advance.
-
-**Fallback:** Use the screenshot and the recorded local browser evidence. If A finishes before Bob submits, explain that no wait was needed; do not claim that run demonstrated queueing. Use controlled tests to establish the queue rule.
-
-**Boundary to state:** Use a fresh disposable presentation store and rehearse these filenames. Do not overwrite a live team's files or claim that a screenshot establishes cloud deployment. Refresh is manual and the file view is not an atomic snapshot.
+**Transition:** Now trace which part of Pi accepts, saves and runs that shared request.
 
 **References:** [llm-wiki/06-web-and-demonstration.md#what-the-current-gui-can-prove](../../llm-wiki/06-web-and-demonstration.md#what-the-current-gui-can-prove); [llm-wiki/06-web-and-demonstration.md#the-file-browser-is-inspection-not-version-control](../../llm-wiki/06-web-and-demonstration.md#the-file-browser-is-inspection-not-version-control); [apps/collab-demo/scripts/results/2026-11-08-ollama-browser.json](../../apps/collab-demo/scripts/results/2026-11-08-ollama-browser.json)
 
-## 06. How one agent can erase another's edit
-
-**Target time:** 35 seconds.
-
-**Speaking points**
-
-- Both agents can read the same old base before either writes. A saves base plus Alice, and B later saves base plus Bob from its stale copy, erasing Alice's change.
-- The final writes happened in order, so serializing individual writes is insufficient. The gap is read, model planning, then write; shell commands and external Codex can also bypass Pi's individual mutation gate.
-- This is a controlled lost-update example. Unrestricted real writes may also fail or leave partial content, so last-writer-wins is not a universal filesystem promise.
-
-**Suggested demonstration:** There is no current GUI control to pause both agents after reading. On GCP, use the rehearsed controlled test/example from an SSH terminal or show this trace; do not race two real prompts and assume their ordering is known.
-
-**Fallback:** The table is the entire causal trace. Ask the audience what B's remembered file contains after A writes.
-
-**Boundary to state:** Ordinary model tools still permit this risk. Same-agent queues are not cross-agent conflict resolution.
-
-**References:** [llm-wiki/04-files-and-conflicts.md#the-lost-update-example-to-remember](../../llm-wiki/04-files-and-conflicts.md#the-lost-update-example-to-remember); [llm-wiki/interview-questions/02-requests-and-concurrency.md#javascript-runs-on-one-event-loop-so-how-can-two-agents-still-lose-a-file-edit](../../llm-wiki/interview-questions/02-requests-and-concurrency.md#javascript-runs-on-one-event-loop-so-how-can-two-agents-still-lose-a-file-edit)
-
-## 07. Reject stale proposals before overwriting
+## 04. Where the collaboration rules live
 
 **Target time:** 40 seconds.
 
 **Speaking points**
 
-- The managed-file API borrows the database idea of a conditional update: apply only if the file still matches what this participant originally read. It preserves base, current, and proposed content when the check fails.
-- Alice applies first, Bob's stale proposal conflicts, then a fresh proposal explicitly combines both changes. No automatic merge is claimed, and repeated old proposal IDs retain their recorded outcomes.
-- This is an opt-in single-file API, not the normal model-tool path. Whole-instruction ownership is an alternative with less concurrency; separate Git worktrees isolate edits but require later integration.
+- The web host identifies the user; the Durable package owns the collaboration rules.
+  - Example: the host maps a token to Alice, then the package checks that Alice belongs to the project.
+  - Technical: authentication [who is calling] and authorization [what that person may do] are separate checks.
+- We reused Durable's execution and storage rather than adding a second queue in the web server.
+  - Example: the saved request and work enter Durable together, avoiding a handoff gap between two queues.
+- Coding-agent is a separate Pi application; our demo runs Durable directly.
+  - Technical: coding-agent has its own CLI/SDK [terminal application/programming interface]. Durable already had a separate model/tool loop before our fork.
+  - Technical: Chord supplies selected state/watch utilities here; Pi AI handles model-provider communication.
 
-**Suggested demonstration:** After building on the VM, run example 41 in a separate SSH terminal: cd /opt/pi/packages/durable; node --conditions=source --experimental-strip-types test/examples/41-managed-file-conflict.ts. It owns temporary files, needs no app server or model key, and shows applied/conflict/explicit-resolution results. A future GUI panel could expose the same steps, but no such panel exists today.
+**Show / demonstrate**
 
-**Fallback:** Use the managed-file diagram in the wiki or a previously recorded example result, clearly labelled as recorded evidence.
+1. Trace Alice → web host → Durable collaboration → model/tools → shared files.
 
-**Boundary to state:** All relevant writers must participate. The current slice has no automatic merge, multi-file transaction, or automatic uncertain-write reconciliation; ordinary native tools, shell, Codex, and the GUI are not integrated with it.
+**If unavailable:** Use the responsibility table; no source-code tour is needed.
 
-**References:** [llm-wiki/04-files-and-conflicts.md#managed-publication-and-optimistic-concurrency-control](../../llm-wiki/04-files-and-conflicts.md#managed-publication-and-optimistic-concurrency-control); [llm-wiki/04-files-and-conflicts.md#what-git-contributes-and-what-it-does-not](../../llm-wiki/04-files-and-conflicts.md#what-git-contributes-and-what-it-does-not); [packages/durable/test/examples/41-managed-file-conflict.ts](../../packages/durable/test/examples/41-managed-file-conflict.ts)
+**Limit to state:** One owning runtime controls each store/workspace. This does not provide multi-machine availability.
 
-## 08. A saved request does not make every effect repeatable
+**Transition:** Saving the request is separate from waiting for its model answer.
 
-**Target time:** 60 seconds.
+**References:** [llm-wiki/01-architecture.md#why-the-feature-lives-inside-durable](../../llm-wiki/01-architecture.md#why-the-feature-lives-inside-durable); [llm-wiki/01-architecture.md#what-was-added-and-what-was-reused](../../llm-wiki/01-architecture.md#what-was-added-and-what-was-reused); [llm-wiki/09-technical-terms.md#thread-conversation-lane-session-and-harness](../../llm-wiki/09-technical-terms.md#thread-conversation-lane-session-and-harness)
 
-**Speaking points**
-
-- Suppose a tool appends hello and the host dies before saving success. A request receipt tells us the instruction was accepted, not whether the append happened; blindly repeating it could append twice.
-- Native generation retains Durable's recovery rules, including possible repeated model requests and declared unsafe-tool no-replay. The external path saves a dispatch marker before attempting Codex and reports an uncertain attempt interrupted instead of automatically resending.
-- The trade-off is that a crash after the marker but before send can interrupt work that never started. Cancellation does not undo existing file changes, and a stopped parent process does not prove every child writer has stopped.
-
-**Suggested demonstration:** A safe hosted GUI demonstration is reconnect followed by a rehearsed idle service stop/start on a disposable store, then restored files/history. Keep active crash injection and external-effect tests separate in controlled fixtures; never kill the shared live host for an unrehearsed presentation.
-
-**Fallback:** Walk through the append/crash diagram in the glossary. State separately what happens to the receipt, model request, and file effect.
-
-**Boundary to state:** An idle restart is not active-shell takeover or power-loss proof. Storage errors can happen after commit; the whole failed Harness must be stopped before reopen. Windows Bash shutdown investigation remains deferred.
-
-**References:** [llm-wiki/03-durability-and-recovery.md](../../llm-wiki/03-durability-and-recovery.md); [llm-wiki/09-technical-terms.md#side-effects-checkpoints-and-dispatch-markers](../../llm-wiki/09-technical-terms.md#side-effects-checkpoints-and-dispatch-markers); [llm-wiki/interview-questions/04-failures-and-recovery.md](../../llm-wiki/interview-questions/04-failures-and-recovery.md)
-
-## 09. Model providers and external harnesses
-
-**Target time:** 35 seconds.
-
-**Speaking points**
-
-- A provider supplies model output; a harness owns the surrounding conversation and tool loop. OpenAI plus Ollama uses two providers through Pi, whereas Codex is an external harness with its own loop.
-- The Codex adapter actually executes vendored T3 typed client/protocol code, with replay support in tests and preserved provenance/licenses. It does not import T3's whole application, credential system, or UI.
-- Scripted subprocess tests caught wrong-turn correlation and interrupt-delivery/cleanup races. Real CLI initialization works, but no recorded authenticated real Codex coding turn or continuation exists. Claude, Gemini, and DeepSeek have selectable provider paths; their live keys were not supplied for multi-key testing.
-
-**Suggested demonstration:** On the future GCP host, show the configured OpenAI/Ollama agent names and use their existing successful instructions. Demonstrate a Codex lane only after separate service-user authentication and a real turn/continuation check; use a fresh store for changed agent configuration.
-
-**Fallback:** Use the provider/harness diagram and the T3 provenance file instead of pretending a native OpenAI turn is Codex evidence.
-
-**Boundary to state:** Unsupported interactive Codex approvals/questions fail visibly; shared approval arbitration is not implemented. OpenAI API credentials and Codex authentication are separate prerequisites.
-
-**References:** [llm-wiki/05-providers-adapters-and-trust.md#exactly-what-t3-contributed](../../llm-wiki/05-providers-adapters-and-trust.md#exactly-what-t3-contributed); [llm-wiki/09-technical-terms.md#provider-model-agent-harness-and-adapter](../../llm-wiki/09-technical-terms.md#provider-model-agent-harness-and-adapter); [packages/durable/src/adapters/codex/vendor/UPSTREAM.md](../../packages/durable/src/adapters/codex/vendor/UPSTREAM.md)
-
-## 10. Evidence at three different boundaries
+## 05. Saving a request is separate from its answer
 
 **Target time:** 40 seconds.
 
 **Speaking points**
 
-- Controlled tests force races and selected crash points; real local-model checks establish actual tool use and file bytes; load checks exercise real transport/storage with simulated work. These are different claims, and no category replaces the others.
-- The roughly ten-minute soak completed 1,200 commands at an offered two per second across ten lanes. The burst accepted/completed 81 and rejected 519 at configured capacity, so the first limit observed was the queue cap, not a database throughput ceiling.
-- Across baseline, burst, and soak, all 1,301 accepted logical commands had one recorded start; 30 retry probes added no starts. These are observations for simulated execution, not a universal exactly-once or real-model throughput guarantee.
+- Accepted means the instruction was saved, not that the model finished it.
+  - Example: Alice sees "Accepted durably" while her instruction remains queued.
+  - Technical: a receipt [saved acceptance record] and executable work are committed in one transaction [database changes saved together].
+- Retrying the original request ID finds its existing receipt; sending the same text again creates new work.
+  - Example: Retry same command preserves the ID. Copy/paste followed by a new Send generates another ID.
+  - Technical: identity includes project/thread, user, agent and request ID. A thread [shared project] groups the participants and workspace.
+- A missing acknowledgement can leave the browser unsure whether acceptance happened.
+  - Example: the save succeeds but the network reply is lost. Retry the original ID; do not invent a new ID to check status.
+  - Technical: the live receipt is in <COLLAB_DATA>/thread.sqlite. Reload/relogin currently loses the browser's pending retry ID, not the server record.
 
-**Suggested demonstration:** Show the portable load report from the repository or a saved report in the SSH terminal. The current web app has no performance dashboard. Running the workload in another disposable owner can be rehearsed separately; avoid load against the presentation's live data.
+**Show / demonstrate**
 
-**Fallback:** Use the slide's measured counts and explicitly describe simulated execution over real SQLite/HTTP/SSE.
+1. Point to an accepted request and its queued/running/completed status.
+2. Explain Retry same command using the lost-reply example; there is no GUI button to force that network failure.
 
-**Boundary to state:** The recorded p95 was 236.6 ms and sampled peak RSS 179.2 MiB for a combined client/server process; neither is a bound. The latest full recorded demo suite covered 38 cases, with later focused runs; do not claim a fresh all-41 run. OpenAI currently works by the user's manual report.
+**If unavailable:** Read the ID example on the slide; do not deliberately break the presentation connection.
 
-**References:** [llm-wiki/07-evidence-scaling-and-deployment.md#the-load-result-worth-remembering](../../llm-wiki/07-evidence-scaling-and-deployment.md#the-load-result-worth-remembering); [llm-wiki/07-evidence-scaling-and-deployment.md#what-the-measurements-cannot-prove](../../llm-wiki/07-evidence-scaling-and-deployment.md#what-the-measurements-cannot-prove); [apps/collab-demo/load/README.md](../../apps/collab-demo/load/README.md)
+**Limit to state:** One accepted command can still involve several model calls or file operations.
 
-## 11. GCP deployment plan: one exclusive owner
+**Transition:** The activity view shows those later stages separately.
+
+**References:** [llm-wiki/02-commands-and-concurrency.md#a-command-from-click-to-result](../../llm-wiki/02-commands-and-concurrency.md#a-command-from-click-to-result); [llm-wiki/02-commands-and-concurrency.md#retry-identity-and-idempotent-admission](../../llm-wiki/02-commands-and-concurrency.md#retry-identity-and-idempotent-admission); [llm-wiki/09-technical-terms.md#idempotency-deduplication-and-exactly-once-claims](../../llm-wiki/09-technical-terms.md#idempotency-deduplication-and-exactly-once-claims); [apps/collab-demo/web/app.ts](../../apps/collab-demo/web/app.ts)
+
+## 06. Activity shows requests, tools and current files
 
 **Target time:** 30 seconds.
 
 **Speaking points**
 
-- A single Linux VM fits the prototype's long-lived process, SQLite, and shared local workspace. Data is on persistent storage; the app binds to loopback and evaluator browsers connect through SSH forwarding.
-- One owner is an explicit limitation: process, data storage, and VM/zone are failure domains. More web-server copies against the same workspace do not safely provide high availability.
-- The prepared unit disables automatic restart for inspection and requests group cleanup. Actual Linux service authentication, descendant shutdown, missing-mount behavior, reboot persistence, and backup restoration still need verification.
+- The activity feed shows who requested work and the status we observed.
+  - Example: "Alice → OpenAI → running" establishes attribution and observed status, not task correctness.
+- A tool result and a correct file change are different evidence.
+  - Example: a write tool can complete successfully while producing the wrong implementation. Inspect the file and run relevant tests.
+- The feed is recent evidence, not a complete audit history.
+  - Technical: an audit log [retained sequence of all relevant events] is not implemented. The page retains 64 observations; tool records are agent-scoped when a particular user request cannot be identified reliably.
 
-**Suggested demonstration:** After deployment: gcloud compute ssh VM_NAME --project=PROJECT_ID --zone=ZONE -- -N -L 4310:127.0.0.1:4310. Then open http://127.0.0.1:4310 in two profiles. The browser URL is local because the SSH tunnel forwards to GCP. Keep tokens and provider keys off the projected screen.
+**Show / demonstrate**
 
-**Fallback:** Explain the prepared deployment runbook and mark every cloud acceptance check pending. There is no GCP URL, VM, or recorded cloud screenshot to show yet.
+1. Expand Activity, point to an author and a native tool summary, then inspect the file.
 
-**Boundary to state:** Do not expose the app publicly as a shortcut. The current local Ollama result does not establish model performance on a small CPU VM; choose and test the VM/model composition before the talk.
+**If unavailable:** Use saved activity rather than waiting for a new model turn.
+
+**Limit to state:** Reconnect can miss intermediate transitions; tool summaries do not establish line-by-line file authorship.
+
+**Transition:** Even correctly completed requests can conflict when agents share files.
+
+**References:** [llm-wiki/06-web-and-demonstration.md#what-the-activity-feed-means](../../llm-wiki/06-web-and-demonstration.md#what-the-activity-feed-means); [llm-wiki/interview-questions/09-collaboration-awareness.md#can-the-activity-feed-tell-me-who-changed-a-particular-line](../../llm-wiki/interview-questions/09-collaboration-awareness.md#can-the-activity-feed-tell-me-who-changed-a-particular-line)
+
+## 07. The stale-edit problem
+
+**Target time:** 30 seconds.
+
+**Speaking points**
+
+- An edit is stale [based on outdated information] when another writer changes the file after the agent reads it.
+  - Example: A and B read base. A writes base + alice; B later writes base + bob and removes Alice's change.
+- Taking turns only during the final write does not make the earlier read current.
+  - Technical: the existing per-file queue covers individual participating mutations, not the whole read → plan → write task.
+- A dependency can change even when the destination file stays unchanged.
+  - Example: B changes file2's API from a string parameter to an object. A's replacement of file1 can still use the old API; our current destination-only check does not detect this.
+
+**Show / demonstrate**
+
+1. Explain the three-step overwrite trace, then move directly to the managed conflict demonstration on slide 8.
+
+**If unavailable:** Use the trace; racing two live models is unnecessary.
+
+**Limit to state:** Ordinary coding-agent tools, shell commands and Codex still permit these risks.
+
+**Transition:** The next slide demonstrates a narrow enforced check before publication.
+
+**References:** [llm-wiki/04-files-and-conflicts.md#the-lost-update-example-to-remember](../../llm-wiki/04-files-and-conflicts.md#the-lost-update-example-to-remember); [llm-wiki/interview-questions/02-requests-and-concurrency.md#javascript-runs-on-one-event-loop-so-how-can-two-agents-still-lose-a-file-edit](../../llm-wiki/interview-questions/02-requests-and-concurrency.md#javascript-runs-on-one-event-loop-so-how-can-two-agents-still-lose-a-file-edit)
+
+## 08. Demo: generate, publish, resolve and reset
+
+**Target time:** 95 seconds.
+
+**Speaking points**
+
+- Generate asks a selected model for replacement text; it does not write the file.
+  - Example: both users retain Welcome/neutral. Alice proposes Hello/light; Bob proposes Hi from the team/dark.
+  - Technical: each participant gets an isolated proposal-only conversation with no file/shell tools, even if both select the same model.
+- Publish checks the saved original against the current file and refuses a stale proposal.
+  - Example: Alice publishes first. Bob's old-base proposal is retained as a conflict while Alice's bytes stay unchanged.
+  - Technical: this is optimistic concurrency control [prepare independently, validate before applying]. It checks one destination, not every dependency.
+- The user resolves the conflict after generation has finished; the agent is not paused waiting for that decision.
+  - Example: Bob explicitly chooses Hello/dark and publishes it. There is no automatic merge, re-draft, continuation or resolution notification to the model.
+  - Technical: Reset creates a fresh round, refuses old-round actions and closes old generation. Up to 64 rounds are retained; an uncertain publication still requires inspection.
+
+**Show / demonstrate**
+
+1. Before the talk: reset and generate both proposals; disclose that generation was prepared in advance if model latency is high.
+2. At this slide: show both original bases and generated proposals. Publish Alice, then Bob; inspect the retained conflict.
+3. Bob explicitly enters "Greeting: Hello" and "Theme: dark", then publishes the reviewed resolution.
+4. Reset for both users; show fresh defaults and unchanged normal coding histories. Preview uses fixed sample outputs, not prompt interpretation.
+
+**If unavailable:** Run example 41 separately, or use the table as a labelled worked example. It needs no model key.
+
+**Limit to state:** Only the managed proposal path has this check. Ordinary coding writes remain unprotected.
+
+**Transition:** Enforcing a write check is separate from explaining peer changes to a model.
+
+**References:** [llm-wiki/06-web-and-demonstration.md#how-the-scenario-panel-demonstrates-a-conflict](../../llm-wiki/06-web-and-demonstration.md#how-the-scenario-panel-demonstrates-a-conflict); [llm-wiki/04-files-and-conflicts.md#managed-publication-and-optimistic-concurrency-control](../../llm-wiki/04-files-and-conflicts.md#managed-publication-and-optimistic-concurrency-control); [apps/collab-demo/src/conflict-demo.ts](../../apps/collab-demo/src/conflict-demo.ts); [apps/collab-demo/scripts/results/2026-11-10-conflict-rounds-ollama.json](../../apps/collab-demo/scripts/results/2026-11-10-conflict-rounds-ollama.json)
+
+## 09. Agents know peers may change files
+
+**Target time:** 40 seconds.
+
+**Speaking points**
+
+- We tell agents that their private history may not explain the current shared file.
+  - Example: Ollama writes blue; GPT later changes it to green. Ollama should reread rather than assume its own previous edit failed.
+- The added context contains a short policy and limited participant/request references, not everyone's conversations.
+  - Technical: native [Durable-run] agents receive refreshed context before each model request. External agent applications receive it at turn open/resume.
+  - Example: recent accepted work does not prove who changed a file or explain the user's resolution decision.
+- This improves the information supplied to the model; it does not enforce correct behavior.
+  - Example: another agent can change a dependency after a reread. Dependency-version checks and explicit resolution notices remain extensions.
+  - Technical: input tokens [pieces of text processed by the model] increase, but no extra model call is required just to supply this context. Its latency/cost impact is unmeasured.
+
+**Show / demonstrate**
+
+1. Use the blue → green → reread example. Show a real peer-edit turn only after rehearsing its actual behavior.
+
+**If unavailable:** Explain the example without waiting for another model call.
+
+**Limit to state:** There is no guaranteed model compliance, automatic file-author log or notification of every user resolution.
+
+**Transition:** We also need to distinguish saved requests from recoverable external effects.
+
+**References:** [llm-wiki/10-collaboration-awareness.md](../../llm-wiki/10-collaboration-awareness.md); [llm-wiki/interview-questions/09-collaboration-awareness.md#does-rereading-before-writing-guarantee-that-an-edit-is-current](../../llm-wiki/interview-questions/09-collaboration-awareness.md#does-rereading-before-writing-guarantee-that-an-edit-is-current); [packages/durable/src/collaboration/context.ts](../../packages/durable/src/collaboration/context.ts)
+
+## 10. What survives a crash
+
+**Target time:** 50 seconds.
+
+**Speaking points**
+
+- Saved requests and results can survive a restart; an in-flight model call is not a saved running process.
+  - Example: Alice's accepted instruction remains in SQLite [an embedded database file] when the app restarts.
+- A file change can happen before its success is saved, making repetition unsafe.
+  - Example: a tool appends hello; the host crashes before recording success. Repeating the operation could append hello twice.
+  - Technical: database commits and workspace writes are separate operations. One accepted command is not a promise of one model call or one file effect.
+- Uncertain external work is marked interrupted rather than automatically resent.
+  - Technical: a dispatch marker [saved record that an external attempt may have been sent] is written before sending to Codex. A crash before send can therefore also abandon an attempt that never ran.
+  - Example: Stop does not undo edits or prove every child process has exited.
+
+**Show / demonstrate**
+
+1. If rehearsed on disposable data, show saved history after an idle service stop/start. Keep active crash tests separate.
+
+**If unavailable:** Explain append → crash → unknown outcome using the table.
+
+**Limit to state:** Native model calls may repeat under Durable recovery rules. Windows Bash shutdown and full Linux child cleanup remain unresolved checks.
+
+**Transition:** Codex has its own execution loop, which explains the special external boundary.
+
+**References:** [llm-wiki/03-durability-and-recovery.md](../../llm-wiki/03-durability-and-recovery.md); [llm-wiki/09-technical-terms.md#side-effects-checkpoints-and-dispatch-markers](../../llm-wiki/09-technical-terms.md#side-effects-checkpoints-and-dispatch-markers); [llm-wiki/interview-questions/04-failures-and-recovery.md](../../llm-wiki/interview-questions/04-failures-and-recovery.md)
+
+## 11. A model service versus an agent application
+
+**Target time:** 35 seconds.
+
+**Speaking points**
+
+- A provider [service supplying model output] is different from a harness [software running conversation and tools].
+  - Example: OpenAI and Ollama supply model output to Durable. Durable runs their tool loop.
+- An external harness [separate agent application] runs its own model/tool loop outside Durable.
+  - Example: Codex runs as another process. Our adapter [connector translating requests/events] sends work and tracks its result; it is not just another model URL.
+- We reused T3's actual Codex client/protocol code, not its entire app.
+  - Technical: protocol [request/event format] tests use scripted child processes and recorded messages. Real CLI [command-line application] initialization works, but a real authenticated coding turn/continuation is still unverified.
+
+**Show / demonstrate**
+
+1. Point to the OpenAI/Ollama names, then explain Codex as a separate optional execution path.
+
+**If unavailable:** Use the two execution paths; no live Codex demonstration is required without verified authentication.
+
+**Limit to state:** Two native model providers do not prove two working agent applications. Other provider keys and real Codex authentication have separate checks.
+
+**Transition:** Here is the evidence we have for each claim.
+
+**References:** [llm-wiki/05-providers-adapters-and-trust.md#exactly-what-t3-contributed](../../llm-wiki/05-providers-adapters-and-trust.md#exactly-what-t3-contributed); [llm-wiki/09-technical-terms.md#provider-model-agent-harness-and-adapter](../../llm-wiki/09-technical-terms.md#provider-model-agent-harness-and-adapter); [packages/durable/src/adapters/codex/vendor/UPSTREAM.md](../../packages/durable/src/adapters/codex/vendor/UPSTREAM.md)
+
+## 12. What our checks establish
+
+**Target time:** 45 seconds.
+
+**Speaking points**
+
+- Controlled tests force known timing; real-model checks establish actual integration.
+  - Example: a test holds both reads before releasing either write. A separate real Ollama check verifies actual generated text, file bytes and reset.
+- The load test exercised real HTTP and SQLite with simulated agent work.
+  - Example: 1,200 commands completed in about ten minutes. A burst completed 81 and rejected 519 at the configured queue limit.
+  - Technical: a soak [sustained workload] is not a real-model throughput benchmark. One observed start per accepted command is not a universal exactly-once guarantee.
+- Every result needs its boundary stated.
+  - Technical: 48 demo tests and 68 focused Durable tests passed in recorded runs; this is not the entire repository suite.
+  - Example: local Ollama success does not prove GCP speed, real Codex behavior or correct handling of every crash.
+
+**Show / demonstrate**
+
+1. Show the saved load report or the portable Ollama proposal result. Do not run load on the presentation's live store.
+
+**If unavailable:** Use the slide's counts and explain which work was simulated.
+
+**Limit to state:** Maximum throughput, token overhead and cloud performance remain unmeasured; GCP slow-chat diagnosis is still open.
+
+**Transition:** Deployment adds another set of operational checks.
+
+**References:** [llm-wiki/07-evidence-scaling-and-deployment.md#the-load-result-worth-remembering](../../llm-wiki/07-evidence-scaling-and-deployment.md#the-load-result-worth-remembering); [llm-wiki/07-evidence-scaling-and-deployment.md#what-the-measurements-cannot-prove](../../llm-wiki/07-evidence-scaling-and-deployment.md#what-the-measurements-cannot-prove); [apps/collab-demo/load/README.md](../../apps/collab-demo/load/README.md)
+
+## 13. GCP deployment and remaining checks
+
+**Target time:** 35 seconds.
+
+**Speaking points**
+
+- The app runs on one VM [virtual machine] with saved data and a shared project folder.
+  - Example: the sslip.io address routes to Caddy [server forwarding browser traffic securely to the app], which forwards to 127.0.0.1:4310.
+- The cloud website is accessible, but model speed and recovery still need separate checks.
+  - Example: regular Ollama chat on GCP can exceed 60 seconds while idle curl generation is fast. The cause has not been confirmed.
+  - Technical: compare full model-request timing with browser delivery before attributing the delay to CPU, history or the proxy.
+- A safe update rebuilds assets and restarts the single owner while preserving data and credentials.
+  - Example: stop after agents are idle, back up, fetch the reviewed revision, build, start, then reload both pages.
+  - Technical: a failure domain [things that fail together] includes the owning process, disk and VM/zone. Starting two owners on the same files is unsafe.
+
+**Show / demonstrate**
+
+1. Use only the actual tested URL/revision. Confirm service/model readiness before the interview; keep a local fallback ready.
+
+**If unavailable:** Show the deployment path and explain the outstanding latency/restore checks.
+
+**Limit to state:** Do not generalize website access into proven recovery or performance. Confirm the latest revision, backup restoration, Linux child cleanup and hosted demonstration timing.
+
+**Transition:** Finish with what we delivered and the next protection to add.
 
 **References:** [llm-wiki/07-evidence-scaling-and-deployment.md#why-the-proposed-gcp-deployment-uses-one-vm](../../llm-wiki/07-evidence-scaling-and-deployment.md#why-the-proposed-gcp-deployment-uses-one-vm); [llm-wiki/interview-questions/08-scaling-and-operations.md](../../llm-wiki/interview-questions/08-scaling-and-operations.md); [apps/collab-demo/deploy/README.md](../../apps/collab-demo/deploy/README.md)
 
-## 12. Next implementation and remaining delivery work
+## 14. What is implemented and what comes next
 
-**Target time:** 25 seconds.
+**Target time:** 40 seconds.
 
 **Speaking points**
 
-- The next useful presentation feature is a bounded, step-controlled managed-file conflict panel. It would show both original reads, Alice's accepted proposal, Bob's rejected stale proposal, and a fresh explicit resolution.
-- That panel uses scripted participants and requires no additional model key or GCP. Binding the protection to ordinary agent tools, restricting bypass writes, and handling uncertain publication are separate execution-policy work.
-- Real Codex evidence, cloud deployment/restore, and human rehearsal remain delivery checks. Longer-term options include roles/approvals, worktrees, fair budgets, and exclusive workers for independent threads; they are outside this immediate slice.
+- Implemented: shared agents, saved request identity, visible activity, peer awareness and the controlled managed-file flow.
+  - Example: two users can continue the same agent conversation and demonstrate a refused stale proposal with explicit resolution/reset.
+- Next, make ordinary coding edits participate in a managed protocol and track the files their plans depend on.
+  - Example: if file2's API changes, refuse A's file1 proposal and request a new plan before publishing.
+  - Technical: read set [files the plan relied on] validation needs coordination through publication. Prompt reminders alone cannot provide it.
+- Keep further extensions separate from the current take-home scope.
+  - Example: automatic re-drafting after resolution, worktrees [separate checked-out directories], shared approvals and multiple owners need additional design/tests.
+  - Technical: current priorities include GCP latency/rehearsal, real Codex coding/continuation and Linux cleanup/backup restoration.
 
-**Suggested demonstration:** Return to the future deployed app for questions, but do not point to a conflict panel that does not exist. If it is implemented later, re-record its evidence and revise these notes before claiming it works.
+**Show / demonstrate**
 
-**Fallback:** End on the concrete next slice and its boundaries, then use backup slides only for relevant questions.
+1. Return to the shared-agent or managed conflict view for questions. Use backup slides only when relevant.
 
-**Boundary to state:** The whole assignment is not complete while cloud delivery and the stated verification gates remain pending.
+**If unavailable:** End with the concrete delivered behaviors and the dependency-change example.
 
-**References:** [llm-wiki/06-web-and-demonstration.md#how-the-proposed-scenario-panel-improves-the-story](../../llm-wiki/06-web-and-demonstration.md#how-the-proposed-scenario-panel-improves-the-story); [llm-wiki/08-interview-drills.md#what-would-you-implement-next-and-what-would-you-defer](../../llm-wiki/08-interview-drills.md#what-would-you-implement-next-and-what-would-you-defer); [TAKE_HOME_PROGRESS.md#current-risks-and-open-checks](../../TAKE_HOME_PROGRESS.md#current-risks-and-open-checks)
+**Limit to state:** Native rehearsal uses existing OpenAI/Ollama access; Codex needs separate authentication. Updated cloud code and acceptance checks are still required.
 
-## 13. Backup: file coordination choices
+**Transition:** Invite questions about file protection, recovery or the reused components.
+
+**References:** [llm-wiki/10-collaboration-awareness.md#what-is-tested-and-what-to-demonstrate-next](../../llm-wiki/10-collaboration-awareness.md#what-is-tested-and-what-to-demonstrate-next); [llm-wiki/08-interview-drills.md#what-would-you-implement-next-and-what-would-you-defer](../../llm-wiki/08-interview-drills.md#what-would-you-implement-next-and-what-would-you-defer); [TAKE_HOME_PROGRESS.md#current-risks-and-open-checks](../../TAKE_HOME_PROGRESS.md#current-risks-and-open-checks)
+
+## 15. Backup: file protection and dependencies
 
 **Target time:** Backup; use only for questions.
 
 **Speaking points**
 
-- Optimistic checks allow independent preparation and reject an outdated destination at publication. This protects cooperative writes but does not validate every file used by a plan, and exact text checks do not detect content changing away and back.
-- Whole-instruction ownership is simpler for unrestricted harnesses but requires every writer to honor the rule until all child processes stop. A lease expiring is not enough to stop an old shell.
-- Separate worktrees create separate working files; branches alone do not. Integration needs review, merge, and testing, and changes the assignment's immediate shared-folder visibility. T3's inspected startup workspace lease ends before the provider turn; it is not a whole-turn lock.
+- Today's managed check validates the destination file, not every file used to plan an edit.
+  - Example: file1 is unchanged, but file2 now requires an object instead of a string. The destination check can pass while the code is wrong.
+- Dependency-aware checks record versions of the files read and validate them before publication.
+  - Technical: a read set [files the plan relied on] must remain unchanged through validation/publication, or another writer can race the check. All relevant writers must participate.
+- Whole-task ownership or separate worktrees offer different trade-offs.
+  - Example: ownership makes peers wait; worktrees allow isolated edits but require reviewed integration and tests.
+  - Technical: a lease [permission that expires] cannot stop an old shell. T3's inspected startup lease ends before its provider turn, so it is not a whole-task lock.
 
-**Suggested demonstration:** Use example 41 in a separate VM terminal for the implemented conditional-write choice. Discuss worktrees and whole-instruction locking as designs, not hidden modes of the current app.
+**Show / demonstrate**
 
-**Fallback:** Work through base/current/proposed and ask which trade-off best fits a requirement for unrestricted shell tools.
+1. Use the file1/file2 example to compare destination checks, dependency checks, ownership and worktrees.
 
-**Boundary to state:** No automatic Git stash/pop, merge engine, global workspace lock, or multi-file transaction is implemented.
+**If unavailable:** Walk through the rows without opening another tool.
+
+**Limit to state:** Dependency validation, whole-task ownership, automatic merging and unrestricted shell protection are not implemented.
+
+**Transition:** Return to the relevant main slide after answering.
 
 **References:** [llm-wiki/interview-questions/03-file-conflicts.md](../../llm-wiki/interview-questions/03-file-conflicts.md); [llm-wiki/09-technical-terms.md#locks-ownership-leases-and-fencing](../../llm-wiki/09-technical-terms.md#locks-ownership-leases-and-fencing); [apps/collab-demo/CONFLICT_RESOLUTION_PROPOSAL.md](../../apps/collab-demo/CONFLICT_RESOLUTION_PROPOSAL.md)
 
-## 14. Backup: trust and limits
+## 16. Backup: trusted users and shared control
 
 **Target time:** Backup; use only for questions.
 
 **Speaking points**
 
-- Authentication maps the bearer token to Alice; membership authorization is enforced inside the package. Passing the string alice to the library is not authentication, and a prompt claiming to be an administrator carries no additional authority.
-- All thread members intentionally see all lanes and can stop peer work. Fixed membership has no dynamic revocation flow, and the trusted coding process can access credentials available to its service account.
-- The default limits include 256 lifetime commands and 16 pending per agent, but one user can consume capacity and one command can call a model many times. A public service needs a different identity, isolation, budget, and retention design.
+- The host identifies users, and the package checks their membership.
+  - Example: a message saying "I am Alice" does not authenticate its sender. A valid token maps to Alice before the package receives the command.
+- Every current member can see all agent conversations and stop shared work.
+  - Example: Bob's Stop also affects Alice's queued requests on that agent. There are no private per-user agent histories or dynamic roles.
+- A workspace directory is not a sandbox [enforced restriction on what a process can access].
+  - Example: ordinary coding-agent shell tools can access files available to the service account outside that directory.
+  - Technical: queue limits bound admitted work, not money spent, hostile execution or fairness between users.
 
-**Suggested demonstration:** If asked, show the GUI's shared scope with Alice and Bob. Use existing automated unauthorized-access tests as evidence instead of displaying real tokens or attempting destructive commands.
+**Show / demonstrate**
 
-**Fallback:** Contrast host identity checks with package membership, then explain why neither is an OS sandbox.
+1. Explain the trusted-team boundary; do not demonstrate secret access or destructive commands.
 
-**Boundary to state:** Path/link checks in the read-only viewer are hygiene for trusted users, not confinement against hostile concurrent writers or prompt injection.
+**If unavailable:** Use the token-versus-message example.
+
+**Limit to state:** Public URL access still requires application authentication; hostile multi-tenant execution is outside this prototype.
+
+**Transition:** Return to the shared-control or deployment discussion.
 
 **References:** [llm-wiki/05-providers-adapters-and-trust.md#authentication-membership-and-authority](../../llm-wiki/05-providers-adapters-and-trust.md#authentication-membership-and-authority); [llm-wiki/interview-questions/06-security-and-api.md](../../llm-wiki/interview-questions/06-security-and-api.md)
 
-## 15. Backup: reconnect and slow viewers
+## 17. Backup: reconnect and request retries
 
 **Target time:** Backup; use only for questions.
 
 **Speaking points**
 
-- The browser gets current-state snapshots over SSE, not a durable stream of every intermediate token. It can page older committed messages, and stable entry IDs avoid duplicate display after reconnect.
-- One shared watch observes each lane; a blocked viewer keeps only a latest pending snapshot. Limits constrain viewers, frames, and application buffering, not all kernel buffers or total process memory.
-- A browser can forget an ambiguous draft's retry ID on reload even while the server retains accepted work. A future saved client receipt/draft list would need explicit retention and reconciliation, without storing bearer tokens.
+- Reconnect fetches the latest view; it does not replay every missed token or status change.
+  - Technical: SSE [server-to-browser updates over HTTP] carries snapshots [recent views]. Saved message history can be loaded separately.
+- A slow viewer keeps a recent pending view rather than every intermediate update.
+  - Example: Bob may jump from running to completed after reconnect, without seeing each tool step.
+  - Technical: coalescing [replacing an older pending view with the newest] limits that buffer, not all operating-system or process memory.
+- The server's saved receipt and the browser's pending retry ID have different lifetimes.
+  - Example: Retry same command reuses the ID; reload/relogin can lose it. Copy/paste with a new Send creates another command, even with identical text.
+  - Technical: a lost acceptance reply does not prove rejection. Storage errors can occur after commit; stop the failed owner before reopening and retry the original identity.
 
-**Suggested demonstration:** Disconnect only Alice's browser connection, let Bob observe accepted work, reconnect Alice and inspect history. Reauthenticate after reload if needed; do not resend the instruction under a new ID just to restore the display.
+**Show / demonstrate**
 
-**Fallback:** Explain that a latest-view stream can omit progress steps while still catching up with completed messages and state.
+1. Reload only an idle/acknowledged browser view, sign in and show restored history without submitting another instruction.
 
-**Boundary to state:** The views combine sources and are not an atomic cross-source snapshot or a global audit log. No GUI network-fault toggle or durable replay cursor is provided.
+**If unavailable:** Use the same-ID retry versus new-ID Send example.
+
+**Limit to state:** There is no complete event journal or persisted browser retry ledger. Discarding a retry does not cancel accepted work.
+
+**Transition:** Return to the request-lifecycle slide.
 
 **References:** [llm-wiki/06-web-and-demonstration.md#snapshots-are-convergent-views-not-an-event-journal](../../llm-wiki/06-web-and-demonstration.md#snapshots-are-convergent-views-not-an-event-journal); [llm-wiki/09-technical-terms.md#backpressure-fan-out-and-coalescing](../../llm-wiki/09-technical-terms.md#backpressure-fan-out-and-coalescing)
 
-## 16. Backup: design ownership and AI assistance
+## 18. Backup: design choices and AI assistance
 
 **Target time:** Backup; use only for questions.
 
 **Speaking points**
 
-- I directed the scope toward evolving Durable itself, required real T3 reuse, challenged whether the demo truly showed M:N sharing, and kept the file-conflict limitations visible. AI assistance helped implement, investigate, and document the work.
-- I should be able to explain a request, a crash boundary, and a lost-update trace without relying on an assistant's summary. Existing Pi storage/tools/providers and T3 client code remain credited upstream work.
-- The original approximately twenty-hour target shaped prioritization, but it is not a measured claim about actual elapsed development time. I would not claim I manually wrote all code or that passing tests substitute for understanding it.
+- I directed the project toward extending Durable and demonstrating shared behavior with explicit limits.
+  - Example: evolving the fork, requiring actual T3 reuse and challenging the original access-matrix demo were deliberate scope decisions.
+- Existing Pi components and T3 code remain credited; AI assisted implementation and documentation.
+  - Example: I should be able to explain the receipt transaction and stale-edit trace without relying on an assistant's wording.
+- The original twenty-hour target shaped scope; it is not a measured elapsed-time claim.
+  - Technical: one owner, fixed membership and one managed file reduce delivery complexity. Broader protection requires additional work and evidence.
 
-**Suggested demonstration:** No new app interaction is needed. Answer a concrete follow-up using a source file, wiki explanation, or the controlled example rather than opening a large unprepared code tour.
+**Show / demonstrate**
 
-**Fallback:** Explain one trade-off you deliberately accepted and what evidence would justify changing it.
+1. Answer with one design choice, one concrete trace and one test boundary.
 
-**Boundary to state:** Treat these as preparation points to phrase truthfully in your own words; do not invent a personal development history or an unrecorded result.
+**If unavailable:** Use the file conflict or lost-reply example.
+
+**Limit to state:** Phrase personal ownership truthfully; do not imply all upstream code or validation was written manually.
+
+**Transition:** Return to the question being discussed.
 
 **References:** [llm-wiki/08-interview-drills.md#how-do-you-explain-ai-assisted-development](../../llm-wiki/08-interview-drills.md#how-do-you-explain-ai-assisted-development); [llm-wiki/interview-questions/01-architecture-and-scope.md#how-would-you-explain-your-own-judgment-when-much-of-the-implementation-used-ai-assistance](../../llm-wiki/interview-questions/01-architecture-and-scope.md#how-would-you-explain-your-own-judgment-when-much-of-the-implementation-used-ai-assistance)

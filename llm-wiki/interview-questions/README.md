@@ -19,6 +19,7 @@ The categories separate questions about today's behavior from questions about a 
 | [Models and adapters](05-models-and-adapters.md) | Shared model credentials, compatibility, T3 events, approvals and continuation |
 | [Security and API boundaries](06-security-and-api.md) | Impersonation, revocation, prompt injection, path races and abuse limits |
 | [Testing and diagnosis](07-testing-and-diagnosis.md) | Controlled races, assertions, ambiguous failures, memory and latency measurements |
+| [Collaboration awareness and visible work](09-collaboration-awareness.md) | Peer edits, bounded context, communication cost, activity evidence and the controlled conflict GUI |
 | [Scaling and operations](08-scaling-and-operations.md) | Multiple owners, database choices, slow viewers, backup, VM restart and deployment |
 
 ## Practice an answer in three passes
@@ -48,6 +49,6 @@ For example, a receipt means the instruction was accepted, while a model answer 
 
 ## Keep evidence separate from design proposals
 
-The current default uses native OpenAI and Ollama, and the user has manually confirmed they work. The managed conflict GUI, real Codex model turns and actual GCP deployment are not established by that confirmation.
+The current default uses native OpenAI and Ollama, and the user has manually confirmed they work. The conflict GUI has separate local scripted-browser evidence. Initial GCP startup has user-provided evidence; updated cloud features, public HTTPS, full operational acceptance and real Codex turns remain unverified.
 
-The [claims table](../README.md#claims-you-can-defend) is the reference for what you can present as delivered. A deterministic conflict example uses real files but no model, and a prepared deployment unit is not a running VM. When practicing a future-design answer, explicitly introduce it as “I would add…” or “That would require…”.
+The [claims table](../README.md#claims-you-can-defend) is the reference for what you can present as delivered. A deterministic conflict example uses real files but no model, and an initial running VM is not complete deployment acceptance. When practicing a future-design answer, explicitly introduce it as “I would add…” or “That would require…”.

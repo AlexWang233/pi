@@ -8,20 +8,20 @@ The most useful source entry points are the [collaboration contract](../packages
 
 Several people should be able to talk to several coding agents, with agents working in a shared project folder. The assignment also asks for stress testing, investigation of failure cases, and deployment to GCP; it suggests using T3 Code where helpful.
 
-This scope is larger than making a chat interface or launching two LLM requests. It requires decisions about identity, ordering, persistence, cancellation and filesystem effects. The implementation addresses collaboration inside the Durable fork and supplies local evidence and deployment preparation; actual cloud delivery remains unfinished. The original approximately twenty-hour budget explains prioritizing one owner, fixed membership and narrow protections over a general collaboration platform. [Assignment](../PROJECT_INSTRUCTIONS.txt), [implementation plan](../TAKE_HOME_IMPLEMENTATION_PLAN.md).
+This scope is larger than making a chat interface or launching two LLM requests. It requires decisions about identity, ordering, persistence, cancellation and filesystem effects. The implementation addresses collaboration inside the Durable fork and supplies local evidence and deployment preparation; the user has confirmed initial VM startup, while complete cloud acceptance remains unfinished. The original approximately twenty-hour budget explains prioritizing one owner, fixed membership and narrow protections over a general collaboration platform. [Assignment](../PROJECT_INSTRUCTIONS.txt), [implementation plan](../TAKE_HOME_IMPLEMENTATION_PLAN.md).
 
 ## How the existing packages fit together
 
 Pi AI talks to model services such as OpenAI, and Pi Durable saves conversations and runs agent work. The new collaboration code adds shared users and agents, while the demo turns those capabilities into a web app.
 
-For example, when Alice asks an agent to create a file, the web app identifies Alice, the collaboration library checks her membership, Durable runs the work, and Pi AI sends requests to the selected model. Chord is an existing library Durable uses to update and observe saved structured state. The existing coding-agent package supplies related coding-tool designs; we did not rebuild its entire terminal application or invent the model providers, file tools, or SQLite storage.
+For example, when Alice asks an agent to create a file, the web app identifies Alice, the collaboration library checks her membership, Durable runs the work, and Pi AI sends requests to the selected model. Chord is a broader application/state framework; Durable uses selected standalone utilities from it rather than its complete application host. Coding-agent is the separate full Pi coding assistant, with its own model/tool loop and persistent sessions. Our demo runs Durable directly: it does not launch coding-agent, AgentSession or the Pi CLI. Durable already had its own execution/recovery path and adapted coding tools before this fork; that overlap was not introduced by our collaboration feature.
 
 | Existing part | Responsibility in this project |
 | --- | --- |
 | [Pi AI](../packages/ai/README.md) | Models, credentials, streaming and provider request translation |
 | [Pi Durable](../packages/durable/README.md) | Session commits, conversations, tasks, inboxes, tools, storage and recovery |
-| [Chord](../packages/chord/README.md) | Tracked JSON state, operations and watch infrastructure |
-| [Coding agent](../packages/coding-agent/README.md) | Existing interactive agent implementation and related coding-tool designs |
+| [Chord](../packages/chord/README.md) | Selected standalone state/operations/watch utilities; not the complete Chord application host |
+| [Coding agent](../packages/coding-agent/README.md) | Separate CLI/SDK coding assistant; related upstream tool designs, no runtime dependency in this demo |
 | [Collaboration module](../packages/durable/src/collaboration/index.ts) | Thread membership, attributed admission, receipts, external work and lane projections |
 | [Demo host](../apps/collab-demo/README.md) | Authentication, configuration, HTTP/SSE, browser and file inspection |
 
@@ -62,7 +62,7 @@ flowchart TD
 
 We added the rules for sharing agents, recording each user's requests, connecting external agents, and showing the work in a browser. Durable already supplied the saving, scheduling, model calls, and native coding tools underneath those additions.
 
-The main additions are [thread admission](../packages/durable/src/collaboration/thread.ts), [external execution](../packages/durable/src/collaboration/external.ts), [metadata](../packages/durable/src/collaboration/state.ts), [views](../packages/durable/src/collaboration/view.ts), the [managed-file experiment](../packages/durable/src/collaboration/managed-file.ts), the Codex adapter and demo. Existing Session transactions, native generation, tools, storage and scheduler remain underneath. This is a useful answer to “What was your contribution?” without taking credit for the entire upstream project.
+The main additions are [thread admission](../packages/durable/src/collaboration/thread.ts), [external execution](../packages/durable/src/collaboration/external.ts), [metadata](../packages/durable/src/collaboration/state.ts), [views](../packages/durable/src/collaboration/view.ts), the [managed-file experiment](../packages/durable/src/collaboration/managed-file.ts), the Codex adapter and demo. Newer additions include [refreshed agent context](10-collaboration-awareness.md), bounded native activity summaries and an isolated managed-file GUI. Existing Session transactions, native generation, tools, storage and scheduler remain underneath. This is a useful answer to “What was your contribution?” without taking credit for the entire upstream project.
 
 ## Framework dependence and the alternative approach
 

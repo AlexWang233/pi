@@ -117,18 +117,44 @@ export async function createDemoServer(options: DemoServerOptions, context: Cont
 			if (request.method === "GET") json(response, 200, await hosted.conflictDemo.view(actor, context));
 			else if (request.method === "POST") {
 				const body = await readBody(request);
-				// Wire boundary: identities, paths and proposal IDs are chosen by the server, never supplied by clients.
-				if (!isObject(body) || Object.keys(body).some((key) => key !== "kind" && key !== "content"))
+				// Wire boundary: clients select only a configured model and current round, never an actor or file path.
+				if (!isObject(body) || typeof body.round !== "string" || body.round.length > 64)
 					throw new HttpError(400, "Expected a walkthrough action only");
-				if ((body.kind === "prepare" || body.kind === "publish") && body.content === undefined)
-					json(response, 200, await hosted.conflictDemo.perform(actor, { kind: body.kind }, context));
+				const keys =
+					body.kind === "prepare"
+						? ["kind", "round", "agentId", "prompt"]
+						: body.kind === "resolve"
+							? ["kind", "round", "content"]
+							: ["kind", "round"];
+				if (Object.keys(body).some((key) => !keys.includes(key)))
+					throw new HttpError(400, "Unexpected walkthrough fields");
+				if (body.kind === "publish" || body.kind === "reset")
+					json(
+						response,
+						200,
+						await hosted.conflictDemo.perform(actor, { kind: body.kind, round: body.round }, context),
+					);
+				else if (body.kind === "prepare" && typeof body.prompt === "string" && typeof body.agentId === "string")
+					json(
+						response,
+						200,
+						await hosted.conflictDemo.perform(
+							actor,
+							{ kind: "prepare", round: body.round, prompt: body.prompt, agentId: body.agentId },
+							context,
+						),
+					);
 				else if (body.kind === "resolve" && typeof body.content === "string")
 					json(
 						response,
 						200,
-						await hosted.conflictDemo.perform(actor, { kind: "resolve", content: body.content }, context),
+						await hosted.conflictDemo.perform(
+							actor,
+							{ kind: "resolve", round: body.round, content: body.content },
+							context,
+						),
 					);
-				else throw new HttpError(400, "Expected prepare, publish, or resolve with text content");
+				else throw new HttpError(400, "Expected prepare with prompt/model, publish, reset, or resolve with text");
 			} else throw new HttpError(405, "Unsupported method");
 			return;
 		}

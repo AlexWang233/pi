@@ -1,6 +1,6 @@
 # Testing evidence, scaling and GCP
 
-Each test answers a particular question, such as whether retrying adds a duplicate request or whether a file was really created. The existing results support a local prototype, while actual cloud deployment and several process-cleanup checks remain unfinished.
+Each test answers a particular question, such as whether retrying adds a duplicate request or whether a file was really created. The existing results support a local prototype and user-confirmed initial VM startup, while complete cloud acceptance and several process-cleanup checks remain unfinished.
 
 Use the [validation record](../TAKE_HOME_PROGRESS.md#validation-log), [load report](../apps/collab-demo/load/README.md) and [deployment runbook](../apps/collab-demo/deploy/README.md) as evidence references. Memorize the workload and its limits before memorizing individual test counts. Look up [barriers, soak tests, p95, and RSS](09-technical-terms.md#deterministic-tests-load-tests-and-measurements) or [single owners and failure domains](09-technical-terms.md#single-owner-failure-domain-and-availability) if needed.
 
@@ -12,9 +12,9 @@ HTTP tests cover authentication, admission and transport; controlled concurrency
 
 ## Recorded evidence versus reported success
 
-There are 41 demo test cases, but the latest recorded full demo run covered the earlier set of 38. Later targeted checks covered added startup behavior, and the user separately reported that OpenAI now works.
+The latest recorded demo run passed 48 tests across thirteen files. The collaboration-context update also passed 68 focused Durable tests across seven files, root/app checks and the Durable build; these counts describe selected suites, not all repository tests.
 
-Do not state “all 41 passed in one fresh full run” without running and recording that check. The regular Ollama browser report records five commands across all four user/agent pairings, eleven model requests, file inspection, queueing, offline catch-up and idle reopen. Its Windows shutdown event used a QA-only IPC preload, so it does not establish Ctrl+C behavior under every shell or active subprocess containment. The more useful interview claim is a list of covered boundaries and remaining gaps, not a large aggregate number. [Browser evidence](../apps/collab-demo/scripts/results/2026-11-08-ollama-browser.json).
+A separate [real Ollama proposal check](../apps/collab-demo/scripts/results/2026-11-10-conflict-rounds-ollama.json) generated both defaults, asserted unchanged bytes before Publish, then verified stale refusal and Reset. The newer browser check used scripted providers and actual managed-file bytes to verify two identities, stale refusal, editable explicit resolution, reconnect and mobile layout. Context tests captured refreshed prompts after peer edits and existing-store reopen; real OpenAI/Ollama interpretation remains untested. The regular Ollama browser report records five commands across all four user/agent pairings, eleven model requests, file inspection, queueing, offline catch-up and idle reopen. Its Windows shutdown event used a QA-only IPC preload, so it does not establish Ctrl+C behavior under every shell or active subprocess containment. The more useful interview claim is a list of covered boundaries and remaining gaps, not a large aggregate number. [Browser evidence](../apps/collab-demo/scripts/results/2026-11-08-ollama-browser.json).
 
 ## The load result worth remembering
 
@@ -42,9 +42,9 @@ The next reasonable scale step is to give independent threads separate owners an
 
 ## Why the proposed GCP deployment uses one VM
 
-The prepared GCP plan uses one virtual machine because the app expects a long-running process, local SQLite, and a shared folder. It keeps data on persistent storage and proposes private access through SSH; the deployment has not been run and verified yet.
+The prepared GCP plan uses one virtual machine because the app expects a long-running process, local SQLite, and a shared folder. The user has confirmed initial service startup and HTTP 200 on a VM. This does not verify the updated features, public HTTPS, process containment or backup restoration.
 
-The app binds to loopback and evaluator access uses SSH forwarding instead of a public application endpoint. The service template requests cgroup cleanup, requires the data mount, uses a cooperative owner lock and disables automatic restart for inspection. Those policies are prepared configuration, not verified Linux containment or a sandbox. The current default includes local Ollama, so a VM would also need model/runtime installation and suitable measured compute capacity, or an explicitly chosen different composition; the Windows GPU result cannot be assumed on a small CPU VM. [Preparation kit](../apps/collab-demo/deploy/README.md).
+The app binds to loopback; SSH forwarding provides private access. Public access was subsequently requested, with instructions for an HTTPS reverse proxy and an IP-based sslip.io hostname; no successful public URL has been recorded. Bearer-token authentication remains required, and model/database ports should remain private. The service template requests cgroup cleanup, requires the data mount, uses a cooperative owner lock and disables automatic restart for inspection. Those policies are prepared configuration, not verified Linux containment or a sandbox. The current default includes local Ollama, so a VM would also need model/runtime installation and suitable measured compute capacity, or an explicitly chosen different composition; the Windows GPU result cannot be assumed on a small CPU VM. [Preparation kit](../apps/collab-demo/deploy/README.md).
 
 ## Why SQLite rather than adding PostgreSQL or Redis immediately
 

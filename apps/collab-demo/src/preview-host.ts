@@ -99,7 +99,12 @@ export async function openPreview(
 			],
 		};
 		const thread = await collaboration.open(harness, config, context);
-		conflictDemo = await ConflictDemo.open(join(workspace, ".conflict-demo"), config.members, context);
+		conflictDemo = await ConflictDemo.open(
+			join(workspace, ".conflict-demo"),
+			config.members,
+			{ kind: "scripted" },
+			context,
+		);
 		const demo = await createDemoServer(
 			{ threads: new Map([[config.id, { config, thread, conflictDemo }]]), tokens, assets: await loadAssets() },
 			context,

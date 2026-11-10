@@ -2,7 +2,7 @@
 
 This page explains the agent-system and collaboration terms used throughout the wiki. It assumes you know ordinary programming concepts, but have not operated a shared coding-agent service before.
 
-Read the first paragraph of a section for the plain-English meaning, then the next paragraph for the engineering detail. The examples use Alice and Bob sharing agents A and B; the links lead to the actual implementation choices and interview questions. **A definition is not a delivery claim:** locks covering a whole instruction, automatic merging, distributed ownership, and the conflict GUI remain possible extensions where the linked pages say so.
+Read the first paragraph of a section for the plain-English meaning, then the next paragraph for the engineering detail. The examples use Alice and Bob sharing agents A and B; the links lead to the actual implementation choices and interview questions. **A definition is not a delivery claim:** locks covering a whole instruction, automatic merging and distributed ownership remain extensions. The scripted conflict GUI is now implemented; ordinary agent writes remain unprotected.
 
 ## Find a term
 
@@ -28,6 +28,7 @@ The groups below follow a request from the model connection through shared work,
 | Projection, snapshot, convergence, audit log, SSE, replay cursor | [What viewers receive](#projections-snapshots-sse-and-audit-logs) |
 | Backpressure, fan-out, coalescing, bounded buffers | [A slow browser](#backpressure-fan-out-and-coalescing) |
 | Continuation, context window, compaction | [Continuing a conversation](#continuation-context-windows-and-compaction) |
+| Collaboration context, provenance, bounded metadata | [Peer awareness and evidence](#collaboration-context-and-file-provenance) |
 | Cancellation, deadline, graceful close, containment | [Stopping work](#cancellation-deadlines-and-process-containment) |
 | Authentication, authorization, prompt injection, sandbox, TOCTOU | [Trust and access](#authentication-authorization-and-the-execution-boundary) |
 | Single owner, failure domain, availability | [More processes or machines](#single-owner-failure-domain-and-availability) |
@@ -171,6 +172,12 @@ For example, Bob's blocked browser may have pending “running: step 2” replac
 A **continuation reference** identifies an external conversation that later instructions can continue, rather than a saved copy of a running process. A model's **context window** is the input it can consider at once; **compaction** summarizes earlier context so a long conversation can keep going.
 
 Codex continuation belongs to the provider-side session, while Durable retains the reference and its own records. It does not establish that an interrupted external instruction is safe to retry, and real authenticated continuation remains unverified. Native compaction keeps raw transcript history while changing the context used for later model requests; generating the summary can itself require another model call. Stored history, active model context, and live process state are three different things. [Stored versus reconstructed state](03-durability-and-recovery.md#what-is-stored-and-what-is-reconstructed), [continuation question](interview-questions/05-models-and-adapters.md#what-is-saved-so-a-later-codex-command-can-continue-the-same-external-conversation).
+
+## Collaboration context and file provenance
+
+**Collaboration context** is information supplied to an agent about the shared workspace and its participants, beyond its own conversation. **File provenance** means evidence connecting a file change to its source, such as the responsible request and writer. Knowing that Alice submitted a request is not proof that Alice's agent changed a particular line.
+
+**Bounded metadata** means limiting both how many references are included and the length of their identifiers, rather than sharing an ever-growing history. Our native prompt refresh includes participant and request references, but not peer message text or a verified file-author record. Prompt guidance can encourage rereading; enforcement of a stale-write check remains a separate mechanism. See [the awareness implementation and limits](10-collaboration-awareness.md) and [the time-of-check-to-time-of-use example](10-collaboration-awareness.md#why-this-does-not-completely-solve-stale-context).
 
 ## Cancellation, deadlines, and process containment
 

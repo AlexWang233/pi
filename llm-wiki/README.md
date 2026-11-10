@@ -2,7 +2,7 @@
 
 This wiki helps you explain what the project does, why we built it this way, and what its limits are. Start with the short explanations and examples; use the deeper paragraphs when practicing follow-up questions.
 
-The implementation/evidence snapshot is from November 8, 2026; the explanations and glossary were revised on November 9. OpenAI works according to the user's manual confirmation; the earlier credit error is historical. No new live model test or cloud deployment was performed while writing this wiki. Existing implementation records can contain older status descriptions, so use the claim boundaries below when preparing your presentation.
+Updated November 10, 2026 for the implemented conflict panel, activity feed and refreshed agent collaboration context. OpenAI works according to the user's manual confirmation; the earlier credit error is historical. The user confirmed initial GCP VM startup and HTTP 200. The new features have local deterministic evidence; updated cloud behavior, public HTTPS access and live model interpretation remain unverified. No new model calls or cloud changes were made for this documentation update. Existing implementation records can contain older status descriptions, so use the claim boundaries below when preparing your presentation.
 
 ## The short project pitch
 
@@ -27,6 +27,7 @@ Practice explaining both stories without using special terminology first. Then l
 | [Evidence, scaling and deployment](07-evidence-scaling-and-deployment.md) | What was tested, where are the bottlenecks, and how would GCP deployment work? |
 | [Interview answer drills](08-interview-drills.md) | How do you answer difficult questions directly and acknowledge trade-offs? |
 | [Expanded interview question bank](interview-questions/README.md) | Concrete scenarios, deeper follow-ups and links by question type |
+| [Collaboration awareness and visible work](10-collaboration-awareness.md) | What do agents know about peers, what does it cost, and why is this different from enforced edit protection? |
 | [Technical terms with examples](09-technical-terms.md) | What do harness, admission, fencing, projection and other unfamiliar terms mean here? |
 | [LaTeX/PowerPoint deck and speaker notes](../presentations/take-home/README.md) | What should I say and demonstrate on each slide, including after GCP deployment? |
 | [GCP setup and demo commands](../TAKE_HOME_GCP_DEPLOYMENT_GUIDE.md) | What do I provision, how do I start it, and which demonstrations run in the browser versus a VM terminal? |
@@ -48,11 +49,13 @@ The table is the presentation boundary for this snapshot. In particular, a succe
 | Multiple users share named agents, histories and queues | Package/HTTP tests and browser walkthroughs; preview covers three users by two agents |
 | Native model tools can edit actual workspace files | Recorded Ollama integration plus the user's manual Ollama/OpenAI confirmation |
 | Admission, retries and selected recovery boundaries work | Deterministic tests, SQLite owner-kill cases and storage-fault injection |
-| Stale cooperative edits can be rejected and retained for review | Managed-file API/tests and runnable example 41; not connected to ordinary model tools or GUI |
+| Stale cooperative edits can be rejected and retained for review | Managed-file API, example 41 and resettable GUI; live proposal generation has no file tools, ordinary coding tools remain unprotected |
 | T3 code is used for external Codex integration | Vendored client/protocol/replay, scripted subprocess tests and real CLI initialization; no recorded real Codex model turn |
 | An initial load/soak measurement exists | Real SQLite/HTTP/SSE with simulated execution; not real provider throughput |
-| GCP deployment has a design and preparation kit | Templates/runbook exist; actual VM deployment, Linux containment and restore verification remain pending |
-| A step-controlled GUI scenario demonstration exists | Proposed next feature; not implemented at this snapshot |
+| GCP VM starts the demo | User-provided service/HTTP 200 evidence; updated features, public HTTPS, Linux containment and restore still need verification |
+| A step-controlled GUI scenario demonstration exists | Reset/reconnect/stale-round browser checks with real files/SQLite; real local Ollama proposal generation, up to 64 saved rounds |
+| Agents receive shared-workspace context | Deterministic native/external tests; no full peer history, verified file authorship or guarantee of model compliance |
+| An activity feed shows observed work | Bounded receipt/native-tool summaries; not a complete audit log or semantic success proof |
 
 ## Presentation discipline
 
@@ -62,6 +65,6 @@ For example: 'Alice's request was saved, but the network reply was lost. Retryin
 
 ## Current next steps
 
-The next proposed feature is a conflict walkthrough with buttons that let the presenter pause before each file change. Testing real Codex coding work and deploying to GCP are separate tasks that remain unfinished.
+The conflict walkthrough and activity feed are implemented. Next, rehearse the updated demo and evaluate shared-workspace guidance with real OpenAI/Ollama turns; the next protection slice is managed model-facing tools with trusted request identity.
 
-The deterministic scenario runner needs neither another provider key nor GCP and should clearly disclose that its participants are scripted. Connecting managed publication to ordinary model tools is a further execution-policy change, not just a UI addition. Codex needs its own authentication for live external turns, and deployment needs GCP project/billing/IAM plus Linux runtime/restore checks. Human rehearsal remains valuable even while those prerequisites are pending.
+Local scripted rehearsal needs no provider key or GCP. Existing OpenAI credentials and Ollama suffice for native live checks; real Codex needs its separate authentication. Deploy the updated revision before showing new features on GCP, then verify HTTPS/evaluator access, Linux cleanup and backup restoration. Worktrees, automatic merge, multi-file transactions and distributed ownership remain extensions.

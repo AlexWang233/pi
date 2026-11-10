@@ -38,7 +38,7 @@ Suppose Alice asks an agent to append `hello` to a file. The file changes, then 
 
 ## How do you handle simultaneous file edits?
 
-Ordinary shared-workspace agents can still lose updates; an opt-in managed-file API rejects stale cooperative proposals and retains conflict evidence. It is not yet integrated into native model tools, Codex or the GUI.
+Ordinary shared-workspace agents can still lose updates; an opt-in managed-file API rejects stale cooperative proposals and retains conflict evidence. The GUI now supports resettable rounds and live tool-free proposal generation; native model tools and Codex do not use it yet. [Shared-workspace guidance](10-collaboration-awareness.md) encourages rereading but does not enforce conflict prevention.
 
 Explain the trace: both agents retain `base`, Alice applies `base + alice`, Bob's old-base proposal conflicts, and a fresh combined proposal resolves it explicitly. No automatic merge is claimed. Whole-turn workspace ownership would be simpler for unrestricted writers but would reduce parallelism and require verified descendant cleanup. Worktrees offer stronger edit separation at the cost of changing immediate shared-file visibility and adding integration work.
 
@@ -68,7 +68,7 @@ The live GUI shows real native tool use and shared observations; deterministic e
 
 ## What would you implement next, and what would you defer?
 
-The most useful presentation extension is a small step-controlled conflict scenario that exposes retained proposals and explicit resolution. Stronger everyday protection would then require managed tools bound to trusted commands, a restricted execution mode and recovery reconciliation.
+The controlled conflict GUI, activity feed and refreshed shared-workspace guidance are implemented. The next checks are live interpretation and rehearsal; stronger everyday protection requires managed tools bound to trusted commands, a policy preventing bypass writes and recovery reconciliation.
 
 Keep dynamic roles, shared approval arbitration, more harnesses, worktrees, distributed workers and framework replacement as separate options with explicit costs. GCP delivery and real external-harness verification remain outstanding assignment work, not optional polish hidden by new UI features. A good prioritization answer distinguishes the next demonstrable slice from the work needed for production isolation or high availability.
 

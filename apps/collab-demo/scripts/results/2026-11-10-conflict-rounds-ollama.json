@@ -1,0 +1,18 @@
+{
+  "result": "passed",
+  "provider": "ollama",
+  "modelId": "qwen3:4b-instruct-2507-q4_K_M",
+  "milliseconds": 2866,
+  "outputs": [
+    "Greeting: Hello\nTheme: light",
+    "Greeting: Hi from the team\nTheme: dark"
+  ],
+  "checks": [
+    "two real proposal generations",
+    "generation leaves file unchanged",
+    "actual managed publish/stale refusal",
+    "reset restores neutral file"
+  ],
+  "paidProviderCalls": 0,
+  "cloud": "not exercised"
+}

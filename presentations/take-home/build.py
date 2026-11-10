@@ -36,13 +36,32 @@ def references_tex(note):
     )
 
 
+def points_tex(note):
+    """Render short speaking points with examples and technical details as nested bullets."""
+    lines = [r"\begin{itemize}"]
+    for point in note["talking_points"]:
+        lines.append(r"\item " + tex(point["point"]))
+        if point["details"]:
+            lines.append(r"\begin{itemize}")
+            lines.extend(r"\item " + tex(detail) for detail in point["details"])
+            lines.append(r"\end{itemize}")
+    lines.append(r"\end{itemize}")
+    return lines
+
+
+def demo_tex(note):
+    """Keep the presenter's demonstration sequence separate from the spoken explanation."""
+    return [r"\textbf{Show / demonstrate}", r"\begin{enumerate}",
+            *(r"\item " + tex(step) for step in note["demo"]), r"\end{enumerate}"]
+
+
 def make_notes(notes, build):
     """Generate Beamer note macros and a readable Markdown companion from one source."""
     macros = []
     markdown = [
         "# Slide-by-slide speaker notes", "",
-        f"12 main slides, {sum(note['seconds'] for note in notes) // 60} minutes {sum(note['seconds'] for note in notes) % 60} seconds of planned cues; four optional backup slides.", "",
-        "GCP is not deployed. All hosted demonstrations below are plans for after deployment.", "",
+        f"{sum(note['seconds'] > 0 for note in notes)} main slides, {sum(note['seconds'] for note in notes) // 60} minutes {sum(note['seconds'] for note in notes) % 60} seconds of planned cues; {sum(note['seconds'] == 0 for note in notes)} optional backup slides.", "",
+        "Use each short main point as the explanation; the sub-bullets supply examples and optional technical detail. Brackets define project-specific terms.", "",
         "The notes in the PowerPoint export come from the same `notes.json` source.", "",
     ]
     for number, note in enumerate(notes, 1):
@@ -50,15 +69,20 @@ def make_notes(notes, build):
             if not (REPO / ref.split("#", 1)[0]).is_file():
                 raise ValueError(f"Missing reference: {ref}")
         blocks = [r"\textbf{Speaking points}\par"]
-        blocks.extend(tex(point) + r"\par\smallskip" for point in note["talking_points"])
-        for key, label in (("demo", "Suggested demonstration"), ("fallback", "Fallback"), ("limit", "Boundary to state")):
+        blocks.extend(points_tex(note))
+        blocks.extend(demo_tex(note))
+        for key, label in (("fallback", "If unavailable"), ("limit", "Limit to state"), ("transition", "Transition")):
             blocks.append(r"\textbf{" + label + "}: " + tex(note[key]) + r"\par\smallskip")
         blocks.append(r"\textbf{References}: " + references_tex(note))
         macros.append(r"\expandafter\def\csname SlideNote" + str(number) + r"\endcsname{" + "\n".join(blocks) + "}")
         timing = f'{note["seconds"]} seconds' if note["seconds"] else "Backup; use only for questions"
         markdown.extend([f'## {number:02d}. {note["title"]}', "", f"**Target time:** {timing}.", "", "**Speaking points**", ""])
-        markdown.extend(f"- {point}" for point in note["talking_points"])
-        for key, label in (("demo", "Suggested demonstration"), ("fallback", "Fallback"), ("limit", "Boundary to state")):
+        for point in note["talking_points"]:
+            markdown.append(f'- {point["point"]}')
+            markdown.extend(f"  - {detail}" for detail in point["details"])
+        markdown.extend(["", "**Show / demonstrate**", ""])
+        markdown.extend(f"{index}. {step}" for index, step in enumerate(note["demo"], 1))
+        for key, label in (("fallback", "If unavailable"), ("limit", "Limit to state"), ("transition", "Transition")):
             markdown.extend(["", f"**{label}:** {note[key]}"])
         markdown.extend(["", "**References:** " + "; ".join(f"[{ref}](../../{ref})" for ref in note["references"]), ""])
     macros.append(r"\newcommand{\DeckNote}[1]{\note{\csname SlideNote#1\endcsname}}")
@@ -95,6 +119,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--moloch-source", type=Path, required=True)
     parser.add_argument("--tectonic", type=Path, required=True)
+    parser.add_argument("--output-suffix", default="", help="Append a suffix to exported filenames, e.g. -revised; keeps an open earlier deck intact")
     args = parser.parse_args()
     engine = args.tectonic.resolve()
     theme = args.moloch_source.resolve()
@@ -125,20 +150,20 @@ def main():
     for number, note in enumerate(notes, 1):
         if number > 1:
             article.append(r"\clearpage")
-        article.extend([r"\section*{" + f'{number:02d}. ' + tex(note["title"]) + "}", r"\begin{center}\includegraphics[page=" + str(number) + r",width=.60\linewidth]{slides.pdf}\end{center}"])
+        article.extend([r"\section*{" + f'{number:02d}. ' + tex(note["title"]) + "}", r"\begin{center}\includegraphics[page=" + str(number) + r",width=.48\linewidth]{slides.pdf}\end{center}"])
         article.append(r"\textbf{Target time}: " + (str(note["seconds"]) + " seconds" if note["seconds"] else "Backup slide") + r"\par")
-        article.extend([r"\textbf{Speaking points}", r"\begin{itemize}"])
-        article.extend(r"\item " + tex(point) for point in note["talking_points"])
-        article.append(r"\end{itemize}")
-        for key, label in (("demo", "Suggested demonstration"), ("fallback", "Fallback"), ("limit", "Boundary to state")):
+        article.append(r"\textbf{Speaking points}")
+        article.extend(points_tex(note))
+        article.extend(demo_tex(note))
+        for key, label in (("fallback", "If unavailable"), ("limit", "Limit to state"), ("transition", "Transition")):
             article.append(r"\textbf{" + label + "}: " + tex(note[key]) + r"\par")
         article.append(r"{\footnotesize\textbf{References}: " + references_tex(note) + "}")
     article.append(r"\end{document}")
     (build / "speaker-notes.tex").write_text("\n".join(article), encoding="utf-8")
     compile_tex(engine, build / "speaker-notes.tex", build)
-    shutil.copy2(build / "slides.pdf", output / "collaborative-pi-durable.pdf")
-    shutil.copy2(build / "speaker-notes.pdf", output / "speaker-notes.pdf")
-    export_pptx(ROOT / "notes.json", build, output / "collaborative-pi-durable.pptx")
+    shutil.copy2(build / "slides.pdf", output / f"collaborative-pi-durable{args.output_suffix}.pdf")
+    shutil.copy2(build / "speaker-notes.pdf", output / f"speaker-notes{args.output_suffix}.pdf")
+    export_pptx(ROOT / "notes.json", build, output / f"collaborative-pi-durable{args.output_suffix}.pptx")
     print(json.dumps({"slides": len(notes), "main_seconds": sum(note["seconds"] for note in notes), "output": str(output)}, indent=2))
 
 

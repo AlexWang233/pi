@@ -182,6 +182,7 @@ td { color: #c7cdd4; }
 .conflict-card[data-status="conflict"] { border-color: #9c7845; }
 .conflict-card[data-status="applied"] { border-color: #52665b; }
 .resolution-controls { margin: 12px 0; }
+.proposal-model { width: 100%; max-width: 640px; margin-bottom: 12px; padding: 8px; background: var(--background); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
 .resolution-input { display: block; width: 100%; min-height: 85px; max-height: 240px; resize: vertical; margin: 8px 0; padding: 10px; background: var(--background); border: 1px solid var(--border); border-radius: 6px; font: 12px ui-monospace, monospace; }
 .activity-timeline { max-height: 130px; overflow: auto; padding-left: 17px; color: var(--muted); font-size: 10px; line-height: 1.8; margin: 9px 0 0; }
 .activity-timeline li { overflow-wrap: anywhere; }

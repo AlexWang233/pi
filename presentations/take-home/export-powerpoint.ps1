@@ -28,10 +28,18 @@ try {
         if ($note.seconds -gt 0) { $lines += "Target time: $($note.seconds) seconds" }
         else { $lines += 'Backup slide; use only for questions' }
         $lines += 'Speaking points:'
-        $lines += $note.talking_points
-        $lines += 'Suggested demonstration: ' + $note.demo
-        $lines += 'Fallback: ' + $note.fallback
-        $lines += 'Boundary to state: ' + $note.limit
+        foreach ($point in $note.talking_points) {
+            $lines += '- ' + $point.point
+            $lines += @($point.details | ForEach-Object { '    - ' + $_ })
+            $lines += ''
+        }
+        $lines += 'Show / demonstrate:'
+        for ($step = 0; $step -lt $note.demo.Count; $step++) {
+            $lines += "$($step + 1). $($note.demo[$step])"
+        }
+        $lines += 'If unavailable: ' + $note.fallback
+        $lines += 'Limit to state: ' + $note.limit
+        $lines += 'Transition: ' + $note.transition
         $lines += 'Wiki/source references (relative to this deck):'
         $lines += @($note.references | ForEach-Object { '../../../' + $_ })
 
